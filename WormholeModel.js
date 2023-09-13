@@ -270,7 +270,6 @@ export default class WormholeModel {
       // get the viewable area for the player
       let viewportRect = this.player.getViewportRect();
 
-      //   paramGraphics.translate(-rectangle.x, -rectangle.y);
       //   paramGraphics.setColor(this.flashScreenColor);
       this.flashScreenColor = "black";
       //   char c = 'Ĭ';
@@ -281,10 +280,10 @@ export default class WormholeModel {
       //     this.totalBoardH + 600
       //   );
       context.translate(-viewportRect.x, -viewportRect.y);
+
       // draw the outer border box
       for (let i = 0; i < this.borderShades.length; i++) {
         context.strokeStyle = this.borderShades[i];
-        //   paramGraphics.setColor(this.borderShades[b]);
         context.strokeRect(
           -i,
           -i,
@@ -296,8 +295,6 @@ export default class WormholeModel {
       this.drawGrid(context);
 
       context.translate(viewportRect.x, viewportRect.y);
-
-      //   paramGraphics.translate(rectangle.x, rectangle.y);
 
       // display a message about 'INCOMING' or 'NUKE'
       //   if (this.incomingCycle > 0) {
@@ -312,23 +309,22 @@ export default class WormholeModel {
       //       paramGraphics.drawString("N U K E", this.boardWidth / 2 - 90, 240);
       //     }
       //   }
-      //   paramGraphics.translate(-rectangle.x, -rectangle.y);
 
       context.translate(-viewportRect.x, -viewportRect.y);
-      // draw all sprites
-      for (let i = 0; i < this.allSprites.length; i++) {
-        let sprite = this.allSprites[i];
+
+      // draw sprites
+      this.allSprites.forEach((sprite) => {
         if (sprite != null) {
-          // sprite.bInDrawingRect = sprite.inViewingRect(rectangle);
-          // for now, draw all the sprites
-          sprite.bInDrawingRect = true;
+          // check if the sprite is in the viewportRect
+          sprite.bInDrawingRect = sprite.inViewingRect(viewportRect);
           if (sprite.bInDrawingRect) {
             sprite.drawSelf(context);
           }
         }
-      }
+      });
+
       context.translate(viewportRect.x, viewportRect.y);
-      //   paramGraphics.translate(rectangle.x, rectangle.y);
+
       if (this.incomingIconCycle > 0) {
         this.incomingIconCycle--;
       } else if (this.incomingIconIndex > 0) {

@@ -1,8 +1,10 @@
+import Polygon from "./Polygon.js";
+
 export default class RotationalPolygon {
   constructor(points) {
     this.xpoints = [];
     this.ypoints = [];
-    this.numPoints = 0;
+    this.npoints = 0;
 
     this.distances = [];
     this.angles = [];
@@ -11,16 +13,26 @@ export default class RotationalPolygon {
     points.forEach((point) => {
       this.addIntPoint(point.x, point.y);
     });
+
+    this.polygon = new Polygon(this.xpoints, this.ypoints, this.npoints);
+  }
+
+  getPolygon() {
+    return this.polygon;
+  }
+
+  getBounds() {
+    return this.polygon.getBounds();
   }
 
   addDistAnglePoint(distance, angle) {
     this.distances.push(distance);
     this.angles.push(angle * 0.017453292519943295);
-    let x = Math.cos(this.angles[this.numPoints]) * distance;
-    let y = Math.sin(this.angles[this.numPoints]) * distance;
+    let x = Math.cos(this.angles[this.npoints]) * distance;
+    let y = Math.sin(this.angles[this.npoints]) * distance;
     this.xpoints.push(x);
     this.ypoints.push(y);
-    this.numPoints++;
+    this.npoints++;
   }
 
   addIntPoint(xval, yval) {
@@ -37,11 +49,14 @@ export default class RotationalPolygon {
     if (angle == this.currentAngle) return;
     this.currentAngle = angle;
     this.currentAngle %= 360;
-    for (let b = 0; b < this.numPoints; b++) {
-      this.xpoints[b] =
-        Math.cos(this.angles[b] + this.currentAngle) * this.distances[b];
-      this.ypoints[b] =
-        Math.sin(this.angles[b] + this.currentAngle) * this.distances[b];
+    for (let i = 0; i < this.npoints; i++) {
+      this.xpoints[i] =
+        Math.cos(this.angles[i] + this.currentAngle) * this.distances[i];
+      this.ypoints[i] =
+        Math.sin(this.angles[i] + this.currentAngle) * this.distances[i];
     }
+
+    // update the polygon with the new points
+    this.polygon = new Polygon(this.xpoints, this.ypoints, this.npoints);
   }
 }

@@ -1,4 +1,4 @@
-import Rectangle from "./Rectangle";
+import Rectangle from "./Rectangle.js";
 
 export default class Polygon {
   constructor(xpoints = [], ypoints = [], npoints = 0) {
@@ -8,10 +8,10 @@ export default class Polygon {
 
     //calculate the bounds of the polygon
     this.bounds = new Rectangle(
-      Math.min(xpoints),
-      Math.min(ypoints),
-      Math.max(xpoints),
-      Math.max(ypoints)
+      Math.min(...xpoints),
+      Math.min(...ypoints),
+      Math.max(...xpoints),
+      Math.max(...ypoints)
     );
   }
 

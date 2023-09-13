@@ -9,8 +9,6 @@ export default class GameBoard {
     //   paramCFProps,
     //   paramHashtable
     // );
-    // add to be able to adjust the fps
-    this.fps = 60;
     this.canvas = null;
     this.context = null;
     this.loop = null;
@@ -19,6 +17,7 @@ export default class GameBoard {
       right: false,
       left: false,
       up: false,
+      spacebar: false,
     };
 
     this.m_bPlaySound = true;
@@ -34,6 +33,8 @@ export default class GameBoard {
       this.input.left = true;
     } else if (e.code === "ArrowUp") {
       this.input.up = true;
+    } else if (e.code === "Space") {
+      this.input.spacebar = true;
     }
   }
 
@@ -46,6 +47,8 @@ export default class GameBoard {
       this.input.left = false;
     } else if (e.code === "ArrowUp") {
       this.input.up = false;
+    } else if (e.code === "Space") {
+      this.input.spacebar = false;
     }
   }
 
@@ -79,7 +82,6 @@ export default class GameBoard {
       this.model.player.dRotate = -1 * Math.abs(this.model.player.dRotate);
       this.model.player.isRotating = true;
     }
-
     if (this.input.up) {
       this.model.player.thrustOn = true;
     }
@@ -93,8 +95,8 @@ export default class GameBoard {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.context.fillStyle = "black";
     this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
     this.model.doOneCycle();
-    // playerSprite.draw(this.canvas, this.context);
   }
 
   start() {
@@ -109,7 +111,11 @@ export default class GameBoard {
     // Keep requesting new frames
     window.requestAnimationFrame(this.gameLoop.bind(this));
 
+    // perform updates to models
+    // currently used to handle keyboard input
     this.update();
+
+    // render the scene
     this.render();
   }
 

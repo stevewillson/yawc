@@ -10,6 +10,9 @@ export default class WHUtil {
   // implement later
   // target indicator around objects
   //    g_target = { { -60, -60, -40, -60 }, { -60, -60, -60, -40 }, { -60, 60, -40, 60 }, { -60, 60, -60, 40 }, { 60, -60, 40, -60 }, { 60, -60, 60, -40 }, { 60, 60, 40, 60 }, { 60, 60, 60, 40 } };
+  static randInt() {
+    return parseInt(Math.random() * Number.MAX_SAFE_INTEGER);
+  }
 
   drawRect(paramGraphics, paramRectangle) {
     paramGraphics.drawRect(
@@ -51,10 +54,6 @@ export default class WHUtil {
       );
   }
 
-  static randInt() {
-    return parseInt(Math.random() * Number.MAX_SAFE_INTEGER);
-  }
-
   drawPoly(paramGraphics, paramPolygon) {
     paramGraphics.drawPolygon(
       paramPolygon.xpoints,
@@ -64,7 +63,7 @@ export default class WHUtil {
   }
 
   scaleVector(paramDouble1, paramDouble2) {
-    return paramDouble1 / hyp(paramDouble1, paramDouble2);
+    return paramDouble1 / Math.hypot(paramDouble1, paramDouble2);
   }
 
   fillCenteredArc(

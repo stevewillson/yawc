@@ -3,15 +3,10 @@ import WHUtil from "./WHUtil.js";
 
 export default class Sprite {
   constructor(location = { x: 0, y: 0 }, model = null) {
-    // this.location = null;
-    // this.setLocation(location.x, location.y);
-
     // used to track the location of the sprite
     this.location = location;
-    // this.intx = null;
-    // this.inty = null;
 
-    this.polygon;
+    this.polygon = null;
 
     this.collisionType = null;
     this.bIsBulthis = null;
@@ -20,7 +15,6 @@ export default class Sprite {
     this.slot = 8;
     this.color = "white";
     this.allIndex = [];
-    this.secondaryIndex = null;
     // used to share a common list of sprites in the model
     this.model = model;
     this.name = null;
@@ -39,6 +33,8 @@ export default class Sprite {
     this.bZappable = null;
 
     this.bInDrawingRect = null;
+
+    // set up the shape rect for the sprite, use the x,y coordinates and then offset by the bounding box of the polygon
     this.shapeRect = null;
     this.boundingRect = new Rectangle(
       0,
@@ -55,31 +51,31 @@ export default class Sprite {
     this.angle = 0;
     this.radAngle = 0;
 
-    // handles the speed of the ship
+    // the speed of the ship
     this.velocity = { x: 0, y: 0 };
 
-    this.maxThrust;
-    this.maxVelocity;
-    this.g_centerX;
-    this.g_centerY;
+    this.maxThrust = null;
+    this.maxVelocity = null;
+    // this.g_centerX;
+    // this.g_centerY;
     this.indestructible = false;
 
     this.health = 1;
     this.damage = 1;
-    this.bUseHealth;
+    this.bUseHealth = null;
 
     this.hasCollided = false;
     this.collidedObject = null;
 
     this.MAX_HEALTH;
     this.images;
-    this.heights;
-    this.widths;
+    // this.heights;
+    // this.widths;
     this.numImages = 0;
     this.currentFrame = 0;
-    this.cachedWidth;
-    this.cachedHeight;
-    this.thrust;
+    // this.cachedWidth;
+    // this.cachedHeight;
+    this.thrust = null;
     this.leadPoint;
     // used to specify which sprite we are referring to
     this.uuid = WHUtil.uuid();
@@ -87,32 +83,29 @@ export default class Sprite {
     // this.uuid = crypto.randomUUID();
   }
 
-  // getShapeRect() {
-  //   return this.shapeRect;
-  // }
+  getShapeRect() {
+    return this.shapeRect;
+  }
 
   addSelf() {
-    switch (this.spriteType) {
-      case 2:
-        // may not need to keep track of the secondaryIndex because we will track them by a uuid
-        // this.secondaryIndex =
-        this.model.goodGuys.push(this);
-        break;
-      case 1:
-        // this.secondaryIndex =
-        this.model.badGuys.push(this);
-        break;
+    if (this.spriteType == 1) {
+      this.model.badGuys.push(this);
+    } else if (this.spriteType == 2) {
+      this.model.goodGuys.push(this);
     }
-    // this.allIndex =
     this.model.allSprites.push(this);
   }
 
   distanceFrom(sprite) {
-    return WHUtil.distance(this.intx, this.inty, sprite.intx, sprite.inty);
+    return WHUtil.distance(
+      this.location.x,
+      this.location.y,
+      sprite.location.x,
+      sprite.location.y
+    );
   }
 
   /**
-   *
    * @param thrustAmount
    * @description sets the x/y velocity of the Sprite based on the angle of the thrust
    */
@@ -132,7 +125,7 @@ export default class Sprite {
   handleCrash() {}
 
   reverseTrack() {
-    realTrack(model.player.intx, model.player.inty, true);
+    realTrack(model.player.location.x, model.player.location.y, true);
   }
 
   oob() {
@@ -171,22 +164,19 @@ export default class Sprite {
   removeSelf() {
     // go through the list and check for a sprite with the same uuid
     // if found, remove it
-    // model.allSprites.remove(this.allIndex);
     this.model.allSprites = this.model.allSprites.filter(
       (el) => el.uuid != this.uuid
     );
     switch (this.spriteType) {
-      case 2:
-        // model.goodGuys.remove(this.secondaryIndex);
-        this.model.goodGuys = this.model.goodGuys.filter(
-          (el) => el.uuid != this.uuid
-        );
-        return;
       case 1:
         this.model.badGuys = this.model.badGuys.filter(
           (el) => el.uuid != this.uuid
         );
-        // model.badGuys.remove(this.secondaryIndex);
+        return;
+      case 2:
+        this.model.goodGuys = this.model.goodGuys.filter(
+          (el) => el.uuid != this.uuid
+        );
         return;
     }
   }
@@ -195,8 +185,8 @@ export default class Sprite {
     if (this.currentFrame >= this.numImages) return;
     paramGraphics.drawImage(
       this.images[this.currentFrame],
-      this.intx - this.cachedWidth,
-      this.inty - this.cachedHeight,
+      this.location.x - this.cachedWidth,
+      this.location.y - this.cachedHeight,
       null
     );
   }
@@ -235,7 +225,9 @@ export default class Sprite {
         this.location.x - this.shapeRect.width / 2,
         this.location.y - this.shapeRect.height / 2
       );
-      // this.myr = this.shapeRect;
+    } else {
+      // if there is no shapeRect, create one around where the object is located
+      this.shapeRect = new Rectangle(this.location.x, this.location.y, 0, 0);
     }
   }
 
@@ -266,13 +258,13 @@ export default class Sprite {
       let polygon1 = new Polygon();
       for (let b = 0; b < polygon.npoints && !bool; b++) {
         polygon1.addPoint(
-          polygon.xpoints[b] + paramSprite2.intx,
-          polygon.ypoints[b] + paramSprite2.inty
+          polygon.xpoints[b] + paramSprite2.location.x,
+          polygon.ypoints[b] + paramSprite2.location.y
         );
         if (
           rectangle.inside(
-            polygon.xpoints[b] + paramSprite2.intx,
-            polygon.ypoints[b] + paramSprite2.inty
+            polygon.xpoints[b] + paramSprite2.location.x,
+            polygon.ypoints[b] + paramSprite2.location.y
           )
         )
           bool = true;
@@ -292,14 +284,17 @@ export default class Sprite {
     return bool;
   }
 
+  // handle collisions based on the shape types of the two objects colliding
   isCollision(paramSprite) {
     switch (paramSprite.shapeType + this.shapeType) {
       case 0:
         return isRectCollision(paramSprite);
       case 1:
-        return paramSprite.shapeType == 0
-          ? isRectPolyCollision(paramSprite, this)
-          : isRectPolyCollision(this, paramSprite);
+        if (paramSprite.shapeType == 0) {
+          return isRectPolyCollision(paramSprite, this);
+        } else {
+          return isRectPolyCollision(this, paramSprite);
+        }
       case 2:
         return isPolyCollision(paramSprite);
     }
@@ -341,17 +336,19 @@ export default class Sprite {
 
   killSelf(paramInt1, paramInt2) {
     this.shouldRemoveSelf = true;
-    new ExplosionSprite(this.intx, this.inty, this.slot).addSelf();
+    new ExplosionSprite(this.location.x, this.location.y, this.slot).addSelf();
     if (paramInt1 > 0) {
-      let particleSprite = new ParticleSprite(this.intx, this.inty);
+      let particleSprite = new ParticleSprite(this.location.x, this.location.y);
       particleSprite.particleInit(paramInt1, paramInt2);
       particleSprite.addSelf();
     }
   }
 
+  // TODO - update method for drawing sprites that don't implement their own 'drawSelf'
   drawSelf() {
     let polygon = this.getShapePoly();
 
+    // set the color to draw
     if (this.color != null) {
       paramGraphics.setColor(this.color);
     } else {
@@ -429,8 +426,8 @@ export default class Sprite {
   isPolyCollision(paramSprite) {
     let polygon = paramSprite.getShapePoly();
     if (polygon == null || this.poly == null) return false;
-    let i = this.intx - paramSprite.intx;
-    let j = this.inty - paramSprite.inty;
+    let i = this.location.x - paramSprite.location.x;
+    let j = this.location.y - paramSprite.location.y;
     let b;
     for (b = 0; b < this.poly.npoints; b++) {
       if (polygon.contains(this.poly.xpoints[b] - i, this.poly.ypoints[b] - j))
@@ -454,23 +451,25 @@ export default class Sprite {
     return rectangle1 == null && rectangle2 == null
       ? false
       : rectangle1 == null && rectangle2 != null
-      ? rectangle2.inside(paramSprite.intx, paramSprite.inty)
+      ? rectangle2.inside(paramSprite.location.x, paramSprite.location.y)
       : rectangle2 == null
-      ? rectangle1.inside(this.intx, this.inty)
+      ? rectangle1.inside(this.location.x, this.location.y)
       : rectangle1.intersects(rectangle2);
   }
 
-  inViewingRect(paramRectangle) {
-    return this.shapeRect == null
-      ? false
-      : this.shapeRect.intersects(paramRectangle);
+  inViewingRect(viewportRect) {
+    if (this.shapeRect == null) {
+      return null;
+    } else {
+      return this.shapeRect.intersects(viewportRect);
+    }
   }
 
   // find out how arena checks for where the ship is
   // inGlobalBounds() {
   //   return !(
   //     globalBoundingRect == null ||
-  //     !globalBoundingRect.inside(this.intx, this.inty)
+  //     !globalBoundingRect.inside(this.location.x, this.location.y)
   //   );
   // }
 
@@ -490,7 +489,7 @@ export default class Sprite {
 
   track() {
     if (model.player != null)
-      realTrack(model.player.intx, model.player.inty, false);
+      realTrack(model.player.location.x, model.player.location.y, false);
   }
 
   setHealth(health, damage) {

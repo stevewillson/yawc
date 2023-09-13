@@ -325,6 +325,7 @@ export default class PlayerSprite extends Sprite {
 
     this.shipSelect = shipSelect;
     this.polygon = new RotationalPolygon(this.shipShapes[shipSelect]);
+    this.shapeRect = this.getShapeRect();
 
     // set the ships basic parameters
     this.setBasicParams(shipSelect);
@@ -340,24 +341,20 @@ export default class PlayerSprite extends Sprite {
 
     // upgrade thrust
     if (this.fighterData[shipSelect].upgradeThrust >= 1) {
-      this.m_thrustUpgradeStatus = this.fighterData[shipSelect].upgradeThrust;
-      this.m_bRetros = true;
-      this.m_bMaxThrustUpgrade = this.m_thrustUpgradeStatus >= 3;
+      this.thrustUpgradeStatus = this.fighterData[shipSelect].upgradeThrust;
+      this.bRetros = true;
+      this.bMaxThrustUpgrade = this.thrustUpgradeStatus >= 3;
     }
 
     this.trackingCannons = this.fighterData[shipSelect].trackingCannons;
     if (this.trackingCannons > 0) {
       this.turretLocations = [];
     }
-    this.m_specialType = this.fighterData[shipSelect].specialType;
-    if (this.m_specialType == 2) {
-      this.m_shapeShifterFighterShape = 0;
+    this.specialType = this.fighterData[shipSelect].specialType;
+    if (this.specialType == 2) {
+      this.shapeShifterFighterShape = 0;
       // this.handleShapeShift();
     }
-
-    this.rotate(0.0);
-
-    super.shapeType = 1;
 
     // ship state
     this.isUnderEMPEffect = false;
@@ -367,25 +364,18 @@ export default class PlayerSprite extends Sprite {
     this.thrustOn = false;
 
     this.bulletDamage = 10;
-    this.m_heatSeekerRounds = 3;
+    this.heatSeekerRounds = 3;
 
-    this.m_killedBy = "";
+    this.killedBy = "";
 
     this.init("player", location.x, location.y, true);
 
+    // sprite type - 1 - badGuy
+    // sprite type - 2 - goodGuy
     this.spriteType = 2;
-    // get the data from the fighter data
 
-    // set the size of the viewportRect to the canvas size
-
-    // set the width and height to the canvas size on the screen
-    // this is called viewportRect now
-    // this.m_rectView = new Rectangle();
-    // this.m_rectView.setSize(Sprite.model.boardWidth, Sprite.model.boardHeight);
-
+    super.shapeType = 1;
     this.shapeType = 1;
-
-    this.bRetros = true;
 
     // rotate the ship so that it is facing north
     this.rotate(0);
@@ -422,7 +412,7 @@ export default class PlayerSprite extends Sprite {
 
     context.beginPath();
 
-    for (let i = 0; i < this.polygon.numPoints; i++) {
+    for (let i = 0; i < this.polygon.npoints; i++) {
       if (i == 0) {
         context.moveTo(
           xcenter + this.polygon.xpoints[i],
@@ -440,14 +430,15 @@ export default class PlayerSprite extends Sprite {
     context.stroke();
   }
 
+  // called every cycle to draw the player's ship
   drawSelf(context) {
     if (this.bInvisible || this.shouldRemoveSelf) {
       return;
     }
     // if (this.targetSprite != null && !this.targetSprite.shouldRemoveSelf) {
     // context.strokeStyle = this.color;
-    // WHUtil.drawTarget(paramGraphics, this.targetSprite.intx,
-    // this.targetSprite.inty);
+    // WHUtil.drawTarget(paramGraphics, this.targetSprite.location.x,
+    // this.targetSprite.location.y);
     // }
 
     // always draw the player at the center of the map
@@ -466,23 +457,24 @@ export default class PlayerSprite extends Sprite {
     //   paramGraphics.setColor(Color.gray);
     //   paramGraphics.drawRect(-18, 28 - b * 6, 5, 5);
     //   if (++b >= 3) {
-    //     paramGraphics.translate(-this.intx + this.targetX,
-    //                             -this.inty + this.targetY);
+    //     paramGraphics.translate(-this.location.x + this.targetX,
+    //                             -this.location.y + this.targetY);
     //     paramGraphics.setColor((this.heatSeekerRounds > 0) ? this.color
     //                                                          : Color.gray);
     //     paramGraphics.drawLine(0, -10, 0, 10);
     //     paramGraphics.drawLine(-10, 0, 10, 0);
-    //     paramGraphics.translate(this.intx - this.targetX,
-    //                             this.inty - this.targetY);
+    //     paramGraphics.translate(this.location.x - this.targetX,
+    //                             this.location.y - this.targetY);
     //     break;
     //   }
     // }
     // }
 
-    // context.strokeStyle = this.color;
-
     // rotate the model 90 degrees?
     this.polygon.rotate(90);
+
+    // TODO add a method to draw the polygon
+    // this.polygon.draw(canvas, color);
 
     context.strokeStyle = "white";
     context.lineWidth = 1;
@@ -490,7 +482,7 @@ export default class PlayerSprite extends Sprite {
     context.beginPath();
     context.moveTo(this.polygon.xpoints[0], this.polygon.ypoints[0]);
 
-    for (let i = 0; i < this.polygon.numPoints; i++) {
+    for (let i = 0; i < this.polygon.npoints; i++) {
       context.lineTo(this.polygon.xpoints[i], this.polygon.ypoints[i]);
     }
 
@@ -535,9 +527,9 @@ export default class PlayerSprite extends Sprite {
     //     if (this.targetSprite == null) {
     //       j = (int)this.angle;
     //     } else {
-    //       j = (int)WHUtil.findAngle(this.targetSprite.intx,
-    //                                 this.targetSprite.inty, this.intx,
-    //                                 this.inty);
+    //       j = (int)WHUtil.findAngle(this.targetSprite.location.x,
+    //                                 this.targetSprite.location.y, this.location.x,
+    //                                 this.location.y);
     //     }
     //     paramGraphics.setColor(Color.black);
     //     WHUtil.fillCenteredArc(paramGraphics, this.turretLocations[b][0],
@@ -640,6 +632,7 @@ export default class PlayerSprite extends Sprite {
     this.empType = WHUtil.randInt() % 3;
   }
 
+  // called every cycle to execute the behavior of the player's ship
   behave() {
     if (this.shieldCyclesLeft > 0) {
       this.shieldCyclesLeft--;
@@ -683,8 +676,8 @@ export default class PlayerSprite extends Sprite {
       }
     }
     if (this.specialType == 3) {
-      this.targetX = this.intx + int(200.0 * Math.cos(this.radAngle));
-      this.targetY = this.inty + int(200.0 * Math.sin(this.radAngle));
+      this.targetX = this.location.x + int(200.0 * Math.cos(this.radAngle));
+      this.targetY = this.location.y + int(200.0 * Math.sin(this.radAngle));
       if (System.currentTimeMillis() > this.nextHSRegen) {
         if (this.heatSeekerRounds < 3) this.heatSeekerRounds++;
         this.nextHSRegen = Date.now() + 20000;
@@ -767,8 +760,9 @@ export default class PlayerSprite extends Sprite {
     return this.model.viewportRect;
   }
 
+  // get a shapeRect that is centered around the current location of the object with the bounds
   getShapeRect() {
-    bounds = this.polygon.getBounds();
+    let bounds = this.polygon.getBounds();
     bounds.setLocation(
       this.location.x - bounds.width / 2,
       this.location.y - bounds.height / 2
