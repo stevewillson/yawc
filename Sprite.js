@@ -1,5 +1,7 @@
 import Rectangle from "./Rectangle.js";
 import WHUtil from "./WHUtil.js";
+// import ExplosionSprite from "./ExplosionSprite.js";
+import Polygon from "./Polygon.js";
 
 export default class Sprite {
   constructor(location = { x: 0, y: 0 }, model = null) {
@@ -158,7 +160,7 @@ export default class Sprite {
       this.velocity.y *= -0.5;
     }
     this.setLocation(x, y);
-    this.setVelocity(this.velocity.x, this.velocity.y);
+    this.setVelocity({ x: this.velocity.x, y: this.velocity.y });
   }
 
   removeSelf() {
@@ -199,8 +201,12 @@ export default class Sprite {
   // }
 
   decel(decelAmount) {
-    if (Math.abs(this.velocity.x) < 0.05) this.velocity.x = 0.0;
-    if (Math.abs(this.velocity.y) < 0.05) this.velocity.y = 0.0;
+    if (Math.abs(this.velocity.x) < 0.05) {
+      this.velocity.x = 0;
+    }
+    if (Math.abs(this.velocity.y) < 0.05) {
+      this.velocity.y = 0;
+    }
     this.velocity.x *= decelAmount;
     this.velocity.y *= decelAmount;
   }
@@ -336,11 +342,16 @@ export default class Sprite {
 
   killSelf(paramInt1, paramInt2) {
     this.shouldRemoveSelf = true;
-    new ExplosionSprite(this.location.x, this.location.y, this.slot).addSelf();
+    let explosionSprite = new ExplosionSprite(
+      this.location,
+      this.model,
+      this.slot
+    );
+    explosionSprite.addSelf();
     if (paramInt1 > 0) {
-      let particleSprite = new ParticleSprite(this.location.x, this.location.y);
-      particleSprite.particleInit(paramInt1, paramInt2);
-      particleSprite.addSelf();
+      // let particleSprite = new ParticleSprite(this.location.x, this.location.y);
+      // particleSprite.particleInit(paramInt1, paramInt2);
+      // particleSprite.addSelf();
     }
   }
 
@@ -363,7 +374,7 @@ export default class Sprite {
         polygon.npoints
       );
 
-      paramGraphics.translate(-this.location.x, -this.location.y);
+      this.model.context.translate(-this.location.x, -this.location.y);
     }
     if (this.bSentByPlayer)
       drawFlag(
@@ -440,9 +451,8 @@ export default class Sprite {
     return false;
   }
 
-  setVelocity(x, y) {
-    this.velocity.x = x;
-    this.velocity.y = y;
+  setVelocity(velocity) {
+    this.velocity = velocity;
   }
 
   isRectCollision(paramSprite) {

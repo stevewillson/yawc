@@ -18,4 +18,21 @@ export default class Polygon {
   getBounds() {
     return this.bounds;
   }
+
+  drawPolygon(context, color) {
+    context.beginPath();
+
+    context.strokeStyle = color;
+    context.lineWidth = 1;
+
+    context.beginPath();
+    context.moveTo(this.xpoints[0], this.ypoints[0]);
+
+    for (let i = 0; i < this.npoints; i++) {
+      context.lineTo(this.xpoints[i], this.ypoints[i]);
+    }
+
+    context.closePath();
+    context.stroke();
+  }
 }

@@ -84,11 +84,8 @@ export default class WHUtil {
     );
   }
 
-  findAngle(paramDouble1, paramDouble2, paramDouble3, paramDouble4) {
-    return (
-      Math.atan2(paramDouble2 - paramDouble4, paramDouble1 - paramDouble3) *
-      57.29577951308232
-    );
+  findAngle(x1, y1, x2, y2) {
+    return Math.atan2(y1 - y2, x1 - x2) * 57.29577951308232;
   }
 
   drawBoundCircle(
@@ -111,6 +108,13 @@ export default class WHUtil {
     context.strokeStyle = color;
     context.arc(x, y, radius, 0, 2 * Math.PI, false);
     context.stroke();
+  }
+
+  static fillCenteredCircle(context, x, y, radius, color) {
+    context.beginPath();
+    context.strokeStyle = color;
+    context.arc(x, y, radius, 0, 2 * Math.PI);
+    context.fill();
   }
 
   drawBoundRect(
@@ -147,15 +151,6 @@ export default class WHUtil {
       j,
       int(paramPolygon.xpoints[0] * paramDouble),
       int(paramPolygon.ypoints[0] * paramDouble)
-    );
-  }
-
-  fillCenteredCircle(paramGraphics, paramDouble1, paramDouble2, paramInt) {
-    paramGraphics.fillOval(
-      paramDouble1 - paramInt,
-      paramDouble2 - paramInt,
-      paramInt * 2,
-      paramInt * 2
     );
   }
 

@@ -3,6 +3,7 @@ import ThrustSprite from "./ThrustSprite.js";
 import Sprite from "./Sprite.js";
 import WHUtil from "./WHUtil.js";
 import Rectangle from "./Rectangle.js";
+import BulletSprite from "./BulletSprite.js";
 
 export default class PlayerSprite extends Sprite {
   constructor(location, shipSelect, model) {
@@ -323,6 +324,8 @@ export default class PlayerSprite extends Sprite {
       [10, 5, 2, 34, 6],
     ];
 
+    this.bulletColors = ["white", "blue", "magenta", "red"];
+
     this.shipSelect = shipSelect;
     this.polygon = new RotationalPolygon(this.shipShapes[shipSelect]);
     this.shapeRect = this.getShapeRect();
@@ -363,6 +366,11 @@ export default class PlayerSprite extends Sprite {
     this.thrustCount = 0;
     this.thrustOn = false;
 
+    this.firePrimaryWeapon = false;
+    this.fireSecondaryWeapon = false;
+
+    this.lastShotCycle = 0;
+
     this.bulletDamage = 10;
     this.heatSeekerRounds = 3;
 
@@ -399,35 +407,54 @@ export default class PlayerSprite extends Sprite {
     // Sprite.model.refreshStatus = true;
   }
 
+  upgradeThrust(n) {
+    if (!this.bMaxThrustUpgrade) {
+      this.thrustUpgradeStatus++;
+      this.thrust += n;
+      // Sprite.model.refreshStatus = true;
+      if (this.m_thrustUpgradeStatus >= 3) {
+        this.bMaxThrustUpgrade = true;
+      }
+    }
+  }
+
+  fireBullet() {
+    if (this.numShots == 1) {
+      // GameBoard.playSound("snd_fire");
+      this.fireBulletAngle(this.radAngle);
+    } else if (this.numShots == 2) {
+      // GameBoard.playSound("snd_fire");
+      this.fireBulletAngle(this.radAngle - 0.05);
+      this.fireBulletAngle(this.radAngle + 0.05);
+    }
+  }
+
+  fireBulletAngle(angle) {
+    let bulletSprite = new BulletSprite(
+      {
+        x: Math.cos(angle) * 12.0 + this.location.x,
+        y: Math.sin(angle) * 12.0 + this.location.y,
+      },
+      this.bulletDamage,
+      this.bulletSize,
+      this.bulletColors[this.bulletType],
+      2,
+      this.model
+    );
+    bulletSprite.setPlayer(this.slot);
+    bulletSprite.setVelocity({
+      x: Math.cos(angle) * 10.0 + this.velocity.x,
+      y: Math.sin(angle) * 10.0 + this.velocity.y,
+    });
+    bulletSprite.addSelf();
+    this.lastShotCycle = this.spriteCycle + this.shotDelay;
+  }
+
   setBasicParams(n) {
     this.dRotate = this.fighterData[n].dRotate;
     this.maxThrust = this.fighterData[n].maxThrust;
     this.thrust = this.fighterData[n].thrust;
     this.trackingFiringRate = this.fighterData[n].trackingFiringRate;
-  }
-
-  draw(canvas, context) {
-    let xcenter = canvas.width / 2;
-    let ycenter = canvas.height / 2;
-
-    context.beginPath();
-
-    for (let i = 0; i < this.polygon.npoints; i++) {
-      if (i == 0) {
-        context.moveTo(
-          xcenter + this.polygon.xpoints[i],
-          ycenter + this.polygon.ypoints[i]
-        );
-      }
-      context.lineTo(
-        xcenter + this.polygon.xpoints[i],
-        ycenter + this.polygon.ypoints[i]
-      );
-    }
-
-    context.closePath();
-    context.strokeStyle = "white";
-    context.stroke();
   }
 
   // called every cycle to draw the player's ship
@@ -473,21 +500,8 @@ export default class PlayerSprite extends Sprite {
     // rotate the model 90 degrees?
     this.polygon.rotate(90);
 
-    // TODO add a method to draw the polygon
-    // this.polygon.draw(canvas, color);
-
-    context.strokeStyle = "white";
-    context.lineWidth = 1;
-
-    context.beginPath();
-    context.moveTo(this.polygon.xpoints[0], this.polygon.ypoints[0]);
-
-    for (let i = 0; i < this.polygon.npoints; i++) {
-      context.lineTo(this.polygon.xpoints[i], this.polygon.ypoints[i]);
-    }
-
-    context.closePath();
-    context.stroke();
+    // draw the polygon
+    this.polygon.getPolygon().drawPolygon(context, "white");
 
     // undo the rotation
     this.polygon.rotate(-90);
@@ -676,20 +690,20 @@ export default class PlayerSprite extends Sprite {
       }
     }
     if (this.specialType == 3) {
-      this.targetX = this.location.x + int(200.0 * Math.cos(this.radAngle));
-      this.targetY = this.location.y + int(200.0 * Math.sin(this.radAngle));
+      this.targetX = this.location.x + int(200 * Math.cos(this.radAngle));
+      this.targetY = this.location.y + int(200 * Math.sin(this.radAngle));
       if (System.currentTimeMillis() > this.nextHSRegen) {
         if (this.heatSeekerRounds < 3) this.heatSeekerRounds++;
         this.nextHSRegen = Date.now() + 20000;
       }
     }
-    let bool1 = true;
+    let weaponsReady = true;
     let thrustEnabled = true;
 
     // patched in for now - SW 9/11/23
-    let i1 = 0;
+    let tertiaryFire = 0;
 
-    if (i1 > 0) {
+    if (tertiaryFire > 0) {
       if (this.spriteCycle > this.nextTFireCycle)
         switch (this.specialType) {
           case 1:
@@ -708,13 +722,13 @@ export default class PlayerSprite extends Sprite {
             firePowerupAttractor();
             this.isFiringAttractor = true;
             thrustEnabled = false;
-            bool1 = false;
+            weaponsReady = false;
             break;
         }
     } else {
       this.isFiringAttractor = false;
     }
-    if (this.trackingCannons > 0 && bool1) {
+    if (this.trackingCannons > 0 && weaponsReady) {
       // this.handleTrackingCannon();
     }
 
@@ -724,7 +738,6 @@ export default class PlayerSprite extends Sprite {
       this.isRotating = false;
     }
 
-    // if (k > 0 && thrustEnabled) {
     if (this.thrustOn && thrustEnabled) {
       this.thrustCount++;
       this.handleThrust();
@@ -746,6 +759,20 @@ export default class PlayerSprite extends Sprite {
     //   )
     //     fireBullet();
     // }
+
+    if (weaponsReady) {
+      if (this.fireSecondaryWeapon && this.lastShotCycle < this.spriteCycle) {
+        this.firePowerup();
+      }
+      if (
+        this.firePrimaryWeapon &&
+        this.lastShotCycle < this.spriteCycle &&
+        this.model.nBullets < this.maxShots
+      ) {
+        this.fireBullet();
+        this.firePrimaryWeapon = false;
+      }
+    }
   }
 
   // get the view box location for the player

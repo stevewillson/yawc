@@ -85,6 +85,9 @@ export default class GameBoard {
     if (this.input.up) {
       this.model.player.thrustOn = true;
     }
+    if (this.input.spacebar) {
+      this.model.player.firePrimaryWeapon = true;
+    }
   }
 
   render() {
@@ -96,6 +99,7 @@ export default class GameBoard {
     this.context.fillStyle = "black";
     this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
+    // TODO - move this method to the GameBoard
     this.model.doOneCycle();
   }
 

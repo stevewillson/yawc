@@ -16,6 +16,11 @@ export default class Rectangle {
     this.height = height;
   }
 
+  reshape(x, y, width, height) {
+    this.setLocation(x, y);
+    this.setDimensions(width, height);
+  }
+
   // check if there is any overlap between the two rectangles
   intersects(rect2) {
     // get the corners of the two rects

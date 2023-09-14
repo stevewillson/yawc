@@ -77,6 +77,9 @@ export default class WormholeModel {
     this.badGuys = [];
     this.goodGuys = [];
 
+    // track the total number of bullets here
+    this.nBullets = 0;
+
     // temporary - later get the slot from the GameNetLogic.js file
     // when jointing a table
     this.slot = 0;
@@ -140,7 +143,7 @@ export default class WormholeModel {
           //   drawPlayerBar(this.pnlOtherPlayers.g, true);
           //   this.pnlOtherPlayers.completeRepaint();
         }
-        this.draw(this.context);
+        // this.draw(this.context);
         // drawIntro(this.pnlPlaying.g);
         // if (this.tableElement.getStatus() == 4) {
         //   drawStrings(this.pnlPlaying.g, "Waiting for", "Next Game");
@@ -259,7 +262,7 @@ export default class WormholeModel {
 
   setSlot(slotNum) {
     this.slot = slotNum;
-    this.color = this.colors.g_colors[this.slot][0];
+    this.color = this.colors.colors[this.slot][0];
   }
 
   // draw the WormholeModel to the canvas
@@ -292,7 +295,32 @@ export default class WormholeModel {
         );
       }
 
-      this.drawGrid(context);
+      context.translate(viewportRect.x, viewportRect.y);
+
+      this.drawStars(context, "gray", this.narrowStar);
+
+      // draw pointers to other wormholes
+      // drawPointers(paramGraphics);
+
+      context.translate(-viewportRect.x, -viewportRect.y);
+
+      this.drawStars(context, "white", this.star);
+      this.drawRing(context);
+
+      // if (
+      //   this.teamID != 0 &&
+      //   this.tableElement.isTeamTable() &&
+      //   !this.gameOver
+      // )
+      // drawTeamStuff(paramGraphics);
+      // if (this.imgLogo != null && rectangle.intersects(this.rectLogo)) {
+      //   paramGraphics.drawImage(
+      //     this.imgLogo,
+      //     this.rectLogo.x,
+      //     this.rectLogo.y,
+      //     null
+      //   );
+      // }
 
       context.translate(viewportRect.x, viewportRect.y);
 
@@ -301,7 +329,7 @@ export default class WormholeModel {
       //     this.incomingCycle--;
       //     paramGraphics.setFont(fontSuperLarge);
       //     paramGraphics.setColor(
-      //         Sprite.g_colors[this.incomingSlot][this.currentShade++ % 20]);
+      //         Sprite.colors[this.incomingSlot][this.currentShade++ % 20]);
       //     paramGraphics.drawString("I N C O M I N G", this.boardWidth / 2 - 120,
       //                              200);
       //     if (this.incomingNukeCycle > 0) {
@@ -325,32 +353,32 @@ export default class WormholeModel {
 
       context.translate(viewportRect.x, viewportRect.y);
 
-      if (this.incomingIconCycle > 0) {
-        this.incomingIconCycle--;
-      } else if (this.incomingIconIndex > 0) {
-        this.incomingIconIndex--;
-        this.incomingIconCycle = 50;
-        for (let b = 0; b < this.incomingIconIndex; b++) {
-          this.incomingTypeStack[b] = this.incomingTypeStack[b + 1];
-          this.incomingWhoStack[b] = this.incomingWhoStack[b + 1];
-        }
-      }
-      for (let b = 0; b < this.incomingIconIndex; b++) {
-        // paramGraphics.drawImage(
-        //   getImages("img_smallpowerups")[
-        //     PowerupSprite.convertToSmallImage(this.incomingTypeStack[b])
-        //   ],
-        //   2,
-        //   b * 15 + 31,
-        //   null
-        // );
-        // Sprite.drawFlag(
-        //   paramGraphics,
-        //   Sprite.g_colors[this.incomingWhoStack[b]][0],
-        //   25,
-        //   b * 15 + 31
-        // );
-      }
+      // if (this.incomingIconCycle > 0) {
+      //   this.incomingIconCycle--;
+      // } else if (this.incomingIconIndex > 0) {
+      //   this.incomingIconIndex--;
+      //   this.incomingIconCycle = 50;
+      //   for (let b = 0; b < this.incomingIconIndex; b++) {
+      //     this.incomingTypeStack[b] = this.incomingTypeStack[b + 1];
+      //     this.incomingWhoStack[b] = this.incomingWhoStack[b + 1];
+      //   }
+      // }
+      // for (let b = 0; b < this.incomingIconIndex; b++) {
+      // paramGraphics.drawImage(
+      //   getImages("img_smallpowerups")[
+      //     PowerupSprite.convertToSmallImage(this.incomingTypeStack[b])
+      //   ],
+      //   2,
+      //   b * 15 + 31,
+      //   null
+      // );
+      // Sprite.drawFlag(
+      //   paramGraphics,
+      //   Sprite.colors[this.incomingWhoStack[b]][0],
+      //   25,
+      //   b * 15 + 31
+      // );
+      // }
       //   if (this.winningPlayerString != null) {
       //     drawShadowString(paramGraphics, "GAME OVER!", 100, 100);
       //     drawShadowString(paramGraphics, "WINNER: " + this.winningPlayerString,
@@ -373,39 +401,6 @@ export default class WormholeModel {
     // }
     // paramGraphics.setColor(Color.white);
     // paramGraphics.drawRect(0, 0, this.boardWidth - 1, this.boardHeight - 1);
-  }
-
-  // routine for drawing various objects to the canvas
-  drawGrid(context, orbitDistance) {
-    // used to track the ship on the canvas
-    let viewportRect = this.player.getViewportRect();
-
-    context.translate(viewportRect.x, viewportRect.y);
-
-    this.drawStars(context, "gray", this.narrowStar);
-
-    // draw pointers to other wormholes
-    // drawPointers(paramGraphics);
-
-    context.translate(-viewportRect.x, -viewportRect.y);
-
-    this.drawStars(context, "white", this.star);
-    this.drawRing(context);
-
-    // if (
-    //   this.teamID != 0 &&
-    //   this.tableElement.isTeamTable() &&
-    //   !this.gameOver
-    // )
-    // drawTeamStuff(paramGraphics);
-    // if (this.imgLogo != null && rectangle.intersects(this.rectLogo)) {
-    //   paramGraphics.drawImage(
-    //     this.imgLogo,
-    //     this.rectLogo.x,
-    //     this.rectLogo.y,
-    //     null
-    //   );
-    // }
   }
 
   /**
@@ -593,13 +588,14 @@ export default class WormholeModel {
       this
     );
     // this.imgLogo = (Image)this.mediaTable.get("img_bg_logo");
-    if (this.imgLogo != null)
-      this.rectLogo.setBounds(
-        this.boardCenter.x - this.imgLogo.getWidth(null) / 2,
-        this.boardCenter.y - this.imgLogo.getHeight(null) / 2,
-        this.imgLogo.getWidth(null),
-        this.imgLogo.getHeight(null)
-      );
+    // if (this.imgLogo != null) {
+    //   this.rectLogo.setBounds(
+    //     this.boardCenter.x - this.imgLogo.getWidth(null) / 2,
+    //     this.boardCenter.y - this.imgLogo.getHeight(null) / 2,
+    //     this.imgLogo.getWidth(null),
+    //     this.imgLogo.getHeight(null)
+    //   );
+    // }
     this.player.addSelf();
     this.player.setPlayer(this.slot);
 
