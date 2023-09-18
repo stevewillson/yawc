@@ -1,129 +1,141 @@
 import Sprite from "./Sprite.js";
 import WHUtil from "./WHUtil.js";
 import Rectangle from "./Rectangle.js";
+import SpriteColors from "./SpriteColors.js"
 
 export default class PortalSprite extends Sprite {
   constructor(n, info, model) {
     super(0, 0);
-    this.m_vOutgoingPowerups = [];
-    this.m_powerupQ = new Array(30);
-    this.m_powerupUpgradeQ = new Array(30);
-    this.m_powerupCycleQ = new Array(30);
-    this.m_powerupSlotQ = new Array(30);
-    this.m_currentDegrees = n;
-    this.m_currentArcs = this.m_currentDegrees * 0.017453292519943295;
+    this.vOutgoingPowerups = [];
+    this.powerupQ = new Array(30);
+    this.powerupUpgradeQ = new Array(30);
+    this.powerupCycleQ = new Array(30);
+    this.powerupSlotQ = new Array(30);
+    this.currentDegrees = n;
+    this.currentArcs = this.currentDegrees * 0.017453292519943295;
     this.setOrbit();
     this.init("wh", this.location.x, this.location.y, true);
-    super.spriteType = 1;
-    super.shapeRect = new Rectangle(
+    this.spriteType = 1;
+    this.shapeRect = new Rectangle(
       this.location.x - 60,
       this.location.y - 30,
       120,
       60
     );
-    this.m_viewingRect = new Rectangle(100, 130);
-    super.indestructible = true;
-    super.m_damage = 0;
-    this.m_info = info;
-    super.m_color = this.m_info.m_color;
-    super.m_slot = this.m_info.m_slot;
+    this.viewingRect = new Rectangle(100, 130);
+    this.indestructible = true;
+    this.damage = 0;
+    this.info = info;
+    this.color = this.info.color;
+    this.slot = this.info.slot;
 
-    this.m_info;
-    this.m_currentDegrees;
-    this.m_currentArcs;
+    this.info;
+    this.currentDegrees;
+    this.currentArcs;
     this.ARC_SPEED = 0.5;
-    this.m_bGenEnemy;
+    this.bGenEnemy;
     this.BASE_W = 30;
     this.MAX_W = 60;
-    this.m_damageTaken;
+    this.damageTaken;
     this.MAX_TAKEN = 150;
-    this.m_vOutgoingPowerups;
+    this.vOutgoingPowerups;
     this.NMISSILES = 12;
     this.NMINES = 15;
-    this.MINE_VEL = 6.0;
+    this.MINE_VEL = 6;
     this.NUMPOWERUPQ = 30;
-    this.m_powerupQ;
-    this.m_powerupUpgradeQ;
-    this.m_powerupCycleQ;
-    this.m_powerupSlotQ;
+    this.powerupQ;
+    this.powerupUpgradeQ;
+    this.powerupCycleQ;
+    this.powerupSlotQ;
     this.POWERUP_DELAY = 30;
-    this.m_viewingRect;
-    this.m_warpDx;
-    this.m_warpDist;
-    this.m_bWarpingIn;
+    this.viewingRect;
+    this.warpDx;
+    this.warpDist;
+    this.bWarpingIn;
+
+    this.colors = new SpriteColors();
   }
 
+  /**
+   * genMines
+   * 
+   */
   genMines(n, n2, player) {
     let n3 = 0.4188790204786391;
-    let n4 = 0.0;
-    let n5 = 0;
-    do {
+    let n4 = 0;
+  
+    for (let i = 0; i < 15; i++) {
       let mineSprite = new MineSprite(n, n2);
-      mineSprite.vectorx = Math.cos(n4) * 6.0;
-      mineSprite.vectory = Math.sin(n4) * 6.0;
+      mineSprite.vectorx = Math.cos(n4) * 6;
+      mineSprite.vectory = Math.sin(n4) * 6;
       mineSprite.setPlayer(player);
       mineSprite.addSelf();
       n4 += n3;
-    } while (++n5 < 15);
+    }
   }
 
   setOrbit() {
-    if (!this.m_bWarpingIn) {
+    if (!this.bWarpingIn) {
       this.setLocation(
-        WormholeModel.gOrbitDistance * Math.cos(this.m_currentArcs) +
+        WormholeModel.gOrbitDistance * Math.cos(this.currentArcs) +
           Sprite.g_centerX,
-        WormholeModel.gOrbitDistance * Math.sin(this.m_currentArcs) +
+        WormholeModel.gOrbitDistance * Math.sin(this.currentArcs) +
           Sprite.g_centerY
       );
-      this.m_currentDegrees += 0.5;
-      this.m_currentDegrees %= 360.0;
-      this.m_currentArcs = this.m_currentDegrees * 0.017453292519943295;
+      this.currentDegrees += 0.5;
+      this.currentDegrees %= 360;
+      this.currentArcs = this.currentDegrees * 0.017453292519943295;
       return;
     }
-    if (this.m_warpDist < WormholeModel.gOrbitDistance) {
+    if (this.warpDist < WormholeModel.gOrbitDistance) {
       this.setLocation(
-        this.m_warpDist * Math.cos(this.m_currentArcs) + Sprite.g_centerX,
-        this.m_warpDist * Math.sin(this.m_currentArcs) + Sprite.g_centerY
+        this.warpDist * Math.cos(this.currentArcs) + Sprite.g_centerX,
+        this.warpDist * Math.sin(this.currentArcs) + Sprite.g_centerY
       );
-      this.m_warpDist +=
-        Math.max(6.0, WormholeModel.gOrbitDistance - this.m_warpDist) / 3.0;
+      this.warpDist +=
+        Math.max(6, WormholeModel.gOrbitDistance - this.warpDist) / 3;
       return;
     }
-    this.m_bWarpingIn = false;
+    this.bWarpingIn = false;
   }
 
-  genEnemy(n, n2, n3, player, b) {
-    n4 = PowerupSprite.g_enemyRatios[n3];
+  /**
+   * genEnemy
+   * use random numbers to generate new enemies
+   * add the enemy to the sprite array
+   */
+  genEnemy(xloc, yloc, n3, player, b) {
+    let enemyRatio = PowerupSprite.g_enemyRatios[n3];
     if (n3 == 18) {
-      n4 += b;
+      enemyRatio += b;
     }
-    for (let b2 = 0; b2 < n4; ++b2) {
-      let n5 = n + WHUtil.randInt(70);
-      let n6 = n2 + WHUtil.randInt(70);
-      sprite = null;
+    for (let b2 = 0; b2 < enemyRatio; ++b2) {
+      let spriteXLoc = xloc + WHUtil.randInt(70);
+      let spriteYLoc = yloc + WHUtil.randInt(70);
+      let sprite = null;
       switch (n3) {
         case 9: {
-          sprite = new UFOSprite(n5, n6);
+          sprite = new UFOSprite(spriteXLoc, spriteYLoc);
           break;
         }
         case 10: {
-          sprite = new InflatorSprite(n5, n6);
+          sprite = new InflatorSprite(spriteXLoc, spriteYLoc);
           break;
         }
         case 11: {
-          sprite = new MineLayerSprite(n5, n6);
+          sprite = new MineLayerSprite(spriteXLoc, spriteYLoc);
           break;
         }
         case 12: {
-          sprite = new GunshipSprite(n5, n6);
+          sprite = new GunshipSprite(spriteXLoc, spriteYLoc);
           break;
         }
         case 15: {
-          sprite = new WallCrawlerSprite(n5, n6, WHUtil.randABSInt() % 2 == 0);
+          sprite = new WallCrawlerSprite(spriteXLoc, spriteYLoc, WHUtil.randInt() % 2 == 0);
           break;
         }
         case 13: {
-          sprite = new ScarabSprite(n5, n6, this);
+          sprite = new ScarabSprite(spriteXLoc, spriteYLoc, this);
           break;
         }
         case 16: {
@@ -143,87 +155,97 @@ export default class PortalSprite extends Sprite {
           break;
         }
         case 19: {
-          sprite = new ArtillerySprite(n5, n6);
+          sprite = new ArtillerySprite(spriteXLoc, spriteYLoc);
           break;
         }
         default: {
-          sprite = new InflatorSprite(n5, n6);
+          sprite = new InflatorSprite(spriteXLoc, spriteYLoc);
           break;
         }
       }
       sprite.setPlayer(player);
-      sprite.setDegreeAngle(WHUtil.randABSInt() % 360);
+      sprite.setDegreeAngle(WHUtil.randInt() % 360);
       sprite.addSelf();
     }
   }
 
   drawSelf(context) {
-    if (this.m_info.m_bEmpty) {
+    if (this.info.bEmpty) {
       return;
     }
 
     for (let n = 30; n < 60; n++) {
-      graphics.setColor(
-        Sprite.g_colors[super.m_slot][(super.spriteCycle + n) % 20]
-      );
-      graphics.drawOval(this.location.x - n, this.location.y - n / 2, n * 2, n);
+
+      context.strokeStyle = this.colors.colors[this.slot][(this.spriteCycle + n) % 20]
+      // graphics.setColor(
+      //   Sprite.g_colors[this.slot][(this.spriteCycle + n) % 20]
+      // );
+      
+      // graphics.drawOval(this.location.x - n, this.location.y - n / 2, n * 2, n);
+      context.ellipse(this.location.x - n, this.location.y - n / 2, n * 2, n, 0, 2 * Math.PI);
     }
 
-    graphics.setColor(this.m_info.m_color);
-    graphics.setFont(WormholeModel.fontLarge);
-    graphics.drawString(
-      this.m_info.m_username + "'s WORMHOLE",
-      this.location.x - 70,
-      this.location.y + 60
-    );
-    Sprite.model.drawEnemyTeamShape(
-      graphics,
-      this.location.x - 70,
-      this.location.y + 70
-    );
-    for (let i = this.m_vOutgoingPowerups.size() - 1; i >= 0; --i) {
-      let bulletSprite = this.m_vOutgoingPowerups.elementAt(i);
+    context.strokeStyle = this.info.color;
+    // set the font to the WormholeModel's large font
+    // use the string - 
+
+    // graphics.setColor(this.info.color);
+    // graphics.setFont(WormholeModel.fontLarge);
+    // graphics.drawString(
+    //   this.info.username + "'s WORMHOLE",
+    //   this.location.x - 70,
+    //   this.location.y + 60
+    // );
+    // Sprite.model.drawEnemyTeamShape(
+    //   graphics,
+    //   this.location.x - 70,
+    //   this.location.y + 70
+    // );
+
+    // vOutgoingPowerups is a vector of BulletSprites
+    for (let i = this.vOutgoingPowerups.size() - 1; i >= 0; --i) {
+      let bulletSprite = this.vOutgoingPowerups.elementAt(i);
       bulletSprite.setLocation(bulletSprite.x * 0.95, bulletSprite.y * 0.95);
       graphics.drawImage(
         WormholeModel.getImages("img_smallpowerups")[
-          PowerupSprite.convertToSmallImage(bulletSprite.m_powerupType)
+          PowerupSprite.convertToSmallImage(bulletSprite.powerupType)
         ],
         this.location.x + bulletSprite.location.x - 8,
         this.location.y + bulletSprite.location.y - 5,
         null
       );
       if (bulletSprite.spriteCycle++ > 9) {
-        this.m_vOutgoingPowerups.removeElementAt(i);
+        this.vOutgoingPowerups.removeElementAt(i);
       }
     }
   }
 
   setCollided(sprite) {
-    if (sprite.m_bIsBullet) {
+    if (sprite.bIsBullet) {
       sprite.shouldRemoveSelf = true;
       sprite.setCollided(this);
-      this.m_damageTaken += sprite.m_damage;
-      if (this.m_damageTaken > 150) {
+      this.damageTaken += sprite.damage;
+      if (this.damageTaken > 150) {
         PowerupSprite.genPowerup(this.location.x, this.location.y).addSelf();
-        this.m_damageTaken = 0;
+        this.damageTaken = 0;
       }
-      if (sprite.m_bIsHeatSeeker) {
+      if (sprite.bIsHeatSeeker) {
         return;
       }
       let bulletSprite = sprite;
-      if (bulletSprite.m_bPowerup) {
-        this.m_vOutgoingPowerups.addElement(bulletSprite);
+      if (bulletSprite.bPowerup) {
+        this.vOutgoingPowerups.addElement(bulletSprite);
         bulletSprite.setLocation(
-          bulletSprite.x - super.x,
-          bulletSprite.y - super.y
+          bulletSprite.x - this.x,
+          bulletSprite.y - this.y
         );
         bulletSprite.spriteCycle = 0;
         Sprite.model.usePowerup(
-          bulletSprite.m_powerupType,
-          bulletSprite.m_upgradeLevel,
-          this.m_info.m_slot,
-          Sprite.model.m_gameSession,
-          WormholeModel.m_gameID
+          bulletSprite.powerupType,
+          bulletSprite.upgradeLevel,
+          this.info.slot,
+          Sprite.model.gameSession,
+          WormholeModel.gameID
         );
       }
     }
@@ -231,35 +253,35 @@ export default class PortalSprite extends Sprite {
 
   genBadPowerupEffect(n, b, b2) {
     let n2 = 0;
-    while (this.m_powerupCycleQ[n2] != 0) {
+    while (this.powerupCycleQ[n2] != 0) {
       if (++n2 >= 30) {
         return;
       }
     }
-    this.m_powerupCycleQ[n2] = super.spriteCycle + 30;
-    this.m_powerupUpgradeQ[n2] = b2;
-    this.m_powerupQ[n2] = n;
-    this.m_powerupSlotQ[n2] = b;
+    this.powerupCycleQ[n2] = this.spriteCycle + 30;
+    this.powerupUpgradeQ[n2] = b2;
+    this.powerupQ[n2] = n;
+    this.powerupSlotQ[n2] = b;
   }
 
   genNuke(n, n2, b) {
     nukeSprite = new NukeSprite(n, n2, b);
     nukeSprite.setVelocity(
-      (n - Sprite.g_centerX) / 125.0,
-      (n2 - Sprite.g_centerY) / 125.0
+      (n - Sprite.g_centerX) / 125,
+      (n2 - Sprite.g_centerY) / 125
     );
     nukeSprite.addSelf();
   }
 
   inViewingRect(rectangle) {
-    this.m_viewingRect.move(super.shapeRect.x, super.shapeRect.y);
-    return rectangle.intersects(this.m_viewingRect);
+    this.viewingRect.move(this.shapeRect.x, this.shapeRect.y);
+    return rectangle.intersects(this.viewingRect);
   }
 
   behave() {
     super.behave();
     this.setOrbit();
-    if (this.m_bGenEnemy) {
+    if (this.bGenEnemy) {
       switch (WHUtil.randABSInt() % 5) {
         case 0:
         case 1: {
@@ -276,22 +298,22 @@ export default class PortalSprite extends Sprite {
           break;
         }
       }
-      this.m_bGenEnemy = false;
+      this.bGenEnemy = false;
     }
-    let n = 0;
-    do {
+    
+    for (let i = 0; i < 30; i++){
       if (
-        this.m_powerupCycleQ[n] != 0 &&
-        this.m_powerupCycleQ[n] < super.spriteCycle
+        this.powerupCycleQ[i] != 0 &&
+        this.powerupCycleQ[i] < this.spriteCycle
       ) {
-        this.m_powerupCycleQ[n] = 0;
-        switch (this.m_powerupQ[n]) {
+        this.powerupCycleQ[i] = 0;
+        switch (this.powerupQ[i]) {
           default: {
             continue;
           }
           case 6: {
-            let n2 = 0;
-            do {
+            
+            for(n2 = 0; n2< 12; n2++) {
               let heatSeekerMissile = new HeatSeekerMissile(
                 this.location.x + (WHUtil.randInt() % 50),
                 this.location.y + (WHUtil.randInt() % 50)
@@ -299,15 +321,15 @@ export default class PortalSprite extends Sprite {
               heatSeekerMissile.rotate(WHUtil.randABSInt() % 360);
               heatSeekerMissile.doMaxThrust(heatSeekerMissile.maxThrust);
               heatSeekerMissile.addSelf();
-              heatSeekerMissile.setPlayer(this.m_powerupSlotQ[n]);
-            } while (++n2 < 12);
+              heatSeekerMissile.setPlayer(this.powerupSlotQ[i]);
+              }
             continue;
           }
           case 8: {
             this.genMines(
               this.location.x,
               this.location.y,
-              this.m_powerupSlotQ[n]
+              this.powerupSlotQ[i]
             );
             continue;
           }
@@ -325,9 +347,9 @@ export default class PortalSprite extends Sprite {
             this.genEnemy(
               this.location.x,
               this.location.y,
-              this.m_powerupQ[n],
-              this.m_powerupSlotQ[n],
-              this.m_powerupUpgradeQ[n]
+              this.powerupQ[i],
+              this.powerupSlotQ[i],
+              this.powerupUpgradeQ[i]
             );
             continue;
           }
@@ -335,18 +357,18 @@ export default class PortalSprite extends Sprite {
             this.genNuke(
               this.location.x,
               this.location.y,
-              this.m_powerupSlotQ[n]
+              this.powerupSlotQ[i]
             );
             continue;
           }
         }
       }
-    } while (++n < 30);
   }
+}
 
   setWarpingIn() {
-    this.m_bWarpingIn = true;
-    this.m_warpDist = 0.0;
-    PortalSprite.m_warpDx = WormholeModel.gOrbitDistance / 30.0;
+    this.bWarpingIn = true;
+    this.warpDist = 0;
+    PortalSprite.warpDx = WormholeModel.gOrbitDistance / 30;
   }
 }
