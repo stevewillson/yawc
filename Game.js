@@ -774,7 +774,7 @@ export default class Game {
         }
       } else {
         this.slot = playerSlot;
-        this.color = Sprite.g_colors[this.slot][0];
+        this.color = this.colors.colors[this.slot][0];
         this.teamId = teamId;
       }
     }

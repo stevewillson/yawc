@@ -419,17 +419,17 @@ export default class Sprite {
     this.doMaxThrust(this.thrust);
   }
 
-  setCollided(paramSprite) {
+  setCollided(collidedObject) {
     if (!this.indestructible) {
       this.hasCollided = true;
-      this.collidedObject = paramSprite;
+      this.collidedObject = collidedObject;
       if (this.bUseHealth) {
-        this.changeHealth(-paramSprite.damage);
+        this.changeHealth(-collidedObject.damage);
         if (this.health < 1) {
           this.shouldRemoveSelf = true;
-          return;
+        } else {
+          this.hasCollided = false;
         }
-        this.hasCollided = false;
       }
     }
   }

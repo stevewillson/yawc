@@ -16,12 +16,14 @@ export default class PortalSprite extends Sprite {
     this.setOrbit();
     this.init("wh", this.location.x, this.location.y, true);
     this.spriteType = 1;
+
     this.shapeRect = new Rectangle(
       this.location.x - 60,
       this.location.y - 30,
       120,
       60
     );
+
     this.viewingRect = new Rectangle(100, 130);
     this.indestructible = true;
     this.damage = 0;
@@ -180,15 +182,10 @@ export default class PortalSprite extends Sprite {
     for (let n = 30; n < 60; n++) {
       context.strokeStyle =
         this.colors.colors[this.slot][(this.spriteCycle + n) % 20];
-      // graphics.setColor(
-      //   Sprite.g_colors[this.slot][(this.spriteCycle + n) % 20]
-      // );
-
-      // graphics.drawOval(this.location.x - n, this.location.y - n / 2, n * 2, n);
       context.beginPath();
       context.ellipse(
-        this.location.x - n,
-        this.location.y - n / 2,
+        this.location.x,
+        this.location.y,
         n * 2,
         n,
         0,
@@ -198,17 +195,17 @@ export default class PortalSprite extends Sprite {
       context.stroke();
     }
 
-    context.strokeStyle = this.info.color;
     // set the font to the WormholeModel's large font
-    // use the string -
-
-    // graphics.setColor(this.info.color);
+    context.strokeStyle = this.info.color;
     // graphics.setFont(WormholeModel.fontLarge);
-    // graphics.drawString(
-    //   this.info.username + "'s WORMHOLE",
-    //   this.location.x - 70,
-    //   this.location.y + 60
-    // );
+    context.font = "20px helvetica";
+    context.strokeText(
+      `${this.info.username}'s WORMHOLE`,
+      this.location.x - 70,
+      this.location.y + 60
+    );
+    context.stroke();
+
     // Sprite.model.drawEnemyTeamShape(
     //   graphics,
     //   this.location.x - 70,
