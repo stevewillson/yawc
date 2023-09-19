@@ -6,8 +6,8 @@ import Rectangle from "./Rectangle.js";
 import BulletSprite from "./BulletSprite.js";
 
 export default class PlayerSprite extends Sprite {
-  constructor(location, shipSelect, model) {
-    super(location, model);
+  constructor(location, shipSelect, game) {
+    super(location, game);
     this.shipShapes = [
       // tank ship coordinates
       [
@@ -439,7 +439,7 @@ export default class PlayerSprite extends Sprite {
       this.bulletSize,
       this.bulletColors[this.bulletType],
       2,
-      this.model
+      this.game
     );
     bulletSprite.setPlayer(this.slot);
     bulletSprite.setVelocity({
@@ -470,8 +470,8 @@ export default class PlayerSprite extends Sprite {
 
     // always draw the player at the center of the map
     // context.translate(
-    //   this.model.viewportRect.width / 2,
-    //   this.model.viewportRect.height / 2
+    //   this.game.viewportRect.width / 2,
+    //   this.game.viewportRect.height / 2
     // );
     context.translate(this.location.x, this.location.y);
     // if (this.specialType == 3) {
@@ -580,8 +580,8 @@ export default class PlayerSprite extends Sprite {
 
     // context.translate(-this.location.x, -this.location.y);
     // context.translate(
-    //   -this.model.viewportRect.width / 2,
-    //   -this.model.viewportRect.height / 2
+    //   -this.game.viewportRect.width / 2,
+    //   -this.game.viewportRect.height / 2
     // );
     context.translate(-this.location.x, -this.location.y);
 
@@ -605,7 +605,7 @@ export default class PlayerSprite extends Sprite {
     let j = this.location.y - paramDouble2 * d2;
 
     let location = { x: i, y: j };
-    let thrustSprite = new ThrustSprite(location, this.model);
+    let thrustSprite = new ThrustSprite(location, this.game);
     thrustSprite.velocity.x = -2 * this.velocity.x;
     thrustSprite.velocity.y = -2 * this.velocity.y;
     thrustSprite.addSelf();
@@ -767,7 +767,7 @@ export default class PlayerSprite extends Sprite {
       if (
         this.firePrimaryWeapon &&
         this.lastShotCycle < this.spriteCycle &&
-        this.model.nBullets < this.maxShots
+        this.game.nBullets < this.maxShots
       ) {
         this.fireBullet();
         this.firePrimaryWeapon = false;
@@ -778,13 +778,13 @@ export default class PlayerSprite extends Sprite {
   // get the view box location for the player
   // this is the upper left of the viewing rectangle
   getViewportRect() {
-    this.model.viewportRect = new Rectangle(
-      this.location.x - this.model.viewport.width / 2,
-      this.location.y - this.model.viewport.height / 2,
-      this.model.viewport.width,
-      this.model.viewport.height
+    this.game.viewportRect = new Rectangle(
+      this.location.x - this.game.viewport.width / 2,
+      this.location.y - this.game.viewport.height / 2,
+      this.game.viewport.width,
+      this.game.viewport.height
     );
-    return this.model.viewportRect;
+    return this.game.viewportRect;
   }
 
   // get a shapeRect that is centered around the current location of the object with the bounds

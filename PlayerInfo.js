@@ -1,3 +1,5 @@
+import SpriteColors from "./SpriteColors.js";
+
 export default class PlayerInfo {
   constructor() {
     this.BLOCKSIZE = 5;
@@ -45,6 +47,8 @@ export default class PlayerInfo {
     this.bEmpty = true;
     this.slot;
 
+    this.colors = new SpriteColors();
+
     this.reset();
     // this.imgPowerups = WormholeModel.mediaTable.get("img_smallpowerups");
     this.myHeight = 158;
@@ -55,11 +59,11 @@ export default class PlayerInfo {
     this.h = paramInt2;
   }
 
-  setState(paramString, paramByte) {
+  setState(paramString, slot) {
     this.bRefresh = true;
     this.username = paramString;
-    this.slot = paramByte;
-    this.color = Sprite.colors[paramByte][0];
+    this.slot = slot;
+    this.color = this.colors.colors[slot][0];
     this.bEmpty = false;
   }
 
@@ -220,12 +224,11 @@ export default class PlayerInfo {
   }
 
   resetPowerups() {
-    let b = 0;
-    while (true) {
-      let b1 = 0;
-      do {
-        this.powerupTimeouts[b][b1] = 0;
-      } while (++b1 < 10 || ++b < 6);
+    for (let i = 0; i < 6; i++) {
+      this.powerupTimeouts[i] = Array(10);
+      for (let j = 0; j < 10; j++) {
+        this.powerupTimeouts[i][j] = 0;
+      }
     }
   }
 }

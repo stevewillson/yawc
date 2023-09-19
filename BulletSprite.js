@@ -3,7 +3,7 @@ import Rectangle from "./Rectangle.js";
 import ExplosionSprite from "./ExplosionSprite.js";
 
 export default class BulletSprite extends Sprite {
-  // tracked in WormholeModel now
+  // tracked in Game now
   // nBullets;
   BULLETSIZE = 10;
   INNER_BULLETSIZE = 8;
@@ -27,9 +27,9 @@ export default class BulletSprite extends Sprite {
     bulletSize,
     internalColor,
     spriteType,
-    model = null
+    game = null
   ) {
-    super(location, model);
+    super(location, game);
     this.init("blt", location.x, location.y, true);
     this.shapeRect = new Rectangle(
       location.x - 5,
@@ -42,7 +42,7 @@ export default class BulletSprite extends Sprite {
     this.setHealth(1, bulletDamage);
     this.bIsBullet = true;
     if (this.spriteType == 2) {
-      this.color = this.model.color;
+      this.color = this.game.color;
       this.bCountTowardsQuota = true;
     }
   }
@@ -50,7 +50,7 @@ export default class BulletSprite extends Sprite {
   addSelf() {
     super.addSelf();
     if (this.bCountTowardsQuota) {
-      this.model.nBullets++;
+      this.game.nBullets++;
     }
   }
 
@@ -96,7 +96,7 @@ export default class BulletSprite extends Sprite {
       if (this.bPowerup) {
         WHUtil.drawCenteredCircle(context, 0, 0, 20);
         // graphics.drawImage(
-        //   WormholeModel.getImages("img_smallpowerups")[
+        //   Wormholegame.getImages("img_smallpowerups")[
         //     PowerupSprite.convertToSmallImage(super.powerupType)
         //   ],
         //   -8,
@@ -124,17 +124,13 @@ export default class BulletSprite extends Sprite {
       if (this.bPowerup) {
         let explosionSprite = new ExplosionSprite(
           this.location,
-          this.model,
-          this.model.slot
+          this.game,
+          this.game.slot
         );
         explosionSprite.setPowerupExplosion();
         explosionSprite.addSelf();
       } else {
-        let explosionSprite2 = new ExplosionSprite(
-          this.location,
-          this.model,
-          9
-        );
+        let explosionSprite2 = new ExplosionSprite(this.location, this.game, 9);
         explosionSprite2.RINGS = 2;
         explosionSprite2.addSelf();
       }
@@ -152,7 +148,7 @@ export default class BulletSprite extends Sprite {
   removeSelf() {
     super.removeSelf();
     if (this.bCountTowardsQuota) {
-      this.model.nBullets--;
+      this.game.nBullets--;
     }
   }
 
@@ -168,7 +164,7 @@ export default class BulletSprite extends Sprite {
   }
 
   clearClass() {
-    this.model.nBullets = 0;
+    this.game.nBullets = 0;
   }
 
   setConcussive() {

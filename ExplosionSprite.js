@@ -3,8 +3,8 @@ import WHUtil from "./WHUtil.js";
 import Sprite from "./Sprite.js";
 
 export default class ExplosionSprite extends Sprite {
-  constructor(location, model, colorType = null) {
-    super(location, model);
+  constructor(location, game, colorType = null) {
+    super(location, game);
 
     this.RINGS = 6;
     this.init("explosion", location.x, location.y, true);

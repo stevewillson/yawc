@@ -4,7 +4,7 @@ import WHUtil from "./WHUtil.js";
 import Polygon from "./Polygon.js";
 
 export default class Sprite {
-  constructor(location = { x: 0, y: 0 }, model = null) {
+  constructor(location = { x: 0, y: 0 }, game = null) {
     // used to track the location of the sprite
     this.location = location;
 
@@ -17,8 +17,8 @@ export default class Sprite {
     this.slot = 8;
     this.color = "white";
     this.allIndex = [];
-    // used to share a common list of sprites in the model
-    this.model = model;
+    // used to share a common list of sprites in the game
+    this.game = game;
     this.name = null;
     this.type = null;
 
@@ -34,15 +34,15 @@ export default class Sprite {
     this.bounded = false;
     this.bZappable = null;
 
-    this.bInDrawingRect = null;
+    this.isInDrawingRect = null;
 
     // set up the shape rect for the sprite, use the x,y coordinates and then offset by the bounding box of the polygon
     this.shapeRect = null;
     this.boundingRect = new Rectangle(
       0,
       0,
-      model.world.width,
-      model.world.height
+      game.world.width,
+      game.world.height
     );
 
     this.shapeType = 0;
@@ -91,11 +91,11 @@ export default class Sprite {
 
   addSelf() {
     if (this.spriteType == 1) {
-      this.model.badGuys.push(this);
+      this.game.badGuys.push(this);
     } else if (this.spriteType == 2) {
-      this.model.goodGuys.push(this);
+      this.game.goodGuys.push(this);
     }
-    this.model.allSprites.push(this);
+    this.game.allSprites.push(this);
   }
 
   distanceFrom(sprite) {
@@ -127,7 +127,7 @@ export default class Sprite {
   handleCrash() {}
 
   reverseTrack() {
-    realTrack(model.player.location.x, model.player.location.y, true);
+    realTrack(game.player.location.x, this.game.player.location.y, true);
   }
 
   oob() {
@@ -166,17 +166,17 @@ export default class Sprite {
   removeSelf() {
     // go through the list and check for a sprite with the same uuid
     // if found, remove it
-    this.model.allSprites = this.model.allSprites.filter(
+    this.game.allSprites = this.game.allSprites.filter(
       (el) => el.uuid != this.uuid
     );
     switch (this.spriteType) {
       case 1:
-        this.model.badGuys = this.model.badGuys.filter(
+        this.game.badGuys = this.game.badGuys.filter(
           (el) => el.uuid != this.uuid
         );
         return;
       case 2:
-        this.model.goodGuys = this.model.goodGuys.filter(
+        this.game.goodGuys = this.game.goodGuys.filter(
           (el) => el.uuid != this.uuid
         );
         return;
@@ -294,22 +294,22 @@ export default class Sprite {
   isCollision(paramSprite) {
     switch (paramSprite.shapeType + this.shapeType) {
       case 0:
-        return isRectCollision(paramSprite);
+        return this.isRectCollision(paramSprite);
       case 1:
         if (paramSprite.shapeType == 0) {
-          return isRectPolyCollision(paramSprite, this);
+          return this.isRectPolyCollision(paramSprite, this);
         } else {
-          return isRectPolyCollision(this, paramSprite);
+          return this.isRectPolyCollision(this, paramSprite);
         }
       case 2:
-        return isPolyCollision(paramSprite);
+        return this.isPolyCollision(paramSprite);
     }
     return false;
   }
 
   calcLead() {
     if (this.leadPoint == null) this.leadPoint = new Point();
-    let playerSprite = model.player;
+    let playerSprite = game.player;
     this.leadPoint.x = int(
       playerSprite.x + playerSprite.vectorx * 15.0 - this.x
     );
@@ -344,7 +344,7 @@ export default class Sprite {
     this.shouldRemoveSelf = true;
     let explosionSprite = new ExplosionSprite(
       this.location,
-      this.model,
+      this.game,
       this.slot
     );
     explosionSprite.addSelf();
@@ -366,7 +366,7 @@ export default class Sprite {
       paramGraphics.setColor(Color.green);
     }
     if (polygon != null) {
-      this.model.context.translate(this.location.x, this.location.y);
+      this.game.context.translate(this.location.x, this.location.y);
 
       paramGraphics.drawPolygon(
         polygon.xpoints,
@@ -374,7 +374,7 @@ export default class Sprite {
         polygon.npoints
       );
 
-      this.model.context.translate(-this.location.x, -this.location.y);
+      this.game.context.translate(-this.location.x, -this.location.y);
     }
     if (this.bSentByPlayer)
       drawFlag(
@@ -393,7 +393,7 @@ export default class Sprite {
   //   this.dVector[1] = (paramDouble * d2) / d3;
   // }
 
-  // used to set up the global bounds for the map - consider moving this to the model constructor
+  // used to set up the global bounds for the map - consider moving this to the game constructor
   // setGlobalBounds(width, height) {
   //   globalBoundingRect = new Rectangle(0, 0, paramInt1, paramInt2);
   //   g_centerX = paramInt1 / 2;
@@ -401,7 +401,7 @@ export default class Sprite {
   // }
 
   realTrack(paramInt1, paramInt2, paramBoolean) {
-    if (model.player.shouldRemoveSelf) return;
+    if (game.player.shouldRemoveSelf) return;
     let d1 =
       (WHUtil.findAngle(paramInt1, paramInt2, this.x, this.y) +
         (paramBoolean ? "´" : "Ũ")) %
@@ -498,8 +498,8 @@ export default class Sprite {
   }
 
   track() {
-    if (model.player != null)
-      realTrack(model.player.location.x, model.player.location.y, false);
+    if (game.player != null)
+      realTrack(game.player.location.x, game.player.location.y, false);
   }
 
   setHealth(health, damage) {

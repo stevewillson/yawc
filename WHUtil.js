@@ -243,4 +243,22 @@ export default class WHUtil {
       }
     );
   }
+
+  // get an RGB value from a named color
+  // https://css-tricks.com/converting-color-spaces-in-javascript/
+  static nameToRGB(name) {
+    // Create fake div
+    let fakeDiv = document.createElement("div");
+    fakeDiv.style.color = name;
+    document.body.appendChild(fakeDiv);
+
+    // Get color of div
+    let cs = window.getComputedStyle(fakeDiv),
+      pv = cs.getPropertyValue("color");
+
+    // Remove div after obtaining desired color value
+    document.body.removeChild(fakeDiv);
+
+    return pv;
+  }
 }

@@ -5,13 +5,13 @@ import WHUtil from "./WHUtil.js";
 let g_colors = ["orange", "yellow", "red"];
 
 export default class ThrustSprite extends Sprite {
-  constructor(location, model) {
-    super(location, model);
+  constructor(location, game) {
+    super(location, game);
     super.init("thrust", location.x, location.y, false);
     this.MAX_CYCLE = 30;
     this.radius = 10;
     this.spriteType = 0;
-    this.model = model;
+    this.game = game;
 
     // create a new shapeRect
     this.shapeRect = new Rectangle(location.x, location.y, 0, 0);

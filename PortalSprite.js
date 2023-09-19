@@ -1,11 +1,11 @@
 import Sprite from "./Sprite.js";
 import WHUtil from "./WHUtil.js";
 import Rectangle from "./Rectangle.js";
-import SpriteColors from "./SpriteColors.js"
+import SpriteColors from "./SpriteColors.js";
 
 export default class PortalSprite extends Sprite {
-  constructor(n, info, model) {
-    super(0, 0);
+  constructor(n, info, game) {
+    super({ x: 0, y: 0 }, game);
     this.vOutgoingPowerups = [];
     this.powerupQ = new Array(30);
     this.powerupUpgradeQ = new Array(30);
@@ -33,7 +33,7 @@ export default class PortalSprite extends Sprite {
     this.currentDegrees;
     this.currentArcs;
     this.ARC_SPEED = 0.5;
-    this.bGenEnemy;
+    this.shouldGenEnemy = false;
     this.BASE_W = 30;
     this.MAX_W = 60;
     this.damageTaken;
@@ -58,12 +58,12 @@ export default class PortalSprite extends Sprite {
 
   /**
    * genMines
-   * 
+   *
    */
   genMines(n, n2, player) {
     let n3 = 0.4188790204786391;
     let n4 = 0;
-  
+
     for (let i = 0; i < 15; i++) {
       let mineSprite = new MineSprite(n, n2);
       mineSprite.vectorx = Math.cos(n4) * 6;
@@ -77,23 +77,22 @@ export default class PortalSprite extends Sprite {
   setOrbit() {
     if (!this.bWarpingIn) {
       this.setLocation(
-        WormholeModel.gOrbitDistance * Math.cos(this.currentArcs) +
-          Sprite.g_centerX,
-        WormholeModel.gOrbitDistance * Math.sin(this.currentArcs) +
-          Sprite.g_centerY
+        this.game.orbitDistance * Math.cos(this.currentArcs) +
+          this.game.worldCenter.x,
+        this.game.orbitDistance * Math.sin(this.currentArcs) +
+          this.game.worldCenter.y
       );
       this.currentDegrees += 0.5;
       this.currentDegrees %= 360;
       this.currentArcs = this.currentDegrees * 0.017453292519943295;
       return;
     }
-    if (this.warpDist < WormholeModel.gOrbitDistance) {
+    if (this.warpDist < this.game.orbitDistance) {
       this.setLocation(
-        this.warpDist * Math.cos(this.currentArcs) + Sprite.g_centerX,
-        this.warpDist * Math.sin(this.currentArcs) + Sprite.g_centerY
+        this.warpDist * Math.cos(this.currentArcs) + this.game.worldCenter.x,
+        this.warpDist * Math.sin(this.currentArcs) + this.game.worldCenter.y
       );
-      this.warpDist +=
-        Math.max(6, WormholeModel.gOrbitDistance - this.warpDist) / 3;
+      this.warpDist += Math.max(6, this.game.orbitDistance - this.warpDist) / 3;
       return;
     }
     this.bWarpingIn = false;
@@ -131,7 +130,11 @@ export default class PortalSprite extends Sprite {
           break;
         }
         case 15: {
-          sprite = new WallCrawlerSprite(spriteXLoc, spriteYLoc, WHUtil.randInt() % 2 == 0);
+          sprite = new WallCrawlerSprite(
+            spriteXLoc,
+            spriteYLoc,
+            WHUtil.randInt() % 2 == 0
+          );
           break;
         }
         case 13: {
@@ -175,19 +178,29 @@ export default class PortalSprite extends Sprite {
     }
 
     for (let n = 30; n < 60; n++) {
-
-      context.strokeStyle = this.colors.colors[this.slot][(this.spriteCycle + n) % 20]
+      context.strokeStyle =
+        this.colors.colors[this.slot][(this.spriteCycle + n) % 20];
       // graphics.setColor(
       //   Sprite.g_colors[this.slot][(this.spriteCycle + n) % 20]
       // );
-      
+
       // graphics.drawOval(this.location.x - n, this.location.y - n / 2, n * 2, n);
-      context.ellipse(this.location.x - n, this.location.y - n / 2, n * 2, n, 0, 2 * Math.PI);
+      context.beginPath();
+      context.ellipse(
+        this.location.x - n,
+        this.location.y - n / 2,
+        n * 2,
+        n,
+        0,
+        0,
+        2 * Math.PI
+      );
+      context.stroke();
     }
 
     context.strokeStyle = this.info.color;
     // set the font to the WormholeModel's large font
-    // use the string - 
+    // use the string -
 
     // graphics.setColor(this.info.color);
     // graphics.setFont(WormholeModel.fontLarge);
@@ -203,21 +216,21 @@ export default class PortalSprite extends Sprite {
     // );
 
     // vOutgoingPowerups is a vector of BulletSprites
-    for (let i = this.vOutgoingPowerups.size() - 1; i >= 0; --i) {
-      let bulletSprite = this.vOutgoingPowerups.elementAt(i);
-      bulletSprite.setLocation(bulletSprite.x * 0.95, bulletSprite.y * 0.95);
-      graphics.drawImage(
-        WormholeModel.getImages("img_smallpowerups")[
-          PowerupSprite.convertToSmallImage(bulletSprite.powerupType)
-        ],
-        this.location.x + bulletSprite.location.x - 8,
-        this.location.y + bulletSprite.location.y - 5,
-        null
-      );
-      if (bulletSprite.spriteCycle++ > 9) {
-        this.vOutgoingPowerups.removeElementAt(i);
-      }
-    }
+    // for (let i = this.vOutgoingPowerups.size() - 1; i >= 0; --i) {
+    //   let bulletSprite = this.vOutgoingPowerups.elementAt(i);
+    //   bulletSprite.setLocation(bulletSprite.x * 0.95, bulletSprite.y * 0.95);
+    //   graphics.drawImage(
+    //     WormholeModel.getImages("img_smallpowerups")[
+    //       PowerupSprite.convertToSmallImage(bulletSprite.powerupType)
+    //     ],
+    //     this.location.x + bulletSprite.location.x - 8,
+    //     this.location.y + bulletSprite.location.y - 5,
+    //     null
+    //   );
+    //   if (bulletSprite.spriteCycle++ > 9) {
+    //     this.vOutgoingPowerups.removeElementAt(i);
+    //   }
+    // }
   }
 
   setCollided(sprite) {
@@ -244,8 +257,8 @@ export default class PortalSprite extends Sprite {
           bulletSprite.powerupType,
           bulletSprite.upgradeLevel,
           this.info.slot,
-          Sprite.model.gameSession,
-          WormholeModel.gameID
+          this.game.gameSession,
+          this.game.gameId
         );
       }
     }
@@ -273,15 +286,15 @@ export default class PortalSprite extends Sprite {
     nukeSprite.addSelf();
   }
 
-  inViewingRect(rectangle) {
-    this.viewingRect.move(this.shapeRect.x, this.shapeRect.y);
-    return rectangle.intersects(this.viewingRect);
-  }
+  // inViewingRect(rectangle) {
+  //   this.viewingRect.move(this.shapeRect.x, this.shapeRect.y);
+  //   return rectangle.intersects(this.viewingRect);
+  // }
 
   behave() {
     super.behave();
     this.setOrbit();
-    if (this.bGenEnemy) {
+    if (this.shouldGenEnemy) {
       switch (WHUtil.randABSInt() % 5) {
         case 0:
         case 1: {
@@ -298,10 +311,10 @@ export default class PortalSprite extends Sprite {
           break;
         }
       }
-      this.bGenEnemy = false;
+      this.shouldGenEnemy = false;
     }
-    
-    for (let i = 0; i < 30; i++){
+
+    for (let i = 0; i < 30; i++) {
       if (
         this.powerupCycleQ[i] != 0 &&
         this.powerupCycleQ[i] < this.spriteCycle
@@ -312,8 +325,7 @@ export default class PortalSprite extends Sprite {
             continue;
           }
           case 6: {
-            
-            for(n2 = 0; n2< 12; n2++) {
+            for (n2 = 0; n2 < 12; n2++) {
               let heatSeekerMissile = new HeatSeekerMissile(
                 this.location.x + (WHUtil.randInt() % 50),
                 this.location.y + (WHUtil.randInt() % 50)
@@ -322,7 +334,7 @@ export default class PortalSprite extends Sprite {
               heatSeekerMissile.doMaxThrust(heatSeekerMissile.maxThrust);
               heatSeekerMissile.addSelf();
               heatSeekerMissile.setPlayer(this.powerupSlotQ[i]);
-              }
+            }
             continue;
           }
           case 8: {
@@ -363,12 +375,12 @@ export default class PortalSprite extends Sprite {
           }
         }
       }
+    }
   }
-}
 
   setWarpingIn() {
     this.bWarpingIn = true;
     this.warpDist = 0;
-    PortalSprite.warpDx = WormholeModel.gOrbitDistance / 30;
+    this.warpDx = this.game.orbitDistance / 30;
   }
 }

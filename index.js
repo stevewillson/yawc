@@ -1,18 +1,17 @@
-import GameBoard from "./GameBoard.js";
+import GameNetLogic from "./GameNetLogic.js";
 
-let whGameBoard = new GameBoard(window);
-
+let whGameNetLogic = null;
 window.onload = function () {
-  whGameBoard.start();
+  whGameNetLogic = new GameNetLogic();
 };
 
 // key press handlers
 document.onkeydown = function (e) {
   e.preventDefault();
-  whGameBoard.onkeydown(e);
+  whGameNetLogic.game.onkeydown(e);
 };
 
 document.onkeyup = function (e) {
   e.preventDefault();
-  whGameBoard.onkeyup(e);
+  whGameNetLogic.game.onkeyup(e);
 };
