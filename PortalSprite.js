@@ -1,7 +1,7 @@
 import Sprite from "./Sprite.js";
 import WHUtil from "./WHUtil.js";
 import Rectangle from "./Rectangle.js";
-import SpriteColors from "./SpriteColors.js";
+import InflatorSprite from "./InflatorSprite.js";
 
 export default class PortalSprite extends Sprite {
   constructor(n, info, game) {
@@ -54,8 +54,6 @@ export default class PortalSprite extends Sprite {
     this.warpDx;
     this.warpDist;
     this.bWarpingIn;
-
-    this.colors = new SpriteColors();
   }
 
   /**
@@ -181,7 +179,7 @@ export default class PortalSprite extends Sprite {
 
     for (let n = 30; n < 60; n++) {
       context.strokeStyle =
-        this.colors.colors[this.slot][(this.spriteCycle + n) % 20];
+        this.game.colors.colors[this.slot][(this.spriteCycle + n) % 20];
       context.beginPath();
       context.ellipse(
         this.location.x,
@@ -292,22 +290,25 @@ export default class PortalSprite extends Sprite {
     super.behave();
     this.setOrbit();
     if (this.shouldGenEnemy) {
-      switch (WHUtil.randInt() % 5) {
-        case 0:
-        case 1: {
-          new InflatorSprite(this.location.x, this.location.y).addSelf();
-          break;
-        }
-        case 2:
-        case 3: {
-          new UFOSprite(this.location.x, this.location.y).addSelf();
-          break;
-        }
-        case 4: {
-          new GunshipSprite(this.location.x, this.location.y).addSelf();
-          break;
-        }
-      }
+      let inf = new InflatorSprite(this.location, this.game);
+      inf.addSelf();
+      // switch (WHUtil.randInt() % 5) {
+      //   case 0:
+      //   case 1: {
+      //     let inf = new InflatorSprite(this.location, this.game);
+      //     inf.addSelf();
+      //     break;
+      //   }
+      //   case 2:
+      //   case 3: {
+      //     // new UFOSprite(this.location.x, this.location.y).addSelf();
+      //     break;
+      //   }
+      //   case 4: {
+      //     // new GunshipSprite(this.location.x, this.location.y).addSelf();
+      //     break;
+      //   }
+      // }
       this.shouldGenEnemy = false;
     }
 

@@ -2,12 +2,22 @@ import Rectangle from "./Rectangle.js";
 import WHUtil from "./WHUtil.js";
 // import ExplosionSprite from "./ExplosionSprite.js";
 import Polygon from "./Polygon.js";
-import SpriteColors from "./SpriteColors.js";
 
 export default class Sprite {
-  constructor(location = { x: 0, y: 0 }, game = null) {
+  colors;
+  location;
+  velocity;
+  polygon;
+  slot;
+  name;
+  type;
+  uuid;
+  shapeRect;
+
+  constructor(location, game) {
     // used to track the location of the sprite
     this.location = location;
+    this.game = game;
 
     this.polygon = null;
 
@@ -16,12 +26,6 @@ export default class Sprite {
     this.bIsHeatSeeker = null;
     this.bSentByPlayer = null;
     this.slot = 8;
-    this.colors = new SpriteColors();
-    this.allIndex = [];
-    // used to share a common list of sprites in the game
-    this.game = game;
-    this.name = null;
-    this.type = null;
 
     // handle rotation
     this.dRotate = 0;
@@ -38,13 +42,13 @@ export default class Sprite {
     this.isInDrawingRect = null;
 
     // set up the shape rect for the sprite, use the x,y coordinates and then offset by the bounding box of the polygon
-    this.shapeRect = null;
-    this.boundingRect = new Rectangle(
-      0,
-      0,
-      game.world.width,
-      game.world.height
-    );
+    // this.shapeRect;
+    // this.boundingRect = new Rectangle(
+    //   0,
+    //   0,
+    //   game.world.width,
+    //   game.world.height
+    // );
 
     this.shapeType = 0;
     this.REBOUND_COEFF = -0.5;
@@ -59,8 +63,6 @@ export default class Sprite {
 
     this.maxThrust = null;
     this.maxVelocity = null;
-    // this.g_centerX;
-    // this.g_centerY;
     this.indestructible = false;
 
     this.health = 1;
@@ -128,22 +130,22 @@ export default class Sprite {
   handleCrash() {}
 
   reverseTrack() {
-    realTrack(game.player.location.x, this.game.player.location.y, true);
+    realTrack(this.game.player.location.x, this.game.player.location.y, true);
   }
 
   oob() {
     // check if the ship is outside of the bounds of the board
     return (
       this.location.x < 0 ||
-      this.location.x > this.boundingRect.width ||
+      this.location.x > this.game.world.width ||
       this.location.y < 0 ||
-      this.location.y > this.boundingRect.height
+      this.location.y > this.game.world.height
     );
   }
 
   handleRebound() {
-    let width = this.boundingRect.width;
-    let height = this.boundingRect.height;
+    let width = this.game.world.width;
+    let height = this.game.world.height;
     let x = this.location.x;
     let y = this.location.y;
     if (x < 0) {
@@ -241,9 +243,12 @@ export default class Sprite {
   behave() {
     this.move(this.velocity);
     this.spriteCycle++;
-    // if (this.hasCollided || (!this.bounded && !inGlobalBounds())) {
-    //   this.shouldRemoveSelf = true;
-    // }
+    if (
+      this.hasCollided ||
+      (!this.bounded && !this.inGlobalBounds(this.location.x, this.location.y))
+    ) {
+      this.shouldRemoveSelf = true;
+    }
   }
 
   setPlayer(slot, color = null) {
@@ -252,7 +257,7 @@ export default class Sprite {
       this.color = color;
       this.bSentByPlayer = true;
     } else {
-      this.color = this.colors.colors[slot][0];
+      this.color = this.game.colors.colors[slot][0];
     }
   }
 
@@ -315,14 +320,18 @@ export default class Sprite {
   }
 
   calcLead() {
-    if (this.leadPoint == null) this.leadPoint = new Point();
-    let playerSprite = game.player;
-    this.leadPoint.x = int(
-      playerSprite.x + playerSprite.vectorx * 15.0 - this.x
-    );
-    this.leadPoint.y = int(
-      playerSprite.y + playerSprite.vectory * 15.0 - this.y
-    );
+    if (this.leadPoint == null) {
+      this.loadPoint = { x: 0, y: 0 };
+    }
+    let playerSprite = this.game.player;
+    this.leadPoint.x =
+      playerSprite.location.x +
+      playerSprite.velocity.x * 15.0 -
+      this.location.x;
+    this.leadPoint.y =
+      playerSprite.location.y +
+      playerSprite.velocity.y * 15.0 -
+      this.location.y;
     return this.leadPoint;
   }
 
@@ -349,12 +358,12 @@ export default class Sprite {
 
   killSelf(paramInt1, paramInt2) {
     this.shouldRemoveSelf = true;
-    let explosionSprite = new ExplosionSprite(
-      this.location,
-      this.game,
-      this.slot
-    );
-    explosionSprite.addSelf();
+    // let explosionSprite = new ExplosionSprite(
+    //   this.location,
+    //   this.game,
+    //   this.slot
+    // );
+    // explosionSprite.addSelf();
     if (paramInt1 > 0) {
       // let particleSprite = new ParticleSprite(this.location.x, this.location.y);
       // particleSprite.particleInit(paramInt1, paramInt2);
@@ -363,33 +372,36 @@ export default class Sprite {
   }
 
   // TODO - update method for drawing sprites that don't implement their own 'drawSelf'
-  drawSelf() {
+  drawSelf(context) {
     let polygon = this.getShapePoly();
 
     // set the color to draw
     if (this.color != null) {
-      paramGraphics.setColor(this.color);
+      context.strokeStyle = this.color;
     } else {
-      paramGraphics.setColor(Color.green);
+      context.strokeStyle = "green";
     }
     if (polygon != null) {
-      this.game.context.translate(this.location.x, this.location.y);
+      context.translate(this.location.x, this.location.y);
 
-      paramGraphics.drawPolygon(
-        polygon.xpoints,
-        polygon.ypoints,
-        polygon.npoints
-      );
+      WHUtil.drawPoly(context, polygon);
 
-      this.game.context.translate(-this.location.x, -this.location.y);
+      // paramGraphics.drawPolygon(
+      //   polygon.xpoints,
+      //   polygon.ypoints,
+      //   polygon.npoints
+      // );
+
+      context.translate(-this.location.x, -this.location.y);
     }
-    if (this.bSentByPlayer)
-      drawFlag(
-        paramGraphics,
-        this.color,
-        this.shapeRect.x + this.shapeRect.width + 5,
-        this.shapeRect.y + this.shapeRect.height + 5
-      );
+    // if (this.bSentByPlayer) {
+    //   drawFlag(
+    //     paramGraphics,
+    //     this.color,
+    //     this.shapeRect.x + this.shapeRect.width + 5,
+    //     this.shapeRect.y + this.shapeRect.height + 5
+    //   );
+    // }
   }
 
   // calcTowards(paramInt1, paramInt2, paramDouble) {
@@ -483,12 +495,15 @@ export default class Sprite {
   }
 
   // find out how arena checks for where the ship is
-  // inGlobalBounds() {
-  //   return !(
-  //     globalBoundingRect == null ||
-  //     !globalBoundingRect.inside(this.location.x, this.location.y)
-  //   );
-  // }
+  inGlobalBounds(x, y) {
+    if (this.game.globalBoundingRect == null) {
+      return false;
+    }
+    if (this.game.globalBoundingRect.inside(x, y)) {
+      return true;
+    }
+    return false;
+  }
 
   setImages(paramArrayOfImage, paramInt) {
     this.images = paramArrayOfImage;
@@ -500,7 +515,6 @@ export default class Sprite {
   init(spriteName, x, y, isBounded) {
     this.setLocation(x, y);
     this.name = spriteName;
-    // this.boundingRect = globalBoundingRect;
     this.bounded = isBounded;
   }
 

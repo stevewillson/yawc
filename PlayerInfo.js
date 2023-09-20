@@ -1,16 +1,17 @@
 import SpriteColors from "./SpriteColors.js";
 
 export default class PlayerInfo {
+  BLOCKSIZE = 5;
+  powerupPoints = [
+    [20, 60],
+    [7, 100],
+    [41, 147],
+    [91, 147],
+    [97, 60],
+    [105, 100],
+  ];
+
   constructor() {
-    this.BLOCKSIZE = 5;
-    this.powerupPoints = [
-      [20, 60],
-      [7, 100],
-      [41, 147],
-      [91, 147],
-      [97, 60],
-      [105, 100],
-    ];
     this.gameOver;
     this.wins;
     this.bRefresh;

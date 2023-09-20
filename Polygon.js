@@ -29,10 +29,12 @@ export default class Polygon {
     this.updateBounds();
   }
 
-  drawPolygon(context, color) {
+  drawPolygon(context, color = null) {
     context.beginPath();
 
-    context.strokeStyle = color;
+    if (color != null) {
+      context.strokeStyle = color;
+    }
     context.lineWidth = 1;
 
     context.beginPath();

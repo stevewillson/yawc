@@ -3,23 +3,30 @@ import Rectangle from "./Rectangle.js";
 import WHUtil from "./WHUtil.js";
 
 export default class ParticleSprite extends Sprite {
+  static GSTATES = 12;
+  static MAX_CYCLE = 40;
+  static PARTICLES = 20;
+  location;
+  game;
+  x;
+  y;
+  shapeRect;
+  particles;
+  maxVelocity;
+  x;
+  y;
+  state;
+  dx;
+  dy;
+  spriteCycle;
+
   constructor(location, game) {
     super(location, game);
-    this.init("particles", location.x, location.y, true);
-    super.spriteType = 0;
-    super.shapeRect = new Rectangle(location.x - 70, location.y - 70, 140, 140);
     this.location = location;
     this.game = game;
-    this.GSTATES = 12;
-    this.MAX_CYCLE = 40;
-    this.PARTICLES = 20;
-    this.particles;
-    this.maxVelocity;
-    this.x;
-    this.y;
-    this.state;
-    this.dx;
-    this.dy;
+    super.init("particles", location.x, location.y, true);
+    super.shapeRect = new Rectangle(location.x - 70, location.y - 70, 140, 140);
+    super.spriteType = 0;
     this.spriteCycle = 0;
   }
 

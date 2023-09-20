@@ -2,14 +2,16 @@ import Sprite from "./Sprite.js";
 import Rectangle from "./Rectangle.js";
 import ExplosionSprite from "./ExplosionSprite.js";
 import ParticleSprite from "./ParticleSprite.js";
+import SpriteColors from "./SpriteColors.js";
 
 export default class BulletSprite extends Sprite {
   // tracked in Game now
   // nBullets;
-  BULLETSIZE = 10;
-  INNER_BULLETSIZE = 8;
-  INNER_BOX = 3;
-  INNER_BOX_SIZE = 6;
+  static BULLETSIZE = 10;
+  static INNER_BULLETSIZE = 8;
+  static INNER_BOX = 3;
+  static INNER_BOX_SIZE = 6;
+  static CONCUSSIVE_RECOIL = 5;
   lifespan = 100;
   maxVelocity = 10;
   bPowerup;
@@ -20,7 +22,6 @@ export default class BulletSprite extends Sprite {
   bConcussive;
   offx;
   offy;
-  CONCUSSIVE_RECOIL = 5.0;
 
   constructor(
     location,
@@ -28,10 +29,12 @@ export default class BulletSprite extends Sprite {
     bulletSize,
     internalColor,
     spriteType,
-    game = null
+    game
   ) {
     super(location, game);
-    this.init("blt", location.x, location.y, true);
+    this.location = location;
+    this.game = game;
+    super.init("blt", location.x, location.y, true);
     this.shapeRect = new Rectangle(
       location.x - 5,
       location.y - 5,
@@ -46,6 +49,7 @@ export default class BulletSprite extends Sprite {
       this.color = this.game.color;
       this.bCountTowardsQuota = true;
     }
+    this.spriteCycle = 0;
   }
 
   addSelf() {
@@ -68,9 +72,7 @@ export default class BulletSprite extends Sprite {
         0,
         0,
         7,
-
-        // later figure out how to generate all the sprite colors
-        this.colors.colors[super.slot][super.spriteCycle % 20]
+        this.game.colors.colors[super.slot][super.spriteCycle % 20]
       );
 
       context.moveTo(0, 0);
@@ -163,10 +165,6 @@ export default class BulletSprite extends Sprite {
   setPowerup(powerupType) {
     this.powerupType = powerupType;
     this.bPowerup = true;
-  }
-
-  clearClass() {
-    this.game.nBullets = 0;
   }
 
   setConcussive() {

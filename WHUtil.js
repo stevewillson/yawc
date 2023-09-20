@@ -1,11 +1,10 @@
+import Polygon from "./Polygon.js";
+
 export default class WHUtil {
-  DTOR = 0.017453292519943295;
-
-  RTOD = 57.29577951308232;
-
-  DIST = 60;
-
-  IN = 40;
+  static DTOR = 0.017453292519943295;
+  static RTOD = 57.29577951308232;
+  static DIST = 60;
+  static IN = 40;
 
   // implement later
   // target indicator around objects
@@ -23,14 +22,11 @@ export default class WHUtil {
     );
   }
 
-  symPolygon(paramInt1, paramInt2, paramInt3) {
+  static symPolygon(n, n2, n3) {
     let polygon = new Polygon();
-    let d = 0.0;
-    for (let b = 0; b < paramInt1; b++) {
-      d = paramInt3 + (360 / paramInt1) * b * 0.017453292519943295;
-      let i = int(paramInt2 * Math.cos(d));
-      let j = int(paramInt2 * Math.sin(d));
-      polygon.addPoint(i, j);
+    for (let i = 0; i < n; i++) {
+      let n4 = n3 + (360 / n) * i * 0.017453292519943295;
+      polygon.addPoint(n2 * Math.cos(n4), n2 * Math.sin(n4));
     }
     return polygon;
   }
@@ -54,12 +50,8 @@ export default class WHUtil {
       );
   }
 
-  drawPoly(paramGraphics, paramPolygon) {
-    paramGraphics.drawPolygon(
-      paramPolygon.xpoints,
-      paramPolygon.ypoints,
-      paramPolygon.npoints
-    );
+  static drawPoly(context, polygon) {
+    polygon.drawPolygon(context);
   }
 
   scaleVector(paramDouble1, paramDouble2) {

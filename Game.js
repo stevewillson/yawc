@@ -5,6 +5,7 @@ import SpriteColors from "./SpriteColors.js";
 import WHUtil from "./WHUtil.js";
 import Rectangle from "./Rectangle.js";
 import PortalSprite from "./PortalSprite.js";
+import WallCrawlerSprite from "./WallCrawlerSprite.js";
 
 /**
  * Game Class
@@ -12,20 +13,21 @@ import PortalSprite from "./PortalSprite.js";
  * world is the total renderable canvas, use this size for generating the stars
  */
 export default class Game {
+  canvas;
+  context;
+  loop;
+  logic;
+  input;
+  players;
+  colors;
+  mode;
+
+  allSprites;
+  badGuys;
+  goodGuys;
+
   constructor(gameNetLogic) {
-    //   constructor(paramCFProps, paramGameNetLogic, paramHashtable) {
-    // this.model = CFSkin.getSkin().generateModel(
-    //   this,
-    //   paramGameNetLogic,
-    //   paramCFProps,
-    //   paramHashtable
-    // );
-    this.canvas = null;
-    this.context = null;
-    this.loop = null;
-
     this.logic = gameNetLogic;
-
     this.input = {
       right: false,
       left: false,
@@ -37,7 +39,7 @@ export default class Game {
     this.tableElement;
 
     // state machine mode for the game
-    this.mode = 0;
+    // this.mode = 0;
 
     // array of PlayerInfo objects
     this.players = new Array(8);
@@ -46,12 +48,6 @@ export default class Game {
     }
 
     this.colors = new SpriteColors();
-    this.color = null;
-
-    this.star = [];
-    this.narrowStar = [];
-    this.starSize = [];
-    this.numStars = 70;
 
     this.novaInfo = [];
     this.orbitDistance = 240;
@@ -101,33 +97,19 @@ export default class Game {
       this.viewport.height
     );
 
-    // translate by this amount to get the origin set at the upper left corner of the canvas
-    this.worldToBoard = {
-      x: (this.world.width - this.board.width) / 2,
-      y: (this.world.height - this.board.height) / 2,
-    };
+    this.globalBoundingRect = new Rectangle(
+      0,
+      0,
+      this.board.width,
+      this.board.height
+    );
 
     // https://stackoverflow.com/questions/16919601/html5-canvas-camera-viewport-how-to-actually-do-it
     // want to render the game using a
 
-    // set up board dimensions
-    // this.totalBoardW = (this.boardWidth / 1.5) * n; // divide by 1.5 because we increased viewing size from ~420 to 700, which scaled map size here
-    // this.totalBoardH = (this.boardHeight / 1.5) * n;
-    // this.boardCenterX = this.totalBoardW / 2;
-    // this.boardCenterY = this.totalBoardH / 2;
-    // this.rectCenterBox = new Rectangle(
-    //   this.boardCenterX - 100,
-    //   this.boardCenterY - 100,
-    //   200,
-    //   200
-    // );
-
     this.portalVisibility = (this.board.width / 2) * 1.45;
-    // this.offsetX = this.boardWidth / 2;
-    // this.offsetY = this.boardHeight / 2;
 
-    // specify the playerFigherType
-    // this.player = new PlayerSprite(0);
+    // get a random player fighter type
     this.playerFighterType = WHUtil.randInt() % 8;
 
     this.incomingIconIndex = 0;
@@ -138,18 +120,14 @@ export default class Game {
 
     // get the start time (in ms)
     this.startTime = Date.now();
-    // for (let b = 0; b < this.players.length; b++) {
-    //   this.players[b].resetPowerups();
-    // }
+
+    // reset powerups
+    for (let i = 0; i < this.players.length; i++) {
+      this.players[i].resetPowerups();
+    }
+
     this.boardChanged = true;
 
-    // look for a different way to track key presses
-    // this.fire = 0;
-    // this.left = 0;
-    // this.right = 0;
-    // this.down = 0;
-    // this.up = 0;
-    // this.secondaryFire = 0;
     this.gameOver = false;
     this.refreshStatus = true;
 
@@ -204,28 +182,13 @@ export default class Game {
     // }
 
     // generate the stars
-    this.initStars();
+    this.initStars(70);
 
-    // Sprite.setGlobalBounds(this.totalBoardW, this.totalBoardH);
-    // BulletSprite.clearClass();
+    this.nBullets = 0;
+
     // this.vMessages.removeAllElements();
 
-    // initialize the border shade color
-    if (this.color != null) {
-      this.borderShades[0] = this.color;
-      for (let i = 0; i < this.borderShades.length - 1; i++) {
-        // reimplement the Java .darker() function
-        let DARKER_FACTOR = 0.251;
-        // get the rgb values of the color
-        let curColorRGB = WHUtil.nameToRGB(this.borderShades[i]);
-        // get the 3 RGB values
-        let rgb = curColorRGB.replace(/[^\d,]/g, "").split(",");
-        let tempColor = `rgb(${rgb[0] * DARKER_FACTOR}, ${
-          rgb[1] * DARKER_FACTOR
-        }, ${rgb[2] * DARKER_FACTOR})`;
-        this.borderShades[i + 1] = tempColor;
-      }
-    }
+    this.initBorderShade();
 
     this.winningPlayerString = null;
 
@@ -248,16 +211,18 @@ export default class Game {
     this.player.addSelf();
     this.player.setPlayer(this.slot);
 
-    // new WallCrawlerSprite(0, 0, true).addSelf();
-    // new WallCrawlerSprite(0, 0, false).addSelf();
+    let wc1 = new WallCrawlerSprite({ x: 0, y: 0 }, this, true);
+    let wc2 = new WallCrawlerSprite({ x: 0, y: 0 }, this, false);
+
+    wc1.addSelf();
+    wc2.addSelf();
 
     // start gameLoop
     window.requestAnimationFrame(this.gameLoop.bind(this));
   }
 
   onkeyup(e) {
-    // e.preventDefault();
-    console.log("key up" + e);
+    console.log("key up " + e.code);
 
     if (e.code === "ArrowRight") {
       this.input.right = false;
@@ -271,8 +236,7 @@ export default class Game {
   }
 
   onkeydown(e) {
-    // e.preventDefault();
-    console.log("key down" + e);
+    console.log("key down " + e.code);
 
     if (e.code === "ArrowRight") {
       this.input.right = true;
@@ -591,7 +555,7 @@ export default class Game {
         this.incomingCycle--;
         context.font = "40pt helvetica bold";
         context.strokeStyle =
-          this.colors.colors[this.incomingSlot][this.currentShade++ % 20];
+          SpriteColors.colors[this.incomingSlot][this.currentShade++ % 20];
         context.strokeText("I N C O M I N G", this.boardWidth / 2 - 120, 200);
         context.stroke();
         if (this.incomingNukeCycle > 0) {
@@ -663,6 +627,25 @@ export default class Game {
     // }
     // graphics.setColor(Color.white);
     // graphics.drawRect(0, 0, this.boardWidth - 1, this.boardHeight - 1);
+  }
+
+  initBorderShade() {
+    // initialize the border shade color
+    if (this.color != null) {
+      this.borderShades[0] = this.color;
+      for (let i = 0; i < this.borderShades.length - 1; i++) {
+        // reimplement the Java .darker() function
+        let DARKER_FACTOR = 0.251;
+        // get the rgb values of the color
+        let curColorRGB = WHUtil.nameToRGB(this.borderShades[i]);
+        // get the 3 RGB values
+        let rgb = curColorRGB.replace(/[^\d,]/g, "").split(",");
+        let tempColor = `rgb(${rgb[0] * DARKER_FACTOR}, ${
+          rgb[1] * DARKER_FACTOR
+        }, ${rgb[2] * DARKER_FACTOR})`;
+        this.borderShades[i + 1] = tempColor;
+      }
+    }
   }
 
   // draw a line to point to other wormholes
@@ -758,9 +741,14 @@ export default class Game {
   }
 
   // generate locations for the stars
-  initStars() {
+  initStars(numStars) {
     // fill out stars for the board
     // randomly space them
+
+    this.star = [];
+    this.narrowStar = [];
+    this.starSize = [];
+    this.numStars = numStars;
 
     // let n3 = this.boardCenter.x - 40;
     // let n4 = this.boardCenter.y - 40;

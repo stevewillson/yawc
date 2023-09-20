@@ -6,354 +6,358 @@ import Rectangle from "./Rectangle.js";
 import BulletSprite from "./BulletSprite.js";
 
 export default class PlayerSprite extends Sprite {
+  static shipShapes = [
+    // tank ship coordinates
+    [
+      { x: -3, y: -14 },
+      { x: -3, y: -18 },
+      { x: -5, y: -15 },
+      { x: -7, y: -3 },
+      { x: -19, y: -6 },
+      { x: -16, y: 1 },
+      { x: -9, y: 5 },
+      { x: -6, y: 8 },
+      { x: 6, y: 8 },
+      { x: 9, y: 5 },
+      { x: 16, y: 1 },
+      { x: 19, y: -6 },
+      { x: 7, y: -3 },
+      { x: 5, y: -15 },
+      { x: 3, y: -18 },
+      { x: 3, y: -14 },
+    ],
+    [
+      { x: 0, y: -18 },
+      { x: -4, y: -4 },
+      { x: -12, y: 5 },
+      { x: -5, y: 5 },
+      { x: -3, y: 9 },
+      { x: 3, y: 9 },
+      { x: 5, y: 5 },
+      { x: 12, y: 5 },
+      { x: 4, y: -4 },
+      { x: 0, y: -18 },
+    ],
+    [
+      { x: -3, y: -16 },
+      { x: -6, y: 14 },
+      { x: -10, y: -7 },
+      { x: -12, y: -2 },
+      { x: -12, y: 2 },
+      { x: -5, y: 19 },
+      { x: -8, y: 2 },
+      { x: -3, y: 2 },
+      { x: 0, y: 22 },
+      { x: 0, y: 22 },
+      { x: 3, y: 2 },
+      { x: 8, y: 2 },
+      { x: 5, y: 19 },
+      { x: 12, y: 2 },
+      { x: 12, y: -2 },
+      { x: 10, y: -7 },
+      { x: 6, y: 14 },
+      { x: 3, y: -16 },
+    ],
+    [
+      { x: -3, y: -12 },
+      { x: -6, y: -3 },
+      { x: -6, y: 3 },
+      { x: -10, y: 5 },
+      { x: -10, y: 20 },
+      { x: -3, y: 20 },
+      { x: -3, y: 5 },
+      { x: -10, y: 5 },
+      { x: -6, y: 10 },
+      { x: 6, y: 10 },
+      { x: 10, y: 5 },
+      { x: 3, y: 5 },
+      { x: 3, y: 20 },
+      { x: 10, y: 20 },
+      { x: 10, y: 5 },
+      { x: 6, y: 3 },
+      { x: 6, y: -3 },
+      { x: 3, y: -12 },
+    ],
+    [
+      { x: 0, y: -18 },
+      { x: -4, y: -15 },
+      { x: -4, y: -12 },
+      { x: -7, y: -9 },
+      { x: -13, y: -10 },
+      { x: -10, y: -6 },
+      { x: -10, y: 7 },
+      { x: -13, y: 13 },
+      { x: -7, y: 10 },
+      { x: 0, y: 15 },
+      { x: 0, y: 15 },
+      { x: 7, y: 10 },
+      { x: 13, y: 13 },
+      { x: 10, y: 7 },
+      { x: 10, y: -6 },
+      { x: 13, y: -10 },
+      { x: 7, y: -9 },
+      { x: 4, y: -12 },
+      { x: 4, y: -15 },
+      { x: 0, y: -18 },
+    ],
+    [
+      { x: 0, y: -15 },
+      { x: -15, y: 11 },
+      { x: -5, y: 5 },
+      { x: -10, y: 11 },
+      { x: 0, y: 7 },
+      { x: 0, y: 7 },
+      { x: 10, y: 11 },
+      { x: 5, y: 5 },
+      { x: 15, y: 11 },
+      { x: 0, y: -15 },
+    ],
+    [
+      { x: 0, y: -18 },
+      { x: -7, y: 9 },
+      { x: -13, y: 10 },
+      { x: -10, y: 6 },
+      { x: -4, y: 15 },
+      { x: -4, y: 12 },
+      { x: 0, y: 18 },
+      { x: 0, y: 18 },
+      { x: 4, y: 12 },
+      { x: 4, y: 15 },
+      { x: 10, y: 6 },
+      { x: 13, y: 10 },
+      { x: 7, y: 9 },
+      { x: 0, y: -18 },
+    ],
+    [
+      { x: 0, y: -37 },
+      { x: -15, y: -37 },
+      { x: -15, y: -24 },
+      { x: -8, y: -24 },
+      { x: -8, y: -15 },
+      { x: -22, y: -15 },
+      { x: -22, y: -19 },
+      { x: -29, y: -19 },
+      { x: -29, y: 19 },
+      { x: -22, y: 19 },
+      { x: -22, y: 12 },
+      { x: 0, y: 12 },
+      { x: 0, y: 12 },
+      { x: 22, y: 12 },
+      { x: 22, y: 19 },
+      { x: 29, y: 19 },
+      { x: 29, y: -19 },
+      { x: 22, y: -19 },
+      { x: 22, y: -15 },
+      { x: 8, y: -15 },
+      { x: 8, y: -24 },
+      { x: 15, y: -24 },
+      { x: 15, y: -37 },
+      { x: 0, y: -37 },
+    ],
+    [
+      { x: 0, y: -25 },
+      { x: -10, y: -25 },
+      { x: -10, y: -16 },
+      { x: -5, y: -16 },
+      { x: -5, y: -10 },
+      { x: -15, y: -10 },
+      { x: -15, y: -13 },
+      { x: -19, y: -13 },
+      { x: -19, y: 13 },
+      { x: -15, y: 13 },
+      { x: -15, y: 8 },
+      { x: 0, y: 8 },
+      { x: 0, y: 8 },
+      { x: 15, y: 8 },
+      { x: 15, y: 13 },
+      { x: 19, y: 13 },
+      { x: 19, y: -13 },
+      { x: 15, y: -13 },
+      { x: 15, y: -10 },
+      { x: 5, y: -10 },
+      { x: 5, y: -16 },
+      { x: 10, y: -16 },
+      { x: 10, y: -25 },
+      { x: 0, y: -25 },
+    ],
+  ];
+
+  static fighterData = [
+    {
+      // tank
+      yTranslation: 3,
+      shipScale: 1,
+      zoomScale: 3,
+      dRotate: 5,
+      maxThrust: 6,
+      thrust: 0.1,
+      health: 280,
+      shotUpgrade: 2,
+      thrustUpgrade: 0,
+      trackingCannons: 0,
+      trackingFiringRate: 0,
+      specialType: 0,
+      unused: 0,
+      shipPermissions: 10,
+    },
+    {
+      yTranslation: 4,
+      shipScale: 1,
+      zoomScale: 3,
+      dRotate: 7,
+      maxThrust: 7,
+      thrust: 0.25,
+      health: 240,
+      shotUpgrade: 1,
+      thrustUpgrade: 1,
+      trackingCannons: 0,
+      trackingFiringRate: 0,
+      specialType: 0,
+      unused: 0,
+      shipPermissions: 10,
+    },
+
+    {
+      yTranslation: 0,
+      shipScale: 1,
+      zoomScale: 3,
+      dRotate: 10,
+      maxThrust: 10,
+      thrust: 0.48,
+      health: 200,
+      shotUpgrade: 0,
+      thrustUpgrade: 3,
+      trackingCannons: 0,
+      trackingFiringRate: 0,
+      specialType: 0,
+      unused: 0,
+      shipPermissions: 10,
+    },
+    {
+      yTranslation: -2,
+      shipScale: 1,
+      zoomScale: 3,
+      dRotate: 12,
+      maxThrust: 11,
+      thrust: 0.35,
+      health: 180,
+      shotUpgrade: 0,
+      thrustUpgrade: 2,
+      trackingCannons: 1,
+      trackingFiringRate: 12,
+      specialType: 0,
+      unused: 0,
+      shipPermissions: 12,
+    },
+    {
+      yTranslation: 0,
+      shipScale: 1,
+      zoomScale: 3,
+      dRotate: 4.5,
+      maxThrust: 5.2,
+      thrust: 0.15,
+      health: 250,
+      shotUpgrade: 1,
+      thrustUpgrade: 1,
+      trackingCannons: 0,
+      trackingFiringRate: 0,
+      specialType: 1,
+      unused: 0.0,
+      shipPermissions: 12,
+    },
+    {
+      yTranslation: 0,
+      shipScale: 1,
+      zoomScale: 3,
+      dRotate: 1,
+      maxThrust: 1,
+      thrust: 0.1,
+      health: 190,
+      shotUpgrade: 3,
+      thrustUpgrade: 3,
+      trackingCannons: 0,
+      trackingFiringRate: 0,
+      specialType: 2,
+      unused: 0,
+      shipPermissions: 14,
+    },
+    {
+      yTranslation: 0,
+      shipScale: 1,
+      zoomScale: 3,
+      dRotate: 4.8,
+      maxThrust: 7,
+      thrust: 0.3,
+      health: 220,
+      shotUpgrade: 0,
+      thrustUpgrade: 1,
+      trackingCannons: 0,
+      trackingFiringRate: 0,
+      specialType: 3,
+      unused: 0,
+      shipPermissions: 12.0,
+    },
+    {
+      yTranslation: 0,
+      shipScale: 0.5,
+      zoomScale: 1.5,
+      dRotate: 2,
+      maxThrust: 3.9,
+      thrust: 0.11,
+      health: 300,
+      shotUpgrade: 0,
+      thrustUpgrade: 2,
+      trackingCannons: 2,
+      trackingFiringRate: 14,
+      specialType: 4,
+      unused: 0,
+      shipPermissions: 14,
+    },
+  ];
+
+  static shotData = [
+    [10, 5, 1, 20, 8],
+    [14, 5, 1, 14, 6],
+    [8, 5, 2, 28, 6],
+    [10, 5, 2, 34, 6],
+  ];
+
+  static bulletColors = ["white", "blue", "magenta", "red"];
+
   constructor(location, shipSelect, game) {
     super(location, game);
-    this.shipShapes = [
-      // tank ship coordinates
-      [
-        { x: -3, y: -14 },
-        { x: -3, y: -18 },
-        { x: -5, y: -15 },
-        { x: -7, y: -3 },
-        { x: -19, y: -6 },
-        { x: -16, y: 1 },
-        { x: -9, y: 5 },
-        { x: -6, y: 8 },
-        { x: 6, y: 8 },
-        { x: 9, y: 5 },
-        { x: 16, y: 1 },
-        { x: 19, y: -6 },
-        { x: 7, y: -3 },
-        { x: 5, y: -15 },
-        { x: 3, y: -18 },
-        { x: 3, y: -14 },
-      ],
-      [
-        { x: 0, y: -18 },
-        { x: -4, y: -4 },
-        { x: -12, y: 5 },
-        { x: -5, y: 5 },
-        { x: -3, y: 9 },
-        { x: 3, y: 9 },
-        { x: 5, y: 5 },
-        { x: 12, y: 5 },
-        { x: 4, y: -4 },
-        { x: 0, y: -18 },
-      ],
-      [
-        { x: -3, y: -16 },
-        { x: -6, y: 14 },
-        { x: -10, y: -7 },
-        { x: -12, y: -2 },
-        { x: -12, y: 2 },
-        { x: -5, y: 19 },
-        { x: -8, y: 2 },
-        { x: -3, y: 2 },
-        { x: 0, y: 22 },
-        { x: 0, y: 22 },
-        { x: 3, y: 2 },
-        { x: 8, y: 2 },
-        { x: 5, y: 19 },
-        { x: 12, y: 2 },
-        { x: 12, y: -2 },
-        { x: 10, y: -7 },
-        { x: 6, y: 14 },
-        { x: 3, y: -16 },
-      ],
-      [
-        { x: -3, y: -12 },
-        { x: -6, y: -3 },
-        { x: -6, y: 3 },
-        { x: -10, y: 5 },
-        { x: -10, y: 20 },
-        { x: -3, y: 20 },
-        { x: -3, y: 5 },
-        { x: -10, y: 5 },
-        { x: -6, y: 10 },
-        { x: 6, y: 10 },
-        { x: 10, y: 5 },
-        { x: 3, y: 5 },
-        { x: 3, y: 20 },
-        { x: 10, y: 20 },
-        { x: 10, y: 5 },
-        { x: 6, y: 3 },
-        { x: 6, y: -3 },
-        { x: 3, y: -12 },
-      ],
-      [
-        { x: 0, y: -18 },
-        { x: -4, y: -15 },
-        { x: -4, y: -12 },
-        { x: -7, y: -9 },
-        { x: -13, y: -10 },
-        { x: -10, y: -6 },
-        { x: -10, y: 7 },
-        { x: -13, y: 13 },
-        { x: -7, y: 10 },
-        { x: 0, y: 15 },
-        { x: 0, y: 15 },
-        { x: 7, y: 10 },
-        { x: 13, y: 13 },
-        { x: 10, y: 7 },
-        { x: 10, y: -6 },
-        { x: 13, y: -10 },
-        { x: 7, y: -9 },
-        { x: 4, y: -12 },
-        { x: 4, y: -15 },
-        { x: 0, y: -18 },
-      ],
-      [
-        { x: 0, y: -15 },
-        { x: -15, y: 11 },
-        { x: -5, y: 5 },
-        { x: -10, y: 11 },
-        { x: 0, y: 7 },
-        { x: 0, y: 7 },
-        { x: 10, y: 11 },
-        { x: 5, y: 5 },
-        { x: 15, y: 11 },
-        { x: 0, y: -15 },
-      ],
-      [
-        { x: 0, y: -18 },
-        { x: -7, y: 9 },
-        { x: -13, y: 10 },
-        { x: -10, y: 6 },
-        { x: -4, y: 15 },
-        { x: -4, y: 12 },
-        { x: 0, y: 18 },
-        { x: 0, y: 18 },
-        { x: 4, y: 12 },
-        { x: 4, y: 15 },
-        { x: 10, y: 6 },
-        { x: 13, y: 10 },
-        { x: 7, y: 9 },
-        { x: 0, y: -18 },
-      ],
-      [
-        { x: 0, y: -37 },
-        { x: -15, y: -37 },
-        { x: -15, y: -24 },
-        { x: -8, y: -24 },
-        { x: -8, y: -15 },
-        { x: -22, y: -15 },
-        { x: -22, y: -19 },
-        { x: -29, y: -19 },
-        { x: -29, y: 19 },
-        { x: -22, y: 19 },
-        { x: -22, y: 12 },
-        { x: 0, y: 12 },
-        { x: 0, y: 12 },
-        { x: 22, y: 12 },
-        { x: 22, y: 19 },
-        { x: 29, y: 19 },
-        { x: 29, y: -19 },
-        { x: 22, y: -19 },
-        { x: 22, y: -15 },
-        { x: 8, y: -15 },
-        { x: 8, y: -24 },
-        { x: 15, y: -24 },
-        { x: 15, y: -37 },
-        { x: 0, y: -37 },
-      ],
-      [
-        { x: 0, y: -25 },
-        { x: -10, y: -25 },
-        { x: -10, y: -16 },
-        { x: -5, y: -16 },
-        { x: -5, y: -10 },
-        { x: -15, y: -10 },
-        { x: -15, y: -13 },
-        { x: -19, y: -13 },
-        { x: -19, y: 13 },
-        { x: -15, y: 13 },
-        { x: -15, y: 8 },
-        { x: 0, y: 8 },
-        { x: 0, y: 8 },
-        { x: 15, y: 8 },
-        { x: 15, y: 13 },
-        { x: 19, y: 13 },
-        { x: 19, y: -13 },
-        { x: 15, y: -13 },
-        { x: 15, y: -10 },
-        { x: 5, y: -10 },
-        { x: 5, y: -16 },
-        { x: 10, y: -16 },
-        { x: 10, y: -25 },
-        { x: 0, y: -25 },
-      ],
-    ];
-
-    this.fighterData = [
-      {
-        // tank
-        yTranslation: 3,
-        shipScale: 1,
-        zoomScale: 3,
-        dRotate: 5,
-        maxThrust: 6,
-        thrust: 0.1,
-        health: 280,
-        shotUpgrade: 2,
-        thrustUpgrade: 0,
-        trackingCannons: 0,
-        trackingFiringRate: 0,
-        specialType: 0,
-        unused: 0,
-        shipPermissions: 10,
-      },
-      {
-        yTranslation: 4,
-        shipScale: 1,
-        zoomScale: 3,
-        dRotate: 7,
-        maxThrust: 7,
-        thrust: 0.25,
-        health: 240,
-        shotUpgrade: 1,
-        thrustUpgrade: 1,
-        trackingCannons: 0,
-        trackingFiringRate: 0,
-        specialType: 0,
-        unused: 0,
-        shipPermissions: 10,
-      },
-
-      {
-        yTranslation: 0,
-        shipScale: 1,
-        zoomScale: 3,
-        dRotate: 10,
-        maxThrust: 10,
-        thrust: 0.48,
-        health: 200,
-        shotUpgrade: 0,
-        thrustUpgrade: 3,
-        trackingCannons: 0,
-        trackingFiringRate: 0,
-        specialType: 0,
-        unused: 0,
-        shipPermissions: 10,
-      },
-      {
-        yTranslation: -2,
-        shipScale: 1,
-        zoomScale: 3,
-        dRotate: 12,
-        maxThrust: 11,
-        thrust: 0.35,
-        health: 180,
-        shotUpgrade: 0,
-        thrustUpgrade: 2,
-        trackingCannons: 1,
-        trackingFiringRate: 12,
-        specialType: 0,
-        unused: 0,
-        shipPermissions: 12,
-      },
-      {
-        yTranslation: 0,
-        shipScale: 1,
-        zoomScale: 3,
-        dRotate: 4.5,
-        maxThrust: 5.2,
-        thrust: 0.15,
-        health: 250,
-        shotUpgrade: 1,
-        thrustUpgrade: 1,
-        trackingCannons: 0,
-        trackingFiringRate: 0,
-        specialType: 1,
-        unused: 0.0,
-        shipPermissions: 12,
-      },
-      {
-        yTranslation: 0,
-        shipScale: 1,
-        zoomScale: 3,
-        dRotate: 1,
-        maxThrust: 1,
-        thrust: 0.1,
-        health: 190,
-        shotUpgrade: 3,
-        thrustUpgrade: 3,
-        trackingCannons: 0,
-        trackingFiringRate: 0,
-        specialType: 2,
-        unused: 0,
-        shipPermissions: 14,
-      },
-      {
-        yTranslation: 0,
-        shipScale: 1,
-        zoomScale: 3,
-        dRotate: 4.8,
-        maxThrust: 7,
-        thrust: 0.3,
-        health: 220,
-        shotUpgrade: 0,
-        thrustUpgrade: 1,
-        trackingCannons: 0,
-        trackingFiringRate: 0,
-        specialType: 3,
-        unused: 0,
-        shipPermissions: 12.0,
-      },
-      {
-        yTranslation: 0,
-        shipScale: 0.5,
-        zoomScale: 1.5,
-        dRotate: 2,
-        maxThrust: 3.9,
-        thrust: 0.11,
-        health: 300,
-        shotUpgrade: 0,
-        thrustUpgrade: 2,
-        trackingCannons: 2,
-        trackingFiringRate: 14,
-        specialType: 4,
-        unused: 0,
-        shipPermissions: 14,
-      },
-    ];
-
-    this.shotData = [
-      [10, 5, 1, 20, 8],
-      [14, 5, 1, 14, 6],
-      [8, 5, 2, 28, 6],
-      [10, 5, 2, 34, 6],
-    ];
-
-    this.bulletColors = ["white", "blue", "magenta", "red"];
-
+    this.location = location;
+    this.game = game;
+    this.init("player", location.x, location.y, true);
     this.shipSelect = shipSelect;
-    this.polygon = new RotationalPolygon(this.shipShapes[shipSelect]);
+    this.polygon = new RotationalPolygon(PlayerSprite.shipShapes[shipSelect]);
     this.shapeRect = this.getShapeRect();
 
-    // set the ships basic parameters
+    // set the ship's basic parameters
     this.setBasicParams(shipSelect);
 
     // set ship parameters based on the fighterData
-    this.setHealth(this.fighterData[shipSelect].health, 1000000);
+    this.setHealth(PlayerSprite.fighterData[shipSelect].health, 1000000);
 
     // upgrade the ship's cannon
     this.setShot(0);
-    for (let i = 0; i < this.fighterData[shipSelect].upgradeShot; i++) {
+    for (let i = 0; i < PlayerSprite.fighterData[shipSelect].upgradeShot; i++) {
       this.upgradeShot();
     }
 
     // upgrade thrust
-    if (this.fighterData[shipSelect].upgradeThrust >= 1) {
-      this.thrustUpgradeStatus = this.fighterData[shipSelect].upgradeThrust;
+    if (PlayerSprite.fighterData[shipSelect].upgradeThrust >= 1) {
+      this.thrustUpgradeStatus =
+        PlayerSprite.fighterData[shipSelect].upgradeThrust;
       this.bRetros = true;
       this.bMaxThrustUpgrade = this.thrustUpgradeStatus >= 3;
     }
 
-    this.trackingCannons = this.fighterData[shipSelect].trackingCannons;
+    this.trackingCannons = PlayerSprite.fighterData[shipSelect].trackingCannons;
     if (this.trackingCannons > 0) {
       this.turretLocations = [];
     }
-    this.specialType = this.fighterData[shipSelect].specialType;
+    this.specialType = PlayerSprite.fighterData[shipSelect].specialType;
     if (this.specialType == 2) {
       this.shapeShifterFighterShape = 0;
       // this.handleShapeShift();
@@ -376,13 +380,9 @@ export default class PlayerSprite extends Sprite {
 
     this.killedBy = "";
 
-    this.init("player", location.x, location.y, true);
-
     // sprite type - 1 - badGuy
     // sprite type - 2 - goodGuy
     this.spriteType = 2;
-
-    super.shapeType = 1;
     this.shapeType = 1;
 
     // rotate the ship so that it is facing north
@@ -392,18 +392,18 @@ export default class PlayerSprite extends Sprite {
   upgradeShot() {
     if (!this.bMaxShotUpgrade) {
       this.setShot(this.bulletType + 1);
-      if (this.bulletType >= this.shotData.length - 1) {
+      if (this.bulletType >= PlayerSprite.shotData.length - 1) {
         this.bMaxShotUpgrade = true;
       }
     }
   }
   setShot(bulletType) {
     this.bulletType = bulletType;
-    this.bulletDamage = this.shotData[this.bulletType][0];
-    this.bulletSize = this.shotData[this.bulletType][1];
-    this.numShots = this.shotData[this.bulletType][2];
-    this.maxShots = this.shotData[this.bulletType][3];
-    this.shotDelay = this.shotData[this.bulletType][4];
+    this.bulletDamage = PlayerSprite.shotData[this.bulletType][0];
+    this.bulletSize = PlayerSprite.shotData[this.bulletType][1];
+    this.numShots = PlayerSprite.shotData[this.bulletType][2];
+    this.maxShots = PlayerSprite.shotData[this.bulletType][3];
+    this.shotDelay = PlayerSprite.shotData[this.bulletType][4];
     // Sprite.model.refreshStatus = true;
   }
 
@@ -437,7 +437,7 @@ export default class PlayerSprite extends Sprite {
       },
       this.bulletDamage,
       this.bulletSize,
-      this.bulletColors[this.bulletType],
+      PlayerSprite.bulletColors[this.bulletType],
       2,
       this.game
     );
@@ -451,10 +451,10 @@ export default class PlayerSprite extends Sprite {
   }
 
   setBasicParams(n) {
-    this.dRotate = this.fighterData[n].dRotate;
-    this.maxThrust = this.fighterData[n].maxThrust;
-    this.thrust = this.fighterData[n].thrust;
-    this.trackingFiringRate = this.fighterData[n].trackingFiringRate;
+    this.dRotate = PlayerSprite.fighterData[n].dRotate;
+    this.maxThrust = PlayerSprite.fighterData[n].maxThrust;
+    this.thrust = PlayerSprite.fighterData[n].thrust;
+    this.trackingFiringRate = PlayerSprite.fighterData[n].trackingFiringRate;
   }
 
   // called every cycle to draw the player's ship
@@ -506,9 +506,9 @@ export default class PlayerSprite extends Sprite {
     // undo the rotation
     this.polygon.rotate(-90);
 
-    console.log(
-      `Player: x: ${parseInt(this.location.x)} y: ${parseInt(this.location.y)}`
-    );
+    // console.log(
+    // `Player: x: ${parseInt(this.location.x)} y: ${parseInt(this.location.y)}`
+    // );
 
     // paramGraphics.drawPolygon(this.drawPoly.xpoints, this.drawPoly.ypoints,
     //                           this.drawPoly.npoints);
