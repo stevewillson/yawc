@@ -1,6 +1,7 @@
 import Sprite from "./Sprite.js";
 import Rectangle from "./Rectangle.js";
 import ExplosionSprite from "./ExplosionSprite.js";
+import ParticleSprite from "./ParticleSprite.js";
 
 export default class BulletSprite extends Sprite {
   // tracked in Game now
@@ -60,15 +61,16 @@ export default class BulletSprite extends Sprite {
 
     if (this.bConcussive) {
       WHUtil.drawCenteredCircle(context, 0, 0, 10, this.internalColor);
-      //   context.strokeStyle = Sprite.colors[super.slot][super.spriteCycle % 20];
+      context.strokeStyle =
+        this.game.colors.colors[super.slot][super.spriteCycle % 20];
       WHUtil.fillCenteredCircle(
         context,
         0,
         0,
         7,
-        "orange"
+
         // later figure out how to generate all the sprite colors
-        // SpriteColors.colors[super.slot][super.spriteCycle % 20]
+        this.colors.colors[super.slot][super.spriteCycle % 20]
       );
 
       context.moveTo(0, 0);
@@ -134,9 +136,9 @@ export default class BulletSprite extends Sprite {
         explosionSprite2.RINGS = 2;
         explosionSprite2.addSelf();
       }
-      // let  particleSprite = new ParticleSprite(super.location.x, super.location.y);
-      // particleSprite.particleInit(8, 5);
-      // particleSprite.addSelf();
+      let particleSprite = new ParticleSprite(this.location, this.game);
+      particleSprite.particleInit(8, 5);
+      particleSprite.addSelf();
     }
   }
 

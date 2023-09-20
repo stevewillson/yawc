@@ -548,7 +548,7 @@ export default class Game {
 
   setSlot(slotNum) {
     this.slot = slotNum;
-    this.color = this.colors.colors[this.slot][0];
+    this.color = this.colors.colors[slotNum][0];
   }
 
   // draw the Game to the canvas
@@ -680,14 +680,14 @@ export default class Game {
           this.players[i].portalSprite.location.y - this.player.location.y;
         let hyp = Math.hypot(n, n2);
         if (hyp >= this.portalVisibility) {
-          let n3 = (180.0 * n) / hyp;
-          let n4 = (180.0 * n2) / hyp;
+          let n3 = (180 * n) / hyp;
+          let n4 = (180 * n2) / hyp;
           let n5 = n3 + this.viewportCenter.x;
           let n6 = n4 + this.viewportCenter.y;
 
           let atan = Math.atan(n2 / n);
-          let n7 = 171.0;
-          if (n < 0.0) {
+          let n7 = 171;
+          if (n < 0) {
             n7 = -n7;
           }
           let n8 = atan + 0.04;
@@ -762,8 +762,8 @@ export default class Game {
     // fill out stars for the board
     // randomly space them
 
-    let n3 = this.boardCenter.x - 40;
-    let n4 = this.boardCenter.y - 40;
+    // let n3 = this.boardCenter.x - 40;
+    // let n4 = this.boardCenter.y - 40;
 
     for (let i = 0; i < this.numStars; i++) {
       this.star.push({
@@ -839,6 +839,7 @@ export default class Game {
     playerInfo.icons = icons;
     playerInfo.teamId = teamId;
     this.bRefreshPlayerBar = true;
+    this.setSlot(playerSlot);
   }
 
   // ROUTINES FOR READING AND WRITING ON THE NETWORK
