@@ -198,7 +198,7 @@ export default class PortalSprite extends Sprite {
     // set the font to the WormholeModel's large font
     context.strokeStyle = this.info.color;
     // graphics.setFont(WormholeModel.fontLarge);
-    context.font = "20px helvetica";
+    context.font = "20pt helvetica";
     context.strokeText(
       `${this.info.username}'s WORMHOLE`,
       this.location.x - 70,
@@ -292,7 +292,7 @@ export default class PortalSprite extends Sprite {
     super.behave();
     this.setOrbit();
     if (this.shouldGenEnemy) {
-      switch (WHUtil.randABSInt() % 5) {
+      switch (WHUtil.randInt() % 5) {
         case 0:
         case 1: {
           new InflatorSprite(this.location.x, this.location.y).addSelf();

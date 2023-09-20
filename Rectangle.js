@@ -65,8 +65,16 @@ export default class Rectangle {
     return false;
   }
 
-  // TODO
-  isInside(rect2) {
+  inside(x, y) {
+    // check if the x, y points are inside the rectangle
+    if (
+      this.x <= x &&
+      this.x + this.width >= x &&
+      this.y <= y &&
+      this.y + this.height >= y
+    ) {
+      return true;
+    }
     return false;
   }
 }

@@ -12,10 +12,6 @@ export default class PlayerInfo {
       [105, 100],
     ];
     this.gameOver;
-    this.whacksAtYou;
-    this.whacksAgainst;
-    this.whacksAtYouTotal;
-    this.whacksAgainstTotal;
     this.wins;
     this.bRefresh;
     this.width;

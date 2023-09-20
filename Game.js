@@ -122,7 +122,7 @@ export default class Game {
     //   200
     // );
 
-    // this.portalVisibility = (this.boardWidth / 2) * 1.45;
+    this.portalVisibility = (this.board.width / 2) * 1.45;
     // this.offsetX = this.boardWidth / 2;
     // this.offsetY = this.boardHeight / 2;
 
@@ -220,9 +220,9 @@ export default class Game {
         let curColorRGB = WHUtil.nameToRGB(this.borderShades[i]);
         // get the 3 RGB values
         let rgb = curColorRGB.replace(/[^\d,]/g, "").split(",");
-        let tempColor = `rgb(${parseInt(rgb[0] * DARKER_FACTOR)}, ${parseInt(
+        let tempColor = `rgb(${rgb[0] * DARKER_FACTOR}, ${
           rgb[1] * DARKER_FACTOR
-        )}, ${parseInt(rgb[2] * DARKER_FACTOR)})`;
+        }, ${rgb[2] * DARKER_FACTOR})`;
         this.borderShades[i + 1] = tempColor;
       }
     }
@@ -234,7 +234,6 @@ export default class Game {
     this.player = new PlayerSprite(
       this.boardCenter,
       this.playerFighterType,
-      // game
       this
     );
     // this.imgLogo = (Image)this.mediaTable.get("img_bg_logo");
@@ -293,10 +292,7 @@ export default class Game {
     document.body.style.padding = 0;
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
-
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.context.fillStyle = "black";
-    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
   update() {
@@ -562,40 +558,48 @@ export default class Game {
     if (this.player != null) {
       // get the viewable area for the player
       let viewportRect = this.player.getViewportRect();
-      //   paramGraphics.setColor(this.flashScreenColor);
-      this.flashScreenColor = "black";
-      //   char c = 'Ĭ';
-      //   paramGraphics.fillRect(
-      //     -300,
-      //     -300,
-      //     this.totalBoardW + 600,
-      //     this.totalBoardH + 600
-      //   );
+
+      context.fillStyle = "black";
+      context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
       this.drawStars(context, "gray", this.narrowStar);
-
       // draw pointers to other wormholes
-      // drawPointers(paramGraphics);
-
+      this.drawPointers(context);
       context.translate(-viewportRect.x, -viewportRect.y);
       this.drawBorder(context);
       this.drawStars(context, "white", this.star);
       this.drawRing(context);
 
       // if (
-      //   this.teamId != 0 &&
-      //   this.tableElement.isTeamTable() &&
+      //   this.teamID != 0 &&
+      //   super.tableElement.isTeamTable() &&
       //   !this.gameOver
-      // )
-      // drawTeamStuff(paramGraphics);
-      // if (this.imgLogo != null && rectangle.intersects(this.rectLogo)) {
-      //   paramGraphics.drawImage(
+      // ) {
+      //   this.drawTeamStuff(graphics);
+      // }
+      // draw wormhole backgrounds?
+      // if (this.imgLogo != null && viewRect.intersects(this.rectLogo)) {
+      //   graphics.drawImage(
       //     this.imgLogo,
       //     this.rectLogo.x,
       //     this.rectLogo.y,
       //     null
       //   );
       // }
+
+      if (this.incomingCycle > 0) {
+        this.incomingCycle--;
+        context.font = "40pt helvetica bold";
+        context.strokeStyle =
+          this.colors.colors[this.incomingSlot][this.currentShade++ % 20];
+        context.strokeText("I N C O M I N G", this.boardWidth / 2 - 120, 200);
+        context.stroke();
+        if (this.incomingNukeCycle > 0) {
+          --this.incomingNukeCycle;
+          context.strokeText("N U K E", this.boardWidth / 2 - 90, 240);
+          context.stroke();
+        }
+      }
 
       // draw all sprites
       this.allSprites.forEach((sprite) => {
@@ -610,68 +614,110 @@ export default class Game {
 
       context.translate(viewportRect.x, viewportRect.y);
 
-      // display a message about 'INCOMING' or 'NUKE'
-      //   if (this.incomingCycle > 0) {
-      //     this.incomingCycle--;
-      //     paramGraphics.setFont(fontSuperLarge);
-      //     paramGraphics.setColor(
-      //         Sprite.colors[this.incomingSlot][this.currentShade++ % 20]);
-      //     paramGraphics.drawString("I N C O M I N G", this.boardWidth / 2 - 120,
-      //                              200);
-      //     if (this.incomingNukeCycle > 0) {
-      //       this.incomingNukeCycle--;
-      //       paramGraphics.drawString("N U K E", this.boardWidth / 2 - 90, 240);
-      //     }
-      //   }
-
       // if (this.incomingIconCycle > 0) {
       //   this.incomingIconCycle--;
       // } else if (this.incomingIconIndex > 0) {
       //   this.incomingIconIndex--;
       //   this.incomingIconCycle = 50;
-      //   for (let b = 0; b < this.incomingIconIndex; b++) {
-      //     this.incomingTypeStack[b] = this.incomingTypeStack[b + 1];
-      //     this.incomingWhoStack[b] = this.incomingWhoStack[b + 1];
+      //   for (let k = 0; k < this.incomingIconIndex; k++) {
+      //     this.incomingTypeStack[k] = this.incomingTypeStack[k + 1];
+      //     this.incomingWhoStack[k] = this.incomingWhoStack[k + 1];
       //   }
       // }
-      // for (let b = 0; b < this.incomingIconIndex; b++) {
-      // paramGraphics.drawImage(
-      //   getImages("img_smallpowerups")[
-      //     PowerupSprite.convertToSmallImage(this.incomingTypeStack[b])
-      //   ],
-      //   2,
-      //   b * 15 + 31,
-      //   null
-      // );
-      // Sprite.drawFlag(
-      //   paramGraphics,
-      //   Sprite.colors[this.incomingWhoStack[b]][0],
-      //   25,
-      //   b * 15 + 31
-      // );
+
+      // for (let l = 0; l < this.incomingIconIndex; l++) {
+      //   graphics.drawImage(
+      //     getImages("img_smallpowerups")[
+      //       PowerupSprite.convertToSmallImage(this.incomingTypeStack[l])
+      //     ],
+      //     2,
+      //     l * 15 + 31,
+      //     null
+      //   );
+      //   Sprite.drawFlag(
+      //     graphics,
+      //     Sprite.g_colors[this.incomingWhoStack[l]][0],
+      //     25,
+      //     l * 15 + 31
+      //   );
       // }
-      //   if (this.winningPlayerString != null) {
-      //     drawShadowString(paramGraphics, "GAME OVER!", 100, 100);
-      //     drawShadowString(paramGraphics, "WINNER: " + this.winningPlayerString,
-      //                      100, 120);
-      //   }
-      //   paramGraphics.setColor(Color.white);
-      //   paramGraphics.setFont(fontEleven);
-      //   for (b = 0; b < this.vMessages.size(); b++)
-      // paramGraphics.drawString(
-      //   this.vMessages.elementAt(b),
-      //   10,
-      //   10 * (b + 1)
-      // );
+      // if (this.m_winningPlayerString != null) {
+      //   this.drawShadowString(graphics, "GAME OVER!", 100, 100);
+      //   this.drawShadowString(
+      //     graphics,
+      //     "WINNER: " + this.m_winningPlayerString,
+      //     100,
+      //     120
+      //   );
+      // }
+      // graphics.setColor(Color.white);
+      // graphics.setFont(WormholeModel.fontTwelve);
+      // for (let n = 0; n < this.m_vMessages.size(); n++) {
+      //   graphics.drawString(this.m_vMessages.elementAt(n), 10, 10 * (n + 1));
+      // }
     }
-    // if (this.teamId != 0) {
-    //   paramGraphics.setFont(fontEleven);
-    //   paramGraphics.setColor(CFSkin.TEACOLORS[this.teamId]);
-    //   paramGraphics.drawString(CFSkin.TEANAMES[this.teamId] + " member",
-    //                            this.boardWidth - 135, 13);
+    //   if (this.m_teamID != 0) {
+    //     graphics.setFont(WormholeModel.fontTwelve);
+    //     graphics.setColor(CFSkin.TEAM_COLORS[this.m_teamID]);
+    //     graphics.drawString(CFSkin.TEAM_NAMES[this.m_teamID] + " member", this.boardWidth - 135, 13);
     // }
-    // paramGraphics.setColor(Color.white);
-    // paramGraphics.drawRect(0, 0, this.boardWidth - 1, this.boardHeight - 1);
+    // graphics.setColor(Color.white);
+    // graphics.drawRect(0, 0, this.boardWidth - 1, this.boardHeight - 1);
+  }
+
+  // draw a line to point to other wormholes
+  drawPointers(context) {
+    for (let i = 0; i < this.players.length; i++) {
+      if (
+        !this.players[i].bEmpty &&
+        this.players[i].portalSprite != null &&
+        this.player != null &&
+        !this.players[i].gameOver
+      ) {
+        let n =
+          this.players[i].portalSprite.location.x - this.player.location.x;
+        let n2 =
+          this.players[i].portalSprite.location.y - this.player.location.y;
+        let hyp = Math.hypot(n, n2);
+        if (hyp >= this.portalVisibility) {
+          let n3 = (180.0 * n) / hyp;
+          let n4 = (180.0 * n2) / hyp;
+          let n5 = n3 + this.viewportCenter.x;
+          let n6 = n4 + this.viewportCenter.y;
+
+          let atan = Math.atan(n2 / n);
+          let n7 = 171.0;
+          if (n < 0.0) {
+            n7 = -n7;
+          }
+          let n8 = atan + 0.04;
+          let n9 = atan - 0.04;
+          let n10 = n7 * Math.cos(n8) + this.viewportCenter.x;
+          let n11 = n7 * Math.sin(n8) + this.viewportCenter.y;
+          let n12 = n7 * Math.cos(n9) + this.viewportCenter.x;
+          let n13 = n7 * Math.sin(n9) + this.viewportCenter.y;
+
+          context.strokeStyle = this.players[i].color;
+          context.beginPath();
+
+          context.moveTo(n5, n6);
+          context.lineTo(
+            n3 * 0.9 + this.viewportCenter.x,
+            n4 * 0.9 + this.viewportCenter.y
+          );
+
+          context.moveTo(n5, n6);
+          context.lineTo(n10, n11);
+
+          context.moveTo(n5, n6);
+          context.lineTo(n12, n13);
+
+          context.moveTo(n12, n13);
+          context.lineTo(n10, n11);
+          context.stroke();
+        }
+      }
+    }
   }
 
   /**
@@ -767,10 +813,10 @@ export default class Game {
           this.logic.getIcons(),
           // this.logic.getPlayer(playerName).getIcons(),
           playerSlot,
-          isGameOver == 0,
+          isGameOver,
           b
         );
-        if (isGameOver == 0) {
+        if (isGameOver == false) {
         }
       } else {
         this.slot = playerSlot;
@@ -842,7 +888,6 @@ export default class Game {
             n++;
             this.players[i].portalSprite = portalSprite;
             portalSprite.addSelf();
-            // (this.players[i].portalSprite = portalSprite).addSelf();
             portalSprite.setWarpingIn();
           } else {
             this.players[i].portalSprite = null;

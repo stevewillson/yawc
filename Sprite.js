@@ -2,6 +2,7 @@ import Rectangle from "./Rectangle.js";
 import WHUtil from "./WHUtil.js";
 // import ExplosionSprite from "./ExplosionSprite.js";
 import Polygon from "./Polygon.js";
+import SpriteColors from "./SpriteColors.js";
 
 export default class Sprite {
   constructor(location = { x: 0, y: 0 }, game = null) {
@@ -15,7 +16,7 @@ export default class Sprite {
     this.bIsHeatSeeker = null;
     this.bSentByPlayer = null;
     this.slot = 8;
-    this.color = "white";
+    this.colors = new SpriteColors();
     this.allIndex = [];
     // used to share a common list of sprites in the game
     this.game = game;
@@ -245,66 +246,72 @@ export default class Sprite {
     // }
   }
 
-  setPlayer(paramByte) {
-    setPlayer(paramByte, g_colors[paramByte][0]);
+  setPlayer(slot, color = null) {
+    this.slot = slot;
+    if (color != null) {
+      this.color = color;
+      this.bSentByPlayer = true;
+    } else {
+      this.color = this.colors.colors[slot][0];
+    }
   }
 
-  setPlayer(paramByte, paramColor) {
-    this.slot = paramByte;
-    this.color = paramColor;
-    this.bSentByPlayer = true;
-  }
-
-  isRectPolyCollision(paramSprite1, paramSprite2) {
-    let rectangle = paramSprite1.shapeRect;
-    let polygon = paramSprite2.poly;
-    if (rectangle == null || polygon == null) return false;
-    let bool = false;
-    if (paramSprite2.getShapeRect().intersects(rectangle)) {
-      let polygon1 = new Polygon();
-      for (let b = 0; b < polygon.npoints && !bool; b++) {
-        polygon1.addPoint(
-          polygon.xpoints[b] + paramSprite2.location.x,
-          polygon.ypoints[b] + paramSprite2.location.y
+  isRectPolyCollision(sprite, sprite2) {
+    let shapeRect = sprite.shapeRect;
+    let poly = sprite2.polygon;
+    if (shapeRect == null || poly == null) {
+      return false;
+    }
+    let isCollision = false;
+    if (sprite2.getShapeRect().intersects(shapeRect)) {
+      let polygon = new Polygon();
+      for (let i = 0; i < poly.npoints && !isCollision; i++) {
+        polygon.addPoint(
+          poly.xpoints[i] + sprite2.location.x,
+          poly.ypoints[i] + sprite2.location.y
         );
         if (
-          rectangle.inside(
-            polygon.xpoints[b] + paramSprite2.location.x,
-            polygon.ypoints[b] + paramSprite2.location.y
+          shapeRect.inside(
+            poly.xpoints[i] + sprite2.location.x,
+            poly.ypoints[i] + sprite2.location.y
           )
-        )
-          bool = true;
+        ) {
+          isCollision = true;
+        }
       }
-      if (!bool)
-        bool =
-          !polygon1.contains(rectangle.x, rectangle.y) &&
-          !polygon1.contains(rectangle.x + rectangle.width, rectangle.y) &&
-          !polygon1.contains(rectangle.x, rectangle.y + rectangle.height) &&
-          !polygon1.contains(
-            rectangle.x + rectangle.width,
-            rectangle.y + rectangle.height
-          )
-            ? false
-            : true;
+      if (!isCollision) {
+        isCollision =
+          polygon.contains(shapeRect.x, shapeRect.y) ||
+          polygon.contains(shapeRect.x + shapeRect.width, shapeRect.y) ||
+          polygon.contains(shapeRect.x, shapeRect.y + shapeRect.height) ||
+          polygon.contains(
+            shapeRect.x + shapeRect.width,
+            shapeRect.y + shapeRect.height
+          );
+      }
     }
-    return bool;
+    return isCollision;
   }
 
   // handle collisions based on the shape types of the two objects colliding
-  isCollision(paramSprite) {
-    switch (paramSprite.shapeType + this.shapeType) {
-      case 0:
-        return this.isRectCollision(paramSprite);
-      case 1:
-        if (paramSprite.shapeType == 0) {
-          return this.isRectPolyCollision(paramSprite, this);
-        } else {
-          return this.isRectPolyCollision(this, paramSprite);
+  isCollision(sprite) {
+    switch (sprite.shapeType + this.shapeType) {
+      case 0: {
+        return this.isRectCollision(sprite);
+      }
+      case 1: {
+        if (sprite.shapeType == 0) {
+          return this.isRectPolyCollision(sprite, this);
         }
-      case 2:
-        return this.isPolyCollision(paramSprite);
+        return this.isRectPolyCollision(this, sprite);
+      }
+      case 2: {
+        return this.isPolyCollision(sprite);
+      }
+      default: {
+        return false;
+      }
     }
-    return false;
   }
 
   calcLead() {
@@ -434,17 +441,17 @@ export default class Sprite {
     }
   }
 
-  isPolyCollision(paramSprite) {
-    let polygon = paramSprite.getShapePoly();
+  isPolyCollision(sprite) {
+    let polygon = sprite.getShapePoly();
     if (polygon == null || this.poly == null) return false;
-    let i = this.location.x - paramSprite.location.x;
-    let j = this.location.y - paramSprite.location.y;
-    let b;
-    for (b = 0; b < this.poly.npoints; b++) {
+    let i = this.location.x - sprite.location.x;
+    let j = this.location.y - sprite.location.y;
+
+    for (let b = 0; b < this.poly.npoints; b++) {
       if (polygon.contains(this.poly.xpoints[b] - i, this.poly.ypoints[b] - j))
         return true;
     }
-    for (b = 0; b < polygon.npoints; b++) {
+    for (let b = 0; b < polygon.npoints; b++) {
       if (this.poly.contains(polygon.xpoints[b] + i, polygon.ypoints[b] + j))
         return true;
     }

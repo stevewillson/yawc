@@ -11,7 +11,7 @@ export default class RotationalPolygon {
 
     this.currentAngle = 0;
     points.forEach((point) => {
-      this.addIntPoint(point.x, point.y);
+      this.addPoint(point.x, point.y);
     });
 
     this.polygon = new Polygon(this.xpoints, this.ypoints, this.npoints);
@@ -35,7 +35,7 @@ export default class RotationalPolygon {
     this.npoints++;
   }
 
-  addIntPoint(xval, yval) {
+  addPoint(xval, yval) {
     let i = Math.hypot(xval, yval);
     let d = Math.atan2(yval, xval) * 57.29577951308232;
     this.addDistAnglePoint(i, d);

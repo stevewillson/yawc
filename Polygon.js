@@ -5,18 +5,28 @@ export default class Polygon {
     this.xpoints = xpoints;
     this.ypoints = ypoints;
     this.npoints = npoints;
-
-    //calculate the bounds of the polygon
-    this.bounds = new Rectangle(
-      Math.min(...xpoints),
-      Math.min(...ypoints),
-      Math.max(...xpoints),
-      Math.max(...ypoints)
-    );
+    this.updateBounds();
   }
 
   getBounds() {
     return this.bounds;
+  }
+
+  updateBounds() {
+    //calculate the bounds of the polygon
+    this.bounds = new Rectangle(
+      Math.min(...this.xpoints),
+      Math.min(...this.ypoints),
+      Math.max(...this.xpoints) - Math.min(...this.xpoints),
+      Math.max(...this.ypoints) - Math.min(...this.ypoints)
+    );
+  }
+
+  addPoint(xval, yval) {
+    this.xpoints.push(xval);
+    this.ypoints.push(yval);
+    this.npoints++;
+    this.updateBounds();
   }
 
   drawPolygon(context, color) {
@@ -34,5 +44,18 @@ export default class Polygon {
 
     context.closePath();
     context.stroke();
+  }
+
+  contains(x, y) {
+    // check if the x, y points are inside the rectangle
+    if (
+      this.bounds.x <= x &&
+      this.bounds.x + this.bounds.width >= x &&
+      this.bounds.y <= y &&
+      this.bounds.y + this.bounds.height >= y
+    ) {
+      return true;
+    }
+    return false;
   }
 }
