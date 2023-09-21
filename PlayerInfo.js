@@ -69,7 +69,7 @@ export default class PlayerInfo {
     this.bRefresh = true;
     this.username = "Empty";
     this.bEmpty = true;
-    this.color = Color.gray;
+    this.color = "gray";
     this.gameOver = false;
     if (this.portalSprite != null) {
       this.portalSprite.killSelf();
@@ -82,17 +82,13 @@ export default class PlayerInfo {
   draw(context, n, n2) {
     this.bRefresh = false;
     WHUtil.drawBoundRect(
-      graphics,
+      context,
       0,
       0,
       n,
       n2,
       this.color,
-      this.gameOver
-        ? Color.gray
-        : this.offsetCycle == 30
-        ? Color.orange
-        : Color.black
+      this.gameOver ? "gray" : this.offsetCycle == 30 ? "orange" : "black"
     );
     graphics.setFont(WormholeModel.fontTwelve);
     graphics.drawString(
@@ -207,15 +203,13 @@ export default class PlayerInfo {
   timeoutAttacks() {
     let n = Date.now();
     let b = false;
-    for (let n2 = 0; n2 < 6; n2++) {
-      for (let n3 = 0; n3 < 10; n3++) {
-        if (
-          this.m_powerupTimeouts[n2][n3] > 0 &&
-          n > this.m_powerupTimeouts[n2][n3]
-        ) {
-          this.m_powerupTimeouts[n2][n3] = 0;
+    for (let i = 0; i < 6; i++) {
+      this.powerupTimeouts[i] = Array(10);
+      for (let j = 0; j < 10; j++) {
+        if (this.powerupTimeouts[i][j] > 0 && n > this.powerupTimeouts[i][j]) {
+          this.powerupTimeouts[i][j] = 0;
           b = true;
-          this.m_bRefresh = true;
+          this.bRefresh = true;
         }
       }
     }

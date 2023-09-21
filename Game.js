@@ -866,7 +866,7 @@ export default class Game {
             b = true;
           }
           // } else {
-          // b = true;
+          //   b = true;
           // }
           if (b) {
             let portalSprite = new PortalSprite(
@@ -883,149 +883,128 @@ export default class Game {
           }
         }
       }
+    } else if (gamePacket.type == "updatePlayerInfo") {
+      let gameSession = gamePacket.gameSession;
+      if (gameSession != this.gameSession && !this.gameOver) {
+        return;
+      }
+      let slot = gamePacket.slot;
+      if (slot == this.slot) {
+        return;
+      }
+      let playerInfo = this.players[this.translateSlot(slot)];
+      if (playerInfo.gameOver || playerInfo.bEmpty) {
+        return;
+      }
+      playerInfo.readState(gamePacket.playerInfo);
+      this.bRefreshPlayerBar = true;
+    } else if (gamePacket.type == "gameOverIndividual") {
+      let slot = gamePacket.slot;
+      if (super.slot == slot) {
+        this.winningPlayerString = "YOU WON";
+        ++this.wins;
+      } else {
+        let translateSlot = this.translateSlot(slot);
+        this.winningPlayerString =
+          this.players[translateSlot].username + " WON";
+        let playerInfo2 = this.players[translateSlot];
+        playerInfo2.wins++;
+        this.players[translateSlot].gameOver = true;
+      }
+      this.gameOver = true;
+      this.refreshStatus = true;
+      this.bRefreshPlayerBar = true;
+    } else if (gamePacket.type == "gameOverTeam") {
+      let teamId = gamePacket.teamId;
+      this.winningPlayerString = CFSkin.TEANAMES[teamId] + " WON";
+      if (this.teamId == teamId) {
+        this.wins++;
+      } else {
+        for (let k = 0; k < this.players.length; ++k) {
+          if (this.players[k].teamId == teamId) {
+            let playerInfo3 = this.players[k];
+            playerInfo3.wins++;
+            this.players[k].gameOver = true;
+          }
+        }
+      }
+      this.gameOver = true;
+      this.refreshStatus = true;
+      this.bRefreshPlayerBar = true;
+    } else if (gamePacket.type == "killPlayer") {
+      let deceasedSlot = gamePacket.deceasedSlot;
+      let killerSlot = gamePacket.killerSlot;
+      if (deceasedSlot == this.slot) {
+        this.gameOver = true;
+        return;
+      }
+      let playerInfo4 = this.players[this.translateSlot(deceasedSlot)];
+      playerInfo4.gameOver = true;
+      playerInfo4.bRefresh = true;
+      if (playerInfo4.portalSprite != null) {
+        playerInfo4.portalSprite.killSelf();
+      }
+      playerInfo4.healthPercentage = 0;
+      if (killerSlot == super.slot) {
+        this.kills++;
+        this.refreshStatus = true;
+      }
+      this.bRefreshPlayerBar = true;
+    } else if (gamePacket.type == "message") {
+      let message = gamePacket.content;
+      while (this.vMessages.size() >= 2) {
+        this.vMessages.removeElementAt(0);
+      }
+      this.vMessages.addElement(message);
+      this.lastCycleForMessages = this.cycle + 200;
+    } else if (gamePacket.type == "sendPowerup") {
+      let powerupType = gamePacket.powerupType;
+      let fromSlot = gamePacket.fromSlot;
+      let toSlot = gamePacket.toSlot;
+      let gameSession = gamePacket.gameSession;
+      let byte9 = gamePacket.byte9;
+      if (gameSession != this.gameSession && !this.gameOver) {
+        return;
+      }
+      let translateSlot2 = this.translateSlot(fromSlot);
+      if (fromSlot != this.slot && translateSlot2 < 0) {
+        return;
+      }
+      if (toSlot != this.slot) {
+        this.bRefreshPlayerBar = true;
+        return;
+      }
+      if (this.gameOver) {
+        return;
+      }
+      this.addIncomingPowerup(
+        this.players[translateSlot2].portalSprite,
+        powerupType,
+        fromSlot,
+        byte9
+      );
+    } else if (gamePacket.type == "playerWins") {
+      let numPlayers = gamePacket.numPlayers;
+      for (let i = 0; i < numPlayers; i++) {
+        let slot = gamePacket.slot[i];
+        let winCount = gamePacket.winCount[i];
+        let translateSlot = this.translateSlot(slot);
+        let playerInfo = this.players[translateSlot];
+        playerInfo.wins = winCount;
+        this.refreshStatus = true;
+      }
+    } else if (gamePacket.type == "slotTeamId") {
+      let slot = gamePacket.slot;
+      let teamId = gamePacket.teamId;
+      if (slot == super.slot) {
+        this.teamId = teamId;
+      } else {
+        let translateSlot = this.translateSlot(slot);
+        let playerInfo = this.players[translateSlot];
+        playerInfo.teamId = teamId;
+        playerInfo.bRefresh = true;
+      }
+      this.bRefreshPlayerBar = true;
     }
-    // switch (dataInput.readByte()) {
-    //   case 106: {
-    //     if (dataInput.readShort() != this.gameSession && !this.gameOver) {
-    //       return;
-    //     }
-    //     let slot = dataInput.readByte();
-    //     if (slot == super.slot) {
-    //       return;
-    //     }
-
-    //     let playerInfo = this.players[this.translateSlot(slot)];
-    //     if (playerInfo.gameOver || playerInfo.bEmpty) {
-    //       return;
-    //     }
-    //     playerInfo.readState(dataInput);
-    //     this.bRefreshPlayerBar = true;
-    //     break;
-    //   }
-    // case 111: {
-    //   let slot = dataInput.readByte();
-    //   if (super.slot == slot) {
-    //     this.winningPlayerString = "YOU WON";
-    //     ++this.wins;
-    //   } else {
-    //     let translateSlot = this.translateSlot(slot);
-    //     this.winningPlayerString =
-    //       this.players[translateSlot].username + " WON";
-    //     let playerInfo2 = this.players[translateSlot];
-    //     playerInfo2.wins++;
-    //     this.players[translateSlot].gameOver = true;
-    //   }
-    //   this.gameOver = true;
-    //   this.refreshStatus = true;
-    //   this.bRefreshPlayerBar = true;
-    //   break;
-    //   }
-    // case 112: {
-    //   let teamId = dataInput.readByte();
-    //   this.winningPlayerString = CFSkin.TEANAMES[teamId] + " WON";
-    //   if (this.teamId == teamId) {
-    //     this.wins++;
-    //   } else {
-    //     for (let k = 0; k < this.players.length; ++k) {
-    //       if (this.players[k].teamId == teamId) {
-    //         let playerInfo3 = this.players[k];
-    //         playerInfo3.wins++;
-    //         this.players[k].gameOver = true;
-    //       }
-    //     }
-    //   }
-    //   this.gameOver = true;
-    //   this.refreshStatus = true;
-    //   this.bRefreshPlayerBar = true;
-    //   break;
-    // }
-    // case 110: {
-    //   let deceasedSlot = dataInput.readByte();
-    //   let killerSlot = dataInput.readByte();
-    //   if (deceasedSlot == super.slot) {
-    //     this.gameOver = true;
-    //     return;
-    //   }
-    //   let playerInfo4 = this.players[this.translateSlot(deceasedSlot)];
-    //   playerInfo4.gameOver = true;
-    //   playerInfo4.bRefresh = true;
-    //   if (playerInfo4.portalSprite != null) {
-    //     playerInfo4.portalSprite.killSelf();
-    //   }
-    //   playerInfo4.healthPercentage = 0;
-    //   if (killerSlot == super.slot) {
-    //     ++this.kills;
-    //     this.refreshStatus = true;
-    //   }
-    //   this.bRefreshPlayerBar = true;
-    //   break;
-    // }
-    // case 109: {
-    //   utf = dataInput.readUTF();
-    //   while (this.vMessages.size() >= 2) {
-    //     this.vMessages.removeElementAt(0);
-    //   }
-    //   this.vMessages.addElement(utf);
-    //   this.lastCycleForMessages = this.cycle + 200;
-    //   break;
-    // }
-    // case 107: {
-    //   let powerupType = dataInput.readByte();
-    //   let fromSlot = dataInput.readByte();
-    //   let toSlot = dataInput.readByte();
-    //   let gameSession = dataInput.readShort();
-    //   let byte9 = dataInput.readByte();
-    //   if (gameSession != this.gameSession && !this.gameOver) {
-    //     return;
-    //   }
-    //   let translateSlot2 = this.translateSlot(fromSlot);
-    //   if (fromSlot != super.slot && translateSlot2 < 0) {
-    //     return;
-    //   }
-    //   if (toSlot != super.slot) {
-    //     this.bRefreshPlayerBar = true;
-    //     return;
-    //   }
-    //   if (this.gameOver) {
-    //     return;
-    //   }
-    //   this.addIncomingPowerup(
-    //     this.players[translateSlot2].portalSprite,
-    //     powerupType,
-    //     fromSlot,
-    //     byte9
-    //   );
-    //   break;
-    // }
-    // case 120: {
-    //   let numPlayers = dataInput.readShort();
-    //   for (let i = 0; i < numPlayers; i++) {
-    //     let slot = dataInput.readByte();
-    //     let winCount = dataInput.readShort();
-
-    //     let translateSlot = this.translateSlot(slot);
-    //     let playerInfo = this.players[translateSlot];
-    //     playerInfo.wins = winCount;
-    //     this.refreshStatus = true;
-    //   }
-    //   break;
-    // }
-    // case 121: {
-    //   let slot = dataInput.readByte();
-    //   let teamId = dataInput.readByte();
-    //   if (slot == super.slot) {
-    //     this.teamId = teamId;
-    //   } else {
-    //     let translateSlot = this.translateSlot(slot);
-    //     let playerInfo = this.players[translateSlot];
-    //     playerInfo.teamId = teamId;
-    //     playerInfo.bRefresh = true;
-    //   }
-    //   this.bRefreshPlayerBar = true;
-    //   break;
-    // }
-    // default: {
-    // }
-    // }
   }
 }
