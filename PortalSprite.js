@@ -2,6 +2,7 @@ import Sprite from "./Sprite.js";
 import WHUtil from "./WHUtil.js";
 import Rectangle from "./Rectangle.js";
 import InflatorSprite from "./InflatorSprite.js";
+import UFOSprite from "./UFOSprite.js";
 
 export default class PortalSprite extends Sprite {
   constructor(n, info, game) {
@@ -290,25 +291,24 @@ export default class PortalSprite extends Sprite {
     super.behave();
     this.setOrbit();
     if (this.shouldGenEnemy) {
-      let inf = new InflatorSprite(this.location, this.game);
-      inf.addSelf();
-      // switch (WHUtil.randInt() % 5) {
-      //   case 0:
-      //   case 1: {
-      //     let inf = new InflatorSprite(this.location, this.game);
-      //     inf.addSelf();
-      //     break;
-      //   }
-      //   case 2:
-      //   case 3: {
-      //     // new UFOSprite(this.location.x, this.location.y).addSelf();
-      //     break;
-      //   }
-      //   case 4: {
-      //     // new GunshipSprite(this.location.x, this.location.y).addSelf();
-      //     break;
-      //   }
-      // }
+      switch (WHUtil.randInt() % 5) {
+        case 0:
+        case 1: {
+          let inf = new InflatorSprite(this.location, this.game);
+          inf.addSelf();
+          break;
+        }
+        case 2:
+        case 3: {
+          let ufo = new UFOSprite(this.location, this.game);
+          ufo.addSelf();
+          break;
+        }
+        //   case 4: {
+        //     // new GunshipSprite(this.location.x, this.location.y).addSelf();
+        //     break;
+        //   }
+      }
       this.shouldGenEnemy = false;
     }
 

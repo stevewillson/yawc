@@ -76,7 +76,7 @@ export default class WHUtil {
     );
   }
 
-  findAngle(x1, y1, x2, y2) {
+  static findAngle(x1, y1, x2, y2) {
     return Math.atan2(y1 - y2, x1 - x2) * 57.29577951308232;
   }
 

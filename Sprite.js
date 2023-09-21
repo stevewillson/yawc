@@ -4,6 +4,7 @@ import WHUtil from "./WHUtil.js";
 import Polygon from "./Polygon.js";
 
 export default class Sprite {
+  static REBOUND_COEFF = -0.5;
   colors;
   location;
   velocity;
@@ -14,32 +15,42 @@ export default class Sprite {
   uuid;
   shapeRect;
 
+  bZappable;
+
+  isInDrawingRect;
+  spriteType;
+  powerupType;
+
+  collisionType;
+  bIsBulthis;
+  bIsHeatSeeker;
+  bSentByPlayer;
+  shouldRemoveSelf;
+
+  maxThrust;
+  maxVelocity;
+  bUseHealth;
+  collidedObject;
+
+  thrust;
+  leadPoint;
+
+  MAX_HEALTH;
+  images;
+
   constructor(location, game) {
     // used to track the location of the sprite
     this.location = location;
     this.game = game;
 
-    this.polygon = null;
-
-    this.collisionType = null;
-    this.bIsBulthis = null;
-    this.bIsHeatSeeker = null;
-    this.bSentByPlayer = null;
     this.slot = 8;
 
     // handle rotation
     this.dRotate = 0;
     this.isRotating = false;
 
-    this.spriteType = null;
-    this.powerupType = null;
     this.spriteCycle = 0;
-    this.shouldRemoveSelf = null;
-
     this.bounded = false;
-    this.bZappable = null;
-
-    this.isInDrawingRect = null;
 
     // set up the shape rect for the sprite, use the x,y coordinates and then offset by the bounding box of the polygon
     // this.shapeRect;
@@ -51,7 +62,7 @@ export default class Sprite {
     // );
 
     this.shapeType = 0;
-    this.REBOUND_COEFF = -0.5;
+
     this.dVector = [];
 
     //initialize the angle and the radAngle for the ship
@@ -61,27 +72,21 @@ export default class Sprite {
     // the speed of the ship
     this.velocity = { x: 0, y: 0 };
 
-    this.maxThrust = null;
-    this.maxVelocity = null;
     this.indestructible = false;
+    this.hasCollided = false;
 
     this.health = 1;
     this.damage = 1;
-    this.bUseHealth = null;
 
-    this.hasCollided = false;
-    this.collidedObject = null;
-
-    this.MAX_HEALTH;
-    this.images;
     // this.heights;
     // this.widths;
     this.numImages = 0;
     this.currentFrame = 0;
     // this.cachedWidth;
     // this.cachedHeight;
-    this.thrust = null;
-    this.leadPoint;
+
+    this.shouldRemoveSelf = false;
+
     // used to specify which sprite we are referring to
     this.uuid = WHUtil.uuid();
     // need to have a secure browser context to use this method
@@ -371,7 +376,6 @@ export default class Sprite {
     }
   }
 
-  // TODO - update method for drawing sprites that don't implement their own 'drawSelf'
   drawSelf(context) {
     let polygon = this.getShapePoly();
 
@@ -383,15 +387,7 @@ export default class Sprite {
     }
     if (polygon != null) {
       context.translate(this.location.x, this.location.y);
-
       WHUtil.drawPoly(context, polygon);
-
-      // paramGraphics.drawPolygon(
-      //   polygon.xpoints,
-      //   polygon.ypoints,
-      //   polygon.npoints
-      // );
-
       context.translate(-this.location.x, -this.location.y);
     }
     // if (this.bSentByPlayer) {
@@ -419,22 +415,40 @@ export default class Sprite {
   //   g_centerY = paramInt2 / 2;
   // }
 
-  realTrack(paramInt1, paramInt2, paramBoolean) {
-    if (game.player.shouldRemoveSelf) return;
-    let d1 =
-      (WHUtil.findAngle(paramInt1, paramInt2, this.x, this.y) +
-        (paramBoolean ? "´" : "Ũ")) %
-      360.0;
-    let d2 = this.dRotate;
-    let d3 = d1 - this.angle;
-    if (Math.abs(d3) <= this.dRotate) {
-      d2 = d3;
-    } else if (Math.abs(d3) <= 180.0) {
-      if (d3 < 0.0) d2 = -this.dRotate;
-    } else if (d3 > 0.0) {
-      d2 = -this.dRotate;
+  setDegreeAngle(n) {
+    this.angle = (n + 360) % 360;
+    this.radAngle = this.angle * 0.017453292519943295;
+  }
+
+  setLocation(x, y) {
+    this.location.x = x;
+    this.location.y = y;
+  }
+
+  setVelocity(velocity) {
+    this.velocity = velocity;
+  }
+
+  realTrack(x, y, b) {
+    if (this.game.player.shouldRemoveSelf) {
+      return;
     }
-    this.rotate(d2);
+    let n3 =
+      (WHUtil.findAngle(x, y, this.location.x, this.location.y) +
+        (b ? 180 : 360)) %
+      360;
+    let dRotate = this.dRotate;
+    let n4 = n3 - this.angle;
+    if (Math.abs(n4) <= this.dRotate) {
+      dRotate = n4;
+    } else if (Math.abs(n4) <= 180) {
+      if (n4 < 0) {
+        dRotate = -this.dRotate;
+      }
+    } else if (n4 > 0) {
+      dRotate = -this.dRotate;
+    }
+    this.rotate(dRotate);
     this.doMaxThrust(this.thrust);
   }
 
@@ -454,36 +468,48 @@ export default class Sprite {
   }
 
   isPolyCollision(sprite) {
-    let polygon = sprite.getShapePoly();
-    if (polygon == null || this.poly == null) return false;
-    let i = this.location.x - sprite.location.x;
-    let j = this.location.y - sprite.location.y;
-
-    for (let b = 0; b < this.poly.npoints; b++) {
-      if (polygon.contains(this.poly.xpoints[b] - i, this.poly.ypoints[b] - j))
-        return true;
+    let shapePoly = sprite.getShapePoly();
+    if (shapePoly == null || this.polygon == null) {
+      return false;
     }
-    for (let b = 0; b < polygon.npoints; b++) {
-      if (this.poly.contains(polygon.xpoints[b] + i, polygon.ypoints[b] + j))
+    let n = this.location.x - sprite.location.x;
+    let n2 = this.location.y - sprite.location.y;
+    for (let i = 0; i < this.polygon.npoints; i++) {
+      if (
+        shapePoly.contains(
+          this.polygon.xpoints[i] - n,
+          this.polygon.ypoints[i] - n2
+        )
+      ) {
         return true;
+      }
+    }
+    for (let j = 0; j < shapePoly.npoints; j++) {
+      if (
+        this.polygon.contains(
+          shapePoly.xpoints[j] + n,
+          shapePoly.ypoints[j] + n2
+        )
+      ) {
+        return true;
+      }
     }
     return false;
   }
 
-  setVelocity(velocity) {
-    this.velocity = velocity;
-  }
-
-  isRectCollision(paramSprite) {
-    let rectangle1 = paramSprite.shapeRect;
-    let rectangle2 = this.shapeRect;
-    return rectangle1 == null && rectangle2 == null
-      ? false
-      : rectangle1 == null && rectangle2 != null
-      ? rectangle2.inside(paramSprite.location.x, paramSprite.location.y)
-      : rectangle2 == null
-      ? rectangle1.inside(this.location.x, this.location.y)
-      : rectangle1.intersects(rectangle2);
+  isRectCollision(sprite) {
+    let shapeRect = sprite.getShapeRect();
+    let shapeRect2 = this.getShapeRect();
+    if (shapeRect == null && shapeRect2 == null) {
+      return false;
+    }
+    if (shapeRect == null && shapeRect2 != null) {
+      return shapeRect2.inside(sprite.location.x, sprite.location.y);
+    }
+    if (shapeRect2 == null) {
+      return shapeRect.inside(this.location.x, this.location.y);
+    }
+    return shapeRect.intersects(shapeRect2);
   }
 
   inViewingRect(viewportRect) {
@@ -494,7 +520,6 @@ export default class Sprite {
     }
   }
 
-  // find out how arena checks for where the ship is
   inGlobalBounds(x, y) {
     if (this.game.globalBoundingRect == null) {
       return false;
@@ -519,8 +544,13 @@ export default class Sprite {
   }
 
   track() {
-    if (game.player != null)
-      realTrack(game.player.location.x, game.player.location.y, false);
+    if (this.game.player != null) {
+      this.realTrack(
+        this.game.player.location.x,
+        this.game.player.location.y,
+        false
+      );
+    }
   }
 
   setHealth(health, damage) {
@@ -532,22 +562,10 @@ export default class Sprite {
 
   changeHealth(amount) {
     this.health += amount;
-
     if (this.health < 0) {
       this.health = 0;
-    }
-    if (this.health > this.MAX_HEALTH) {
+    } else if (this.health > this.MAX_HEALTH) {
       this.health = this.MAX_HEALTH;
     }
-  }
-
-  setDegreeAngle(n) {
-    this.angle = (n + 360.0) % 360.0;
-    this.radAngle = this.angle * 0.017453292519943295;
-  }
-
-  setLocation(x, y) {
-    this.location.x = x;
-    this.location.y = y;
   }
 }

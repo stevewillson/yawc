@@ -1,6 +1,10 @@
 import Game from "./Game.js";
 
 export default class GameNetLogic {
+  loginPort;
+  loginPort2;
+  host;
+
   constructor() {
     this.loginPort = 6049;
     this.loginPort2 = 7042;

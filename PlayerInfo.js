@@ -1,8 +1,8 @@
 import SpriteColors from "./SpriteColors.js";
 
 export default class PlayerInfo {
-  BLOCKSIZE = 5;
-  powerupPoints = [
+  static BLOCKSIZE = 5;
+  static powerupPoints = [
     [20, 60],
     [7, 100],
     [41, 147],
@@ -10,55 +10,54 @@ export default class PlayerInfo {
     [97, 60],
     [105, 100],
   ];
+  POWERUP_FIELDS = 6;
+  POWERUP_LEN = 10;
+  POWERUP_DISPLAY_TIMEOUT = 10000;
+  gameOver;
+  wins;
+  bRefresh;
+  width;
+  height;
+  canvas;
+  shipType;
+  icons;
+  teamID;
+
+  myHeight;
+  cx;
+  cy;
+  portalSprite;
+  imgPowerups;
+  offsetCycle;
+  y;
+  h;
+  healthPercentage;
+  nPowerups;
+  oldHealth;
+  color;
+  slot;
 
   constructor() {
-    this.gameOver;
-    this.wins;
-    this.bRefresh;
-    this.width;
-    this.height;
-    this.canvas;
-    this.shipType;
     this.rank = -1;
-    this.icons;
-    this.teamID;
-    this.titleBarH = 40;
-    this.myHeight;
-    this.cx;
-    this.cy;
-    this.portalSprite;
-    this.imgPowerups;
-    this.offsetCycle;
-    this.y;
-    this.h;
-    this.healthPercentage;
-    this.nPowerups;
     this.powerups = new Array(5);
-    this.POWERUP_FIELDS = 6;
-    this.POWERUP_LEN = 10;
+    this.titleBarH = 40;
     this.powerupTimeouts = new Array(6);
-    this.POWERUP_DISPLAY_TIMEOUT = 10000;
-    this.oldHealth;
     this.username = "Empty";
-    this.color;
     this.bEmpty = true;
-    this.slot;
-
     this.colors = new SpriteColors();
-
     this.reset();
-    // this.imgPowerups = WormholeModel.mediaTable.get("img_smallpowerups");
+    // this.imgPowerups = (Image[])WormholeModel.g_mediaTable.get("img_smallpowerups");
     this.myHeight = 158;
   }
 
-  setDrawLocation(paramInt1, paramInt2) {
-    this.y = paramInt1;
-    this.h = paramInt2;
+  setDrawLocation(y, h) {
+    this.y = y;
+    this.h = h;
   }
 
-  setState(paramString, slot) {
+  setState(username, slot) {
     this.bRefresh = true;
-    this.username = paramString;
+    this.username = username;
     this.slot = slot;
     this.color = this.colors.colors[slot][0];
     this.bEmpty = false;
@@ -70,7 +69,7 @@ export default class PlayerInfo {
     this.bRefresh = true;
     this.username = "Empty";
     this.bEmpty = true;
-    this.color = "gray";
+    this.color = Color.gray;
     this.gameOver = false;
     if (this.portalSprite != null) {
       this.portalSprite.killSelf();
@@ -79,65 +78,73 @@ export default class PlayerInfo {
     this.teamID = 0;
   }
 
-  draw(paramGraphics, paramInt1, paramInt2) {
+  // TODO - complete draw method
+  draw(context, n, n2) {
     this.bRefresh = false;
     WHUtil.drawBoundRect(
-      paramGraphics,
+      graphics,
       0,
       0,
-      paramInt1,
-      paramInt2,
+      n,
+      n2,
       this.color,
-      this.gameOver ? "gray" : this.offsetCycle == 30 ? "orange" : Color.black
+      this.gameOver
+        ? Color.gray
+        : this.offsetCycle == 30
+        ? Color.orange
+        : Color.black
     );
-    paramGraphics.setFont(WormholeModel.fontEleven);
-    paramGraphics.drawString(
+    graphics.setFont(WormholeModel.fontTwelve);
+    graphics.drawString(
       this.username.length() > 12
         ? this.username.substring(0, 11)
         : this.username,
       30,
       11
     );
-    if (this.bEmpty) return;
-    CFSkin.getSkin().drawIcons(paramGraphics, this.icons, 97, 2, 15, 3);
-    paramGraphics.drawString("wins: " + this.wins, 95, 24);
-    paramGraphics.drawString(
+    if (this.bEmpty) {
+      return;
+    }
+    CFSkin.getSkin().drawIcons(graphics, this.icons, 97, 2, 15, 3);
+    graphics.drawString("wins: " + this.wins, 85, 24);
+    graphics.drawString(
       "rank: " + (this.rank >= 0 ? "" + this.rank : "n/a"),
       30,
       24
     );
-    let i;
-    for (i = 0; i < this.nPowerups; i = byte(i + 1))
-      paramGraphics.drawImage(
-        this.imgPowerups[PowerupSprite.convertToSmallImage(this.powerups[i])],
-        34 + i * 21,
+    for (let b = 0; b < this.nPowerups; b++) {
+      graphics.drawImage(
+        this.imgPowerups[PowerupSprite.convertToSmallImage(this.powerups[b])],
+        34 + b * 21,
         29,
         null
       );
-    i = paramInt1 - 10;
-    let j = Math.min(int((i * this.healthPercentage) / 100), i);
-    paramGraphics.setColor(this.color);
-    paramGraphics.drawRect(5, paramInt2 - 13, i, 10);
-    paramGraphics.fillRect(5, paramInt2 - 13, j, 10);
-    let k = 15;
-    let m = paramInt2 / 2;
+    }
+    let n3 = n - 10;
+    let min = Math.min(int((n3 * this.healthPercentage) / 100.0), n3);
+    graphics.setColor(this.color);
+    graphics.drawRect(5, n2 - 13, n3, 10);
+    graphics.fillRect(5, n2 - 13, min, 10);
+    let n4 = 15;
+    let n5 = n2 / 2;
     if (this.offsetCycle > 0) {
-      this.offsetCycle--;
-      k += WHUtil.randInt() % 2;
-      m += WHUtil.randInt() % 2;
+      --this.offsetCycle;
+      n4 += WHUtil.randInt() % 2;
+      n5 += WHUtil.randInt() % 2;
       this.bRefresh = true;
       Sprite.model.bRefreshPlayerBar = true;
     }
-    let d = PlayerSprite.fighterData[this.shipType][1];
-    paramGraphics.translate(k, m);
+    let n6 = PlayerSprite.g_fighterData[this.shipType][1];
+    graphics.translate(n4, n5);
     WHUtil.drawScaledPoly(
-      paramGraphics,
-      PlayerSprite.polyShip[this.shipType][0],
-      d
+      graphics,
+      PlayerSprite.g_polyShip[this.shipType][0],
+      n6
     );
-    paramGraphics.translate(-k, -m);
-    if (this.teamID != 0 && Sprite.model.tableElement.isTeamTable())
-      drawTeamShape(paramGraphics, 1, 1, this.teamID);
+    graphics.translate(-n4, -n5);
+    if (this.teamID != 0 && Sprite.model.tableElement.isTeamTable()) {
+      drawTeamShape(graphics, 1, 1, this.teamID);
+    }
   }
 
   fullReset() {
@@ -145,42 +152,47 @@ export default class PlayerInfo {
     reset();
   }
 
-  drawTeamShape(paramGraphics, paramInt1, paramInt2, paramInt3) {
-    if (paramInt3 == 1) {
+  // TODO - drawTeamShape method
+  drawTeamShape(graphics, n, n2, n3) {
+    if (n3 == 1) {
       WHUtil.drawBoundRect(
-        paramGraphics,
-        paramInt1,
-        paramInt2,
+        graphics,
+        n,
+        n2,
         8,
         8,
-        CFSkin.TEACOLORS[paramInt3],
-        CFSkin.TEABG_COLORS[paramInt3]
+        CFSkin.TEACOLORS[n3],
+        CFSkin.TEABG_COLORS[n3]
       );
       return;
     }
     WHUtil.drawBoundCircle(
-      paramGraphics,
-      paramInt1,
-      paramInt2,
+      graphics,
+      n,
+      n2,
       10,
-      CFSkin.TEABG_COLORS[paramInt3],
-      CFSkin.TEACOLORS[paramInt3]
+      CFSkin.TEABG_COLORS[n3],
+      CFSkin.TEACOLORS[n3]
     );
   }
 
   //   void addEnemyPowerupAttack( paramShort, paramByte) {}
 
-  readState(paramDataInput) {
+  readState(dataInput) {
     this.bRefresh = true;
     this.oldHealth = this.healthPercentage;
-    this.healthPercentage = paramDataInput.readShort();
-    if (this.oldHealth > this.healthPercentage) this.offsetCycle = 30;
-    this.nPowerups = paramDataInput.readByte();
-    for (let b = 0; b < this.nPowerups; b++)
-      this.powerups[b] = paramDataInput.readByte();
-    this.shipType = paramDataInput.readByte();
-    System.out.println("SHIP TYPE: " + this.shipType);
-    if (this.shipType > 10 || this.shipType < 0) this.shipType = 0;
+    this.healthPercentage = dataInput.healthPercentage;
+    if (this.oldHealth > this.healthPercentage) {
+      this.offsetCycle = 30;
+    }
+    this.nPowerups = dataInput.nPowerups;
+    for (let b = 0; b < this.nPowerups; b++) {
+      this.powerups[b] = dataInput.powerups[b];
+    }
+    this.shipType = dataInput.shipType;
+    if (this.shipType > 10 || this.shipType < 0) {
+      this.shipType = 0;
+    }
   }
 
   isPlaying() {
@@ -193,36 +205,27 @@ export default class PlayerInfo {
   }
 
   timeoutAttacks() {
-    let d = Date.now();
-    // let d = System.currentTimeMillis();
-    let bool = false;
-    let b = 0;
-    // while (true) {
-    //   let b1 = 0;
-    //   while (true) {
-    //     if (
-    //       this.powerupTimeouts[b][b1] > 0 &&
-    //       d > this.powerupTimeouts[b][b1]
-    //     ) {
-    //       this.powerupTimeouts[b][b1] = 0;
-    //       bool = true;
-    //       this.bRefresh = true;
-    //     }
-    //     if (++b1 >= 10 && ++b >= 6) {
-    //       return bool;
-    //     }
-    //   }
-    //   break;
-    // }
-  }
-
-  containsClick(paramInt) {
-    return !(paramInt < this.y || paramInt > this.h + this.y);
+    let n = Date.now();
+    let b = false;
+    for (let n2 = 0; n2 < 6; n2++) {
+      for (let n3 = 0; n3 < 10; n3++) {
+        if (
+          this.m_powerupTimeouts[n2][n3] > 0 &&
+          n > this.m_powerupTimeouts[n2][n3]
+        ) {
+          this.m_powerupTimeouts[n2][n3] = 0;
+          b = true;
+          this.m_bRefresh = true;
+        }
+      }
+    }
+    return b;
   }
 
   resetPowerups() {
     for (let i = 0; i < 6; i++) {
       this.powerupTimeouts[i] = Array(10);
+
       for (let j = 0; j < 10; j++) {
         this.powerupTimeouts[i][j] = 0;
       }
