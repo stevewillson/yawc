@@ -62,7 +62,6 @@ export default class Sprite {
     // );
 
     this.shapeType = 0;
-
     this.dVector = [];
 
     //initialize the angle and the radAngle for the ship
@@ -168,7 +167,7 @@ export default class Sprite {
       this.velocity.y *= -0.5;
     }
     this.setLocation(x, y);
-    this.setVelocity({ x: this.velocity.x, y: this.velocity.y });
+    this.setVelocity(this.velocity.x, this.velocity.y);
   }
 
   removeSelf() {
@@ -325,18 +324,14 @@ export default class Sprite {
   }
 
   calcLead() {
-    if (this.leadPoint == null) {
-      this.loadPoint = { x: 0, y: 0 };
+    if (this.leadPoint == null || this.leadPoint === undefined) {
+      this.leadPoint = { x: 0, y: 0 };
     }
     let playerSprite = this.game.player;
     this.leadPoint.x =
-      playerSprite.location.x +
-      playerSprite.velocity.x * 15.0 -
-      this.location.x;
+      playerSprite.location.x + playerSprite.velocity.x * 15 - this.location.x;
     this.leadPoint.y =
-      playerSprite.location.y +
-      playerSprite.velocity.y * 15.0 -
-      this.location.y;
+      playerSprite.location.y + playerSprite.velocity.y * 15 - this.location.y;
     return this.leadPoint;
   }
 
@@ -425,8 +420,9 @@ export default class Sprite {
     this.location.y = y;
   }
 
-  setVelocity(velocity) {
-    this.velocity = velocity;
+  setVelocity(x, y) {
+    this.velocity.x = x;
+    this.velocity.y = y;
   }
 
   realTrack(x, y, b) {

@@ -1,7 +1,6 @@
 import Rectangle from "./Rectangle.js";
 import WHUtil from "./WHUtil.js";
 import Sprite from "./Sprite.js";
-import SpriteColors from "./SpriteColors.js";
 
 export default class ExplosionSprite extends Sprite {
   constructor(location, game, colorType = null) {

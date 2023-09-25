@@ -1,6 +1,14 @@
 import Polygon from "./Polygon.js";
 
 export default class RotationalPolygon {
+  xpoints;
+  ypoints;
+  npoints;
+  distances;
+  angles;
+  currentAngle;
+  polygon;
+
   constructor(points) {
     this.xpoints = [];
     this.ypoints = [];

@@ -13,13 +13,15 @@ export default class WHUtil {
     return parseInt(Math.random() * Number.MAX_SAFE_INTEGER);
   }
 
-  drawRect(paramGraphics, paramRectangle) {
-    paramGraphics.drawRect(
-      paramRectangle.x,
-      paramRectangle.y,
-      paramRectangle.width,
-      paramRectangle.height
+  static drawRect(context, rectangle) {
+    context.beginPath();
+    context.strokeRect(
+      rectangle.x,
+      rectangle.y,
+      rectangle.width,
+      rectangle.height
     );
+    context.stroke();
   }
 
   static symPolygon(n, n2, n3) {
@@ -54,8 +56,8 @@ export default class WHUtil {
     polygon.drawPolygon(context);
   }
 
-  scaleVector(paramDouble1, paramDouble2) {
-    return paramDouble1 / Math.hypot(paramDouble1, paramDouble2);
+  static scaleVector(n, n2) {
+    return n / Math.hypot(n, n2);
   }
 
   fillCenteredArc(

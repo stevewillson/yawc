@@ -442,10 +442,10 @@ export default class PlayerSprite extends Sprite {
       this.game
     );
     bulletSprite.setPlayer(this.slot);
-    bulletSprite.setVelocity({
-      x: Math.cos(angle) * 10.0 + this.velocity.x,
-      y: Math.sin(angle) * 10.0 + this.velocity.y,
-    });
+    bulletSprite.setVelocity(
+      Math.cos(angle) * 10.0 + this.velocity.x,
+      Math.sin(angle) * 10.0 + this.velocity.y
+    );
     bulletSprite.addSelf();
     this.lastShotCycle = this.spriteCycle + this.shotDelay;
   }
@@ -601,11 +601,11 @@ export default class PlayerSprite extends Sprite {
   drawOneThrust(paramDouble1, paramInt1, paramDouble2, paramInt2) {
     let d1 = Math.cos(paramDouble1) * 12.0;
     let d2 = Math.sin(paramDouble1) * 12.0;
-    let i = this.location.x - paramDouble2 * d1;
-    let j = this.location.y - paramDouble2 * d2;
+    let x = this.location.x - paramDouble2 * d1;
+    let y = this.location.y - paramDouble2 * d2;
 
-    let location = { x: i, y: j };
-    let thrustSprite = new ThrustSprite(location, this.game);
+    // let location = { x: i, y: j };
+    let thrustSprite = new ThrustSprite({ x, y }, this.game);
     thrustSprite.velocity.x = -2 * this.velocity.x;
     thrustSprite.velocity.y = -2 * this.velocity.y;
     thrustSprite.addSelf();

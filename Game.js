@@ -26,7 +26,11 @@ export default class Game {
   badGuys;
   goodGuys;
 
+  isDebugMode;
+
   constructor(gameNetLogic) {
+    // set a debug mode for displaying shapeRects
+    this.isDebugMode = true;
     this.logic = gameNetLogic;
     this.input = {
       right: false,
@@ -572,6 +576,11 @@ export default class Game {
           sprite.isInDrawingRect = sprite.inViewingRect(viewportRect);
           if (sprite.isInDrawingRect) {
             sprite.drawSelf(context);
+
+            // display shapeRects when in debug mode
+            if (this.isDebugMode) {
+              WHUtil.drawRect(context, sprite.shapeRect);
+            }
           }
         }
       });
@@ -900,7 +909,7 @@ export default class Game {
       this.bRefreshPlayerBar = true;
     } else if (gamePacket.type == "gameOverIndividual") {
       let slot = gamePacket.slot;
-      if (super.slot == slot) {
+      if (this.slot == slot) {
         this.winningPlayerString = "YOU WON";
         ++this.wins;
       } else {
@@ -945,7 +954,7 @@ export default class Game {
         playerInfo4.portalSprite.killSelf();
       }
       playerInfo4.healthPercentage = 0;
-      if (killerSlot == super.slot) {
+      if (killerSlot == this.slot) {
         this.kills++;
         this.refreshStatus = true;
       }
@@ -996,7 +1005,7 @@ export default class Game {
     } else if (gamePacket.type == "slotTeamId") {
       let slot = gamePacket.slot;
       let teamId = gamePacket.teamId;
-      if (slot == super.slot) {
+      if (slot == this.slot) {
         this.teamId = teamId;
       } else {
         let translateSlot = this.translateSlot(slot);

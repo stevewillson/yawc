@@ -294,13 +294,13 @@ export default class PortalSprite extends Sprite {
       switch (WHUtil.randInt() % 5) {
         case 0:
         case 1: {
-          let inf = new InflatorSprite(this.location, this.game);
+          let inf = new InflatorSprite({ ...this.location }, this.game);
           inf.addSelf();
           break;
         }
         case 2:
         case 3: {
-          let ufo = new UFOSprite(this.location, this.game);
+          let ufo = new UFOSprite({ ...this.location }, this.game);
           ufo.addSelf();
           break;
         }
