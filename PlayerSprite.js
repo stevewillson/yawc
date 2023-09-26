@@ -439,12 +439,12 @@ export default class PlayerSprite extends Sprite {
       this.bulletSize,
       PlayerSprite.bulletColors[this.bulletType],
       2,
-      this.game,
+      this.game
     );
     bulletSprite.setPlayer(this.slot);
     bulletSprite.setVelocity(
       Math.cos(angle) * 10.0 + this.velocity.x,
-      Math.sin(angle) * 10.0 + this.velocity.y,
+      Math.sin(angle) * 10.0 + this.velocity.y
     );
     bulletSprite.addSelf();
     this.lastShotCycle = this.spriteCycle + this.shotDelay;
@@ -618,13 +618,13 @@ export default class PlayerSprite extends Sprite {
         (this.angle + i) * 0.017453292519943295,
         1 + (WHUtil.randInt() % 2),
         3.0,
-        0,
+        0
       );
       this.drawOneThrust(
         (this.angle - i) * 0.017453292519943295,
         1 + (WHUtil.randInt() % 2),
         3.0,
-        0,
+        0
       );
     }
     this.drawOneThrust(this.radAngle, Math.min(this.thrustCount, 5), 2.0, 0);
@@ -783,7 +783,7 @@ export default class PlayerSprite extends Sprite {
       this.location.x - this.game.viewport.width / 2,
       this.location.y - this.game.viewport.height / 2,
       this.game.viewport.width,
-      this.game.viewport.height,
+      this.game.viewport.height
     );
     return this.game.viewportRect;
   }
@@ -793,7 +793,7 @@ export default class PlayerSprite extends Sprite {
     let bounds = this.polygon.getBounds();
     bounds.setLocation(
       this.location.x - bounds.width / 2,
-      this.location.y - bounds.height / 2,
+      this.location.y - bounds.height / 2
     );
     return bounds;
   }

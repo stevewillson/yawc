@@ -19,7 +19,7 @@ export default class WHUtil {
       rectangle.x,
       rectangle.y,
       rectangle.width,
-      rectangle.height,
+      rectangle.height
     );
     context.stroke();
   }
@@ -38,7 +38,7 @@ export default class WHUtil {
       paramRectangle.x,
       paramRectangle.y,
       paramRectangle.width,
-      paramRectangle.height,
+      paramRectangle.height
     );
   }
 
@@ -48,7 +48,7 @@ export default class WHUtil {
         paramInt1 + g_target[b][0],
         paramInt2 + g_target[b][1],
         paramInt1 + g_target[b][2],
-        paramInt2 + g_target[b][3],
+        paramInt2 + g_target[b][3]
       );
     }
   }
@@ -67,7 +67,7 @@ export default class WHUtil {
     paramDouble2,
     paramInt1,
     paramInt2,
-    paramInt3,
+    paramInt3
   ) {
     paramGraphics.fillArc(
       paramDouble1 - paramInt1,
@@ -75,7 +75,7 @@ export default class WHUtil {
       paramInt1 * 2,
       paramInt1 * 2,
       paramInt2,
-      paramInt3,
+      paramInt3
     );
   }
 
@@ -89,7 +89,7 @@ export default class WHUtil {
     paramInt2,
     paramInt3,
     paramColor1,
-    paramColor2,
+    paramColor2
   ) {
     paramGraphics.setColor(paramColor2);
     paramGraphics.fillOval(paramInt1, paramInt2, paramInt3, paramInt3);
@@ -119,7 +119,7 @@ export default class WHUtil {
     paramInt3,
     paramInt4,
     paramColor1,
-    paramColor2,
+    paramColor2
   ) {
     paramGraphics.setColor(paramColor2);
     paramGraphics.fillRect(paramInt1, paramInt2, paramInt3, paramInt4);
@@ -145,7 +145,7 @@ export default class WHUtil {
       i,
       j,
       int(paramPolygon.xpoints[0] * paramDouble),
-      int(paramPolygon.ypoints[0] * paramDouble),
+      int(paramPolygon.ypoints[0] * paramDouble)
     );
   }
 
@@ -174,7 +174,7 @@ export default class WHUtil {
     paramInt1,
     paramInt2,
     paramInt3,
-    paramInt4,
+    paramInt4
   ) {
     let b;
     for (b = 0; b < paramPolygon1.npoints; b++) {
@@ -182,12 +182,12 @@ export default class WHUtil {
         "test: " +
           (paramPolygon1.xpoints[b] + paramInt1) +
           "y: " +
-          (paramPolygon1.ypoints[b] + paramInt2),
+          (paramPolygon1.ypoints[b] + paramInt2)
       );
       if (
         paramPolygon2.contains(
           paramPolygon1.xpoints[b] + paramInt1,
-          paramPolygon1.ypoints[b] + paramInt2,
+          paramPolygon1.ypoints[b] + paramInt2
         )
       ) {
         return true;
@@ -198,12 +198,12 @@ export default class WHUtil {
         "test: " +
           (paramPolygon2.xpoints[b] + paramInt3) +
           "Y: " +
-          (paramPolygon2.ypoints[b] + paramInt4),
+          (paramPolygon2.ypoints[b] + paramInt4)
       );
       if (
         paramPolygon1.contains(
           paramPolygon2.xpoints[b] + paramInt3,
-          paramPolygon2.ypoints[b] + paramInt4,
+          paramPolygon2.ypoints[b] + paramInt4
         )
       ) {
         return true;
@@ -218,7 +218,7 @@ export default class WHUtil {
       !paramRectangle2.inside(paramRectangle1.x, paramRectangle1.y) ||
       !paramRectangle2.inside(
         paramRectangle1.x + paramRectangle1.width,
-        paramRectangle1.y + paramRectangle1.height,
+        paramRectangle1.y + paramRectangle1.height
       )
     );
   }
@@ -239,7 +239,7 @@ export default class WHUtil {
         var r = (Math.random() * 16) | 0,
           v = c == "x" ? r : (r & 0x3) | 0x8;
         return v.toString(16);
-      },
+      }
     );
   }
 

@@ -110,7 +110,7 @@ export default class Sprite {
       this.location.x,
       this.location.y,
       sprite.location.x,
-      sprite.location.y,
+      sprite.location.y
     );
   }
 
@@ -174,17 +174,17 @@ export default class Sprite {
     // go through the list and check for a sprite with the same uuid
     // if found, remove it
     this.game.allSprites = this.game.allSprites.filter(
-      (el) => el.uuid != this.uuid,
+      (el) => el.uuid != this.uuid
     );
     switch (this.spriteType) {
       case 1:
         this.game.badGuys = this.game.badGuys.filter(
-          (el) => el.uuid != this.uuid,
+          (el) => el.uuid != this.uuid
         );
         return;
       case 2:
         this.game.goodGuys = this.game.goodGuys.filter(
-          (el) => el.uuid != this.uuid,
+          (el) => el.uuid != this.uuid
         );
         return;
     }
@@ -196,7 +196,7 @@ export default class Sprite {
       this.images[this.currentFrame],
       this.location.x - this.cachedWidth,
       this.location.y - this.cachedHeight,
-      null,
+      null
     );
   }
 
@@ -224,7 +224,7 @@ export default class Sprite {
   move(velocity) {
     this.setLocation(
       this.location.x + velocity.x,
-      this.location.y + velocity.y,
+      this.location.y + velocity.y
     );
     if (this.bounded) {
       this.handleRebound();
@@ -236,7 +236,7 @@ export default class Sprite {
       // moving the shaperect, for use in collisions?
       this.shapeRect.setLocation(
         this.location.x - this.shapeRect.width / 2,
-        this.location.y - this.shapeRect.height / 2,
+        this.location.y - this.shapeRect.height / 2
       );
     } else {
       // if there is no shapeRect, create one around where the object is located
@@ -277,24 +277,25 @@ export default class Sprite {
       for (let i = 0; i < poly.npoints && !isCollision; i++) {
         polygon.addPoint(
           poly.xpoints[i] + sprite2.location.x,
-          poly.ypoints[i] + sprite2.location.y,
+          poly.ypoints[i] + sprite2.location.y
         );
         if (
           shapeRect.inside(
             poly.xpoints[i] + sprite2.location.x,
-            poly.ypoints[i] + sprite2.location.y,
+            poly.ypoints[i] + sprite2.location.y
           )
         ) {
           isCollision = true;
         }
       }
       if (!isCollision) {
-        isCollision = polygon.contains(shapeRect.x, shapeRect.y) ||
+        isCollision =
+          polygon.contains(shapeRect.x, shapeRect.y) ||
           polygon.contains(shapeRect.x + shapeRect.width, shapeRect.y) ||
           polygon.contains(shapeRect.x, shapeRect.y + shapeRect.height) ||
           polygon.contains(
             shapeRect.x + shapeRect.width,
-            shapeRect.y + shapeRect.height,
+            shapeRect.y + shapeRect.height
           );
       }
     }
@@ -327,10 +328,10 @@ export default class Sprite {
       this.leadPoint = { x: 0, y: 0 };
     }
     let playerSprite = this.game.player;
-    this.leadPoint.x = playerSprite.location.x + playerSprite.velocity.x * 15 -
-      this.location.x;
-    this.leadPoint.y = playerSprite.location.y + playerSprite.velocity.y * 15 -
-      this.location.y;
+    this.leadPoint.x =
+      playerSprite.location.x + playerSprite.velocity.x * 15 - this.location.x;
+    this.leadPoint.y =
+      playerSprite.location.y + playerSprite.velocity.y * 15 - this.location.y;
     return this.leadPoint;
   }
 
@@ -350,7 +351,7 @@ export default class Sprite {
         paramInt1,
         paramInt2 + 7,
         paramInt1,
-        paramInt2 + 14,
+        paramInt2 + 14
       );
     }
   }
@@ -428,8 +429,9 @@ export default class Sprite {
     if (this.game.player.shouldRemoveSelf) {
       return;
     }
-    let n3 = (WHUtil.findAngle(x, y, this.location.x, this.location.y) +
-      (b ? 180 : 360)) %
+    let n3 =
+      (WHUtil.findAngle(x, y, this.location.x, this.location.y) +
+        (b ? 180 : 360)) %
       360;
     let dRotate = this.dRotate;
     let n4 = n3 - this.angle;
@@ -472,7 +474,7 @@ export default class Sprite {
       if (
         shapePoly.contains(
           this.polygon.xpoints[i] - n,
-          this.polygon.ypoints[i] - n2,
+          this.polygon.ypoints[i] - n2
         )
       ) {
         return true;
@@ -482,7 +484,7 @@ export default class Sprite {
       if (
         this.polygon.contains(
           shapePoly.xpoints[j] + n,
-          shapePoly.ypoints[j] + n2,
+          shapePoly.ypoints[j] + n2
         )
       ) {
         return true;
@@ -542,7 +544,7 @@ export default class Sprite {
       this.realTrack(
         this.game.player.location.x,
         this.game.player.location.y,
-        false,
+        false
       );
     }
   }
