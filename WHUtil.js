@@ -153,14 +153,20 @@ export default class WHUtil {
     let b;
     for (b = 0; b < paramPolygon1.npoints; b++) {
       if (
-        paramPolygon2.inside(paramPolygon1.xpoints[b], paramPolygon1.ypoints[b])
+        paramPolygon2.contains(
+          paramPolygon1.xpoints[b],
+          paramPolygon1.ypoints[b]
+        )
       ) {
         return true;
       }
     }
     for (b = 0; b < paramPolygon2.npoints; b++) {
       if (
-        paramPolygon1.inside(paramPolygon2.xpoints[b], paramPolygon2.ypoints[b])
+        paramPolygon1.contains(
+          paramPolygon2.xpoints[b],
+          paramPolygon2.ypoints[b]
+        )
       ) {
         return true;
       }

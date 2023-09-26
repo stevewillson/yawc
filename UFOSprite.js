@@ -15,7 +15,12 @@ export default class UFOSprite extends Sprite {
     this.init("ufo", location.x, location.y, true);
     this.spriteType = 1;
     // TODO - update shape to bound the UFO
-    this.shapeRect = new Rectangle(location.x - 30, location.y - 13, 60, 26);
+    this.shapeRect = new Rectangle(
+      location.x - this.ufoW / 2,
+      location.y - this.ufoH / 2,
+      this.ufoW,
+      this.ufoH
+    );
     this.setHealth(40, 20);
     this.dRotate = 30;
     this.thrust = 0.2;
@@ -27,13 +32,13 @@ export default class UFOSprite extends Sprite {
     context.strokeStyle = this.color;
     context.beginPath();
     context.ellipse(
-      this.location.x - 30,
-      this.location.y - 13,
-      60,
-      26,
+      this.location.x,
+      this.location.y,
+      this.ufoW,
+      this.ufoH,
       0,
       0,
-      2 * Math.PI,
+      2 * Math.PI
     );
     context.stroke();
     context.beginPath();
@@ -41,13 +46,13 @@ export default class UFOSprite extends Sprite {
       this.game.colors.colors[this.slot][this.currentColor++ % 20];
 
     context.ellipse(
-      this.location.x - 18,
-      this.location.y - 10,
-      36,
-      12,
+      this.location.x,
+      this.location.y - this.ufoH / 2,
+      this.ufoW * 0.6,
+      this.ufoH * 0.6,
       0,
       0,
-      2 * Math.PI,
+      2 * Math.PI
     );
     context.fill();
     context.stroke();
@@ -55,13 +60,13 @@ export default class UFOSprite extends Sprite {
     context.strokeStyle = this.color;
 
     context.ellipse(
-      this.location.x - 18,
-      this.location.y - 10,
-      36,
-      12,
+      this.location.x,
+      this.location.y - this.ufoH / 2,
+      this.ufoW * 0.6,
+      this.ufoH * 0.6,
       0,
       0,
-      2 * Math.PI,
+      2 * Math.PI
     );
     context.stroke();
   }

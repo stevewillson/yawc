@@ -2,7 +2,6 @@ import Sprite from "./Sprite.js";
 import Rectangle from "./Rectangle.js";
 import ExplosionSprite from "./ExplosionSprite.js";
 import ParticleSprite from "./ParticleSprite.js";
-import SpriteColors from "./SpriteColors.js";
 
 export default class BulletSprite extends Sprite {
   // tracked in Game now
@@ -164,10 +163,10 @@ export default class BulletSprite extends Sprite {
     }
   }
 
-  setVelocity(velocity) {
-    this.velocity = velocity;
-    this.offx = -1 * (velocity.x * 8);
-    this.offy = -1 * (velocity.y * 8);
+  setVelocity(x, y) {
+    this.velocity = { x, y };
+    this.offx = -1 * (this.velocity.x * 8);
+    this.offy = -1 * (this.velocity.y * 8);
   }
 
   setPowerup(powerupType) {

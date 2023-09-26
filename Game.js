@@ -30,7 +30,7 @@ export default class Game {
 
   constructor(gameNetLogic) {
     // set a debug mode for displaying shapeRects
-    this.isDebugMode = true;
+    this.isDebugMode = false;
     this.logic = gameNetLogic;
     this.input = {
       right: false,
@@ -98,14 +98,14 @@ export default class Game {
       this.boardCenter.x - this.viewport.width / 2,
       this.boardCenter.y - this.viewport.height / 2,
       this.viewport.width,
-      this.viewport.height,
+      this.viewport.height
     );
 
     this.globalBoundingRect = new Rectangle(
       0,
       0,
       this.board.width,
-      this.board.height,
+      this.board.height
     );
 
     // https://stackoverflow.com/questions/16919601/html5-canvas-camera-viewport-how-to-actually-do-it
@@ -201,7 +201,7 @@ export default class Game {
     this.player = new PlayerSprite(
       this.boardCenter,
       this.playerFighterType,
-      this,
+      this
     );
     // this.imgLogo = (Image)this.mediaTable.get("img_bg_logo");
     // if (this.imgLogo != null) {
@@ -481,7 +481,7 @@ export default class Game {
       let spriteA = this.badGuys[i];
       if (spriteA != null) {
         for (let j = 0; j < this.goodGuys.length; j++) {
-          let spriteB = this.goodGuys[i];
+          let spriteB = this.goodGuys[j];
           if (
             spriteB != null &&
             !spriteA.hasCollided &&
@@ -668,10 +668,10 @@ export default class Game {
         this.player != null &&
         !this.players[i].gameOver
       ) {
-        let n = this.players[i].portalSprite.location.x -
-          this.player.location.x;
-        let n2 = this.players[i].portalSprite.location.y -
-          this.player.location.y;
+        let n =
+          this.players[i].portalSprite.location.x - this.player.location.x;
+        let n2 =
+          this.players[i].portalSprite.location.y - this.player.location.y;
         let hyp = Math.hypot(n, n2);
         if (hyp >= this.portalVisibility) {
           let n3 = (180 * n) / hyp;
@@ -697,7 +697,7 @@ export default class Game {
           context.moveTo(n5, n6);
           context.lineTo(
             n3 * 0.9 + this.viewportCenter.x,
-            n4 * 0.9 + this.viewportCenter.y,
+            n4 * 0.9 + this.viewportCenter.y
           );
 
           context.moveTo(n5, n6);
@@ -725,7 +725,7 @@ export default class Game {
       this.worldCenter.x,
       this.worldCenter.y,
       this.orbitDistance,
-      "gray",
+      "gray"
     );
   }
 
@@ -737,7 +737,7 @@ export default class Game {
         -i,
         -i,
         this.world.width + i * 2,
-        this.world.height + i * 2,
+        this.world.height + i * 2
       );
     }
   }
@@ -813,7 +813,7 @@ export default class Game {
           // this.logic.getPlayer(playerName).getIcons(),
           playerSlot,
           isGameOver,
-          b,
+          b
         );
         if (isGameOver == false) {
         }
@@ -846,176 +846,195 @@ export default class Game {
    * handles the game packet receipt
    */
   handleGamePacket(gamePacket) {
-    if (gamePacket.type == "newGame") {
-      this.gameId = gamePacket.gameId;
-      this.gameSession = gamePacket.gameSession;
-      this.setPlayers(gamePacket, false);
-      this.totalOpposingPlayers = 0;
-      for (let i = 0; i < gamePacket.totalPlayers; i++) {
-        if (!this.players[i].isEmpty) {
-          // if (super.tableElement.isTeamTable()) {
-          if (this.players[i].teamId != this.teamId) {
-            this.totalOpposingPlayers++;
-          }
-          // } else {
-          // this.totalOpposingPlayers++;
-          // }
-        }
-      }
-      this.init();
-      this.mode = 0;
-      this.bRefreshPlayerBar = true;
-      this.bRefreshAll = true;
-      this.gameOver = false;
-
-      let n = 0;
-      for (let i = 0; i < gamePacket.totalPlayers; i++) {
-        if (!this.players[i].isEmpty) {
-          let b = false;
-          // if (super.tableElement.isTeamTable()) {
-          if (this.players[i].teamId != this.teamId) {
-            b = true;
-          }
-          // } else {
-          //   b = true;
-          // }
-          if (b) {
-            let portalSprite = new PortalSprite(
-              n * (360 / this.totalOpposingPlayers),
-              this.players[i],
-              this,
-            );
-            n++;
-            this.players[i].portalSprite = portalSprite;
-            portalSprite.addSelf();
-            portalSprite.setWarpingIn();
-          } else {
-            this.players[i].portalSprite = null;
+    const type = gamePacket.type;
+    switch (type) {
+      case "newGame":
+        this.gameId = gamePacket.gameId;
+        this.gameSession = gamePacket.gameSession;
+        this.setPlayers(gamePacket, false);
+        this.totalOpposingPlayers = 0;
+        for (let i = 0; i < gamePacket.totalPlayers; i++) {
+          if (!this.players[i].isEmpty) {
+            // if (super.tableElement.isTeamTable()) {
+            if (this.players[i].teamId != this.teamId) {
+              this.totalOpposingPlayers++;
+            }
+            // } else {
+            // this.totalOpposingPlayers++;
+            // }
           }
         }
-      }
-    } else if (gamePacket.type == "updatePlayerInfo") {
-      let gameSession = gamePacket.gameSession;
-      if (gameSession != this.gameSession && !this.gameOver) {
-        return;
-      }
-      let slot = gamePacket.slot;
-      if (slot == this.slot) {
-        return;
-      }
-      let playerInfo = this.players[this.translateSlot(slot)];
-      if (playerInfo.gameOver || playerInfo.bEmpty) {
-        return;
-      }
-      playerInfo.readState(gamePacket.playerInfo);
-      this.bRefreshPlayerBar = true;
-    } else if (gamePacket.type == "gameOverIndividual") {
-      let slot = gamePacket.slot;
-      if (this.slot == slot) {
-        this.winningPlayerString = "YOU WON";
-        ++this.wins;
-      } else {
-        let translateSlot = this.translateSlot(slot);
-        this.winningPlayerString = this.players[translateSlot].username +
-          " WON";
-        let playerInfo2 = this.players[translateSlot];
-        playerInfo2.wins++;
-        this.players[translateSlot].gameOver = true;
-      }
-      this.gameOver = true;
-      this.refreshStatus = true;
-      this.bRefreshPlayerBar = true;
-    } else if (gamePacket.type == "gameOverTeam") {
-      let teamId = gamePacket.teamId;
-      this.winningPlayerString = CFSkin.TEANAMES[teamId] + " WON";
-      if (this.teamId == teamId) {
-        this.wins++;
-      } else {
-        for (let k = 0; k < this.players.length; ++k) {
-          if (this.players[k].teamId == teamId) {
-            let playerInfo3 = this.players[k];
-            playerInfo3.wins++;
-            this.players[k].gameOver = true;
-          }
-        }
-      }
-      this.gameOver = true;
-      this.refreshStatus = true;
-      this.bRefreshPlayerBar = true;
-    } else if (gamePacket.type == "killPlayer") {
-      let deceasedSlot = gamePacket.deceasedSlot;
-      let killerSlot = gamePacket.killerSlot;
-      if (deceasedSlot == this.slot) {
-        this.gameOver = true;
-        return;
-      }
-      let playerInfo4 = this.players[this.translateSlot(deceasedSlot)];
-      playerInfo4.gameOver = true;
-      playerInfo4.bRefresh = true;
-      if (playerInfo4.portalSprite != null) {
-        playerInfo4.portalSprite.killSelf();
-      }
-      playerInfo4.healthPercentage = 0;
-      if (killerSlot == this.slot) {
-        this.kills++;
-        this.refreshStatus = true;
-      }
-      this.bRefreshPlayerBar = true;
-    } else if (gamePacket.type == "message") {
-      let message = gamePacket.content;
-      while (this.vMessages.size() >= 2) {
-        this.vMessages.removeElementAt(0);
-      }
-      this.vMessages.addElement(message);
-      this.lastCycleForMessages = this.cycle + 200;
-    } else if (gamePacket.type == "sendPowerup") {
-      let powerupType = gamePacket.powerupType;
-      let fromSlot = gamePacket.fromSlot;
-      let toSlot = gamePacket.toSlot;
-      let gameSession = gamePacket.gameSession;
-      let byte9 = gamePacket.byte9;
-      if (gameSession != this.gameSession && !this.gameOver) {
-        return;
-      }
-      let translateSlot2 = this.translateSlot(fromSlot);
-      if (fromSlot != this.slot && translateSlot2 < 0) {
-        return;
-      }
-      if (toSlot != this.slot) {
+        this.init();
+        this.mode = 0;
         this.bRefreshPlayerBar = true;
-        return;
-      }
-      if (this.gameOver) {
-        return;
-      }
-      this.addIncomingPowerup(
-        this.players[translateSlot2].portalSprite,
-        powerupType,
-        fromSlot,
-        byte9,
-      );
-    } else if (gamePacket.type == "playerWins") {
-      let numPlayers = gamePacket.numPlayers;
-      for (let i = 0; i < numPlayers; i++) {
-        let slot = gamePacket.slot[i];
-        let winCount = gamePacket.winCount[i];
-        let translateSlot = this.translateSlot(slot);
-        let playerInfo = this.players[translateSlot];
-        playerInfo.wins = winCount;
+        this.bRefreshAll = true;
+        this.gameOver = false;
+
+        let n = 0;
+        for (let i = 0; i < gamePacket.totalPlayers; i++) {
+          if (!this.players[i].isEmpty) {
+            let b = false;
+            // if (super.tableElement.isTeamTable()) {
+            if (this.players[i].teamId != this.teamId) {
+              b = true;
+            }
+            // } else {
+            //   b = true;
+            // }
+            if (b) {
+              let portalSprite = new PortalSprite(
+                n * (360 / this.totalOpposingPlayers),
+                this.players[i],
+                this
+              );
+              n++;
+              this.players[i].portalSprite = portalSprite;
+              portalSprite.addSelf();
+              portalSprite.setWarpingIn();
+            } else {
+              this.players[i].portalSprite = null;
+            }
+          }
+        }
+        break;
+
+      case "updatePlayerInfo":
+        let gameSession = gamePacket.gameSession;
+        if (gameSession != this.gameSession && !this.gameOver) {
+          return;
+        }
+        let slot = gamePacket.slot;
+        if (slot == this.slot) {
+          return;
+        }
+        let playerInfo = this.players[this.translateSlot(slot)];
+        if (playerInfo.gameOver || playerInfo.bEmpty) {
+          return;
+        }
+        playerInfo.readState(gamePacket.playerInfo);
+        this.bRefreshPlayerBar = true;
+        break;
+
+      case "gameOverIndividual":
+        slot = gamePacket.slot;
+        if (this.slot == slot) {
+          this.winningPlayerString = "YOU WON";
+          ++this.wins;
+        } else {
+          let translateSlot = this.translateSlot(slot);
+          this.winningPlayerString =
+            this.players[translateSlot].username + " WON";
+          let playerInfo2 = this.players[translateSlot];
+          playerInfo2.wins++;
+          this.players[translateSlot].gameOver = true;
+        }
+        this.gameOver = true;
         this.refreshStatus = true;
-      }
-    } else if (gamePacket.type == "slotTeamId") {
-      let slot = gamePacket.slot;
-      let teamId = gamePacket.teamId;
-      if (slot == this.slot) {
-        this.teamId = teamId;
-      } else {
-        let translateSlot = this.translateSlot(slot);
-        let playerInfo = this.players[translateSlot];
-        playerInfo.teamId = teamId;
-        playerInfo.bRefresh = true;
-      }
-      this.bRefreshPlayerBar = true;
+        this.bRefreshPlayerBar = true;
+        break;
+
+      case "gameOverTeam":
+        let teamId = gamePacket.teamId;
+        this.winningPlayerString = CFSkin.TEANAMES[teamId] + " WON";
+        if (this.teamId == teamId) {
+          this.wins++;
+        } else {
+          for (let k = 0; k < this.players.length; ++k) {
+            if (this.players[k].teamId == teamId) {
+              let playerInfo3 = this.players[k];
+              playerInfo3.wins++;
+              this.players[k].gameOver = true;
+            }
+          }
+        }
+        this.gameOver = true;
+        this.refreshStatus = true;
+        this.bRefreshPlayerBar = true;
+        break;
+
+      case "killPlayer":
+        let deceasedSlot = gamePacket.deceasedSlot;
+        let killerSlot = gamePacket.killerSlot;
+        if (deceasedSlot == this.slot) {
+          this.gameOver = true;
+          return;
+        }
+        let playerInfo4 = this.players[this.translateSlot(deceasedSlot)];
+        playerInfo4.gameOver = true;
+        playerInfo4.bRefresh = true;
+        if (playerInfo4.portalSprite != null) {
+          playerInfo4.portalSprite.killSelf();
+        }
+        playerInfo4.healthPercentage = 0;
+        if (killerSlot == this.slot) {
+          this.kills++;
+          this.refreshStatus = true;
+        }
+        this.bRefreshPlayerBar = true;
+        break;
+
+      case "message":
+        let message = gamePacket.content;
+        while (this.vMessages.size() >= 2) {
+          this.vMessages.removeElementAt(0);
+        }
+        this.vMessages.addElement(message);
+        this.lastCycleForMessages = this.cycle + 200;
+        break;
+
+      case "sendPowerup":
+        let powerupType = gamePacket.powerupType;
+        let fromSlot = gamePacket.fromSlot;
+        let toSlot = gamePacket.toSlot;
+        gameSession = gamePacket.gameSession;
+        let byte9 = gamePacket.byte9;
+        if (gameSession != this.gameSession && !this.gameOver) {
+          return;
+        }
+        let translateSlot2 = this.translateSlot(fromSlot);
+        if (fromSlot != this.slot && translateSlot2 < 0) {
+          return;
+        }
+        if (toSlot != this.slot) {
+          this.bRefreshPlayerBar = true;
+          return;
+        }
+        if (this.gameOver) {
+          return;
+        }
+        this.addIncomingPowerup(
+          this.players[translateSlot2].portalSprite,
+          powerupType,
+          fromSlot,
+          byte9
+        );
+        break;
+
+      case "playerWins":
+        let numPlayers = gamePacket.numPlayers;
+        for (let i = 0; i < numPlayers; i++) {
+          let slot = gamePacket.slot[i];
+          let winCount = gamePacket.winCount[i];
+          let translateSlot = this.translateSlot(slot);
+          let playerInfo = this.players[translateSlot];
+          playerInfo.wins = winCount;
+          this.refreshStatus = true;
+        }
+        break;
+
+      case "slotTeamId":
+        slot = gamePacket.slot;
+        teamId = gamePacket.teamId;
+        if (slot == this.slot) {
+          this.teamId = teamId;
+        } else {
+          let translateSlot = this.translateSlot(slot);
+          let playerInfo = this.players[translateSlot];
+          playerInfo.teamId = teamId;
+          playerInfo.bRefresh = true;
+        }
+        this.bRefreshPlayerBar = true;
+        break;
     }
   }
 }

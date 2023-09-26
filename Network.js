@@ -6,40 +6,6 @@ export default class Network {
   staticbConnected;
   gameNetLogic;
 
-  //  joinRoom( roomId, final String password) {
-  //     final DataOutput stream = this.getStream(0);
-  //     try {
-  //         stream.writeByte(21);
-  //         stream.writeShort((short)roomId);
-  //         stream.writeUTF((password == null) ? "" : password);
-  //         this.sendPacket();
-  //     }
-  //     catch (Exception ex) {}
-  // }
-
-  //  whisper( s,  s2) {
-  //     final DataOutput stream = this.getStream(0);
-  //     try {
-  //         stream.writeByte(6);
-  //         stream.writeUTF(s);
-  //         stream.writeUTF(s2);
-  //         this.sendPacket();
-  //     }
-  //     catch (Exception ex) {}
-  // }
-
-  // private void sendGeneric(final byte b, final short n) {
-  //     final DataOutput stream = this.getStream(0);
-  //     try {
-  //         stream.writeByte(b);
-  //         if (n != -2) {
-  //             stream.writeShort(n);
-  //         }
-  //         this.sendPacket();
-  //     }
-  //     catch (Exception ex) {}
-  // }
-
   constructor(gameNetLogic) {
     this.gameNetLogic = gameNetLogic;
     // this.login();
@@ -53,9 +19,9 @@ export default class Network {
     password,
     guestAccount,
     host,
-    port
+    port,
   ) {
-    // attempt to start a new websocket
+    // start a new websocket
     this.socket = new WebSocket(`ws://${host}:${port}`);
 
     this.socket.onerror = (e) => {
@@ -85,113 +51,108 @@ export default class Network {
     this.gameNetLogic.processPackets(packet);
   }
 
-  // synchronized void sendNoop() {
-  //     this.sendGeneric((byte)0, (short)(-2));
-  // }
+  joinRoom(roomId, password) {
+    let roomPassword = "";
+    if (password != null) {
+      roomPassword = password;
+    }
+    const packet = {
+      type: "joinRoom",
+      roomId,
+      password: roomPassword,
+    };
+    this.socket.send(JSON.stringify(packet));
+  }
 
-  // synchronized void createRoom(final String password, final boolean isRanked, final boolean isBigRoom, final boolean isTeamRoom, final int boardSize, final boolean isBalancedRoom, final boolean allShips, final boolean allPowerups, final String[][] array) {
-  //     final DataOutput stream = this.getStream(0);
-  //     try {
-  //         stream.writeByte(20);
-  //         stream.writeByte((byte)(isRanked ? 1 : 0));
-  //         final boolean hasPassword = password.length() > 0;
-  //         stream.writeByte((byte)(hasPassword ? 1 : 0));
-  //         if (hasPassword) {
-  //             stream.writeUTF(password);
-  //         }
-  //         stream.writeByte((byte)(isBigRoom ? 1 : 0));
-  //         stream.writeByte((byte)(allShips ? 1 : 0));
-  //         stream.writeByte((byte)(allPowerups ? 1 : 0));
-  //         stream.writeByte((byte)(isTeamRoom ? 1 : 0));
-  //         stream.writeByte((byte)boardSize);
-  //         stream.writeByte(isBalancedRoom ? 1 : 0);
-  //         if (array != null) {
-  //             stream.writeByte((byte)array.length);
-  //             for (int i = 0; i < array.length; ++i) {
-  //                 if (array[i] != null) {
-  //                     stream.writeUTF(array[i][0]);
-  //                     stream.writeUTF(array[i][1]);
-  //                 }
-  //             }
-  //         }
-  //         else {
-  //             stream.writeByte(0);
-  //         }
-  //         this.sendPacket();
-  //     }
-  //     catch (Exception ex) {}
-  // }
+  whisper(username, message) {
+    const packet = {
+      type: "whisper",
+      username,
+      message,
+    };
+    this.socket.send(JSON.stringify(packet));
+  }
 
-  // void createRoom(final String s, final boolean b) {
-  //     this.createRoom(s, b, false, false, 3, false, false, false, null);
-  // }
+  sendNoop() {
+    const packet = {
+      type: "noop",
+    };
+    this.socket.send(JSON.stringify(packet));
+  }
 
-  // public void disconnect() {
-  //     this.staticbConnected = false;
-  //     try {	// Send disconnect flag
-  //         final DataOutput stream = this.getStream(0);
-  //         if (stream != null) {
-  //         	stream.writeByte(1);
-  //         	this.sendPacket();
-  //         }
-  //     }
-  //     catch (Exception ex) {}
+  createRoom(
+    password,
+    isRanked,
+    isBigRoom,
+    isTeamRoom,
+    boardSize,
+    isBalancedRoom,
+    allShips,
+    allPowerups,
+  ) {
+    const packet = {
+      type: "createRoom",
+      isRanked,
+      hasPassword: password.length > 0,
+      password,
+      isBigRoom,
+      allShips,
+      allPowerups,
+      isTeamRoom,
+      boardSize,
+      isBalancedRoom,
+    };
+    this.socket.send(JSON.stringify(packet));
+  }
 
-  //     try {
-  //         this.staticreader.staticiStream.close();
-  //     }
-  //     catch (Exception ex) {}
-  //     this.staticreader = null;
-  //     try {
-  //         this.staticwriter.staticoStream.close();
-  //     }
-  //     catch (Exception ex2) {}
-  //     this.staticwriter = null;
-  //     try {
-  //         this.staticsocket.close();
-  //     }
-  //     catch (Exception ex3) {}
-  //     this.staticsocket = null;
-  // }
+  createRoomDefault(password, isRanked) {
+    this.createRoom(password, isRanked, false, false, 3, false, false, false);
+  }
 
-  // synchronized void roomSay(final String message) {
-  //     final DataOutput stream = this.getStream(0);
-  //     try {
-  //         stream.writeByte(18);
-  //         stream.writeUTF(message);
-  //         this.sendPacket();
-  //     }
-  //     catch (Exception ex) {}
-  // }
+  disconnect() {
+    this.staticbConnected = false;
+    const packet = {
+      // stream.writeByte(1);
+      type: "logout",
+    };
+    this.socket.send(JSON.stringify(packet));
 
-  // public DataInputStream readPacket() {
-  //     try {
-  //         super.count = this.staticreader.readPacket(super.buf) + 2;
-  //         super.pos = 0;
-  //     }
-  //     catch (IOException ex) {
-  //         return null;
-  //     }
-  //     return this.staticdataStream;
-  // }
+    // close the websocket
+    this.socket.close();
+    this.socket = null;
+  }
 
-  // synchronized void changeTeams(final byte b) {
-  //     this.sendGeneric((byte)40, b);
-  // }
+  roomSay(message) {
+    const packet = {
+      type: "roomSay",
+      message,
+    };
+    this.socket.send(JSON.stringify(packet));
+  }
 
-  // synchronized void startGame(final int n) {
-  //     this.sendGeneric((byte)30, (short)n);
-  // }
+  changeTeams(teamId) {
+    const packet = {
+      type: "changeTeam",
+      teamId,
+    };
+    this.socket.send(JSON.stringify(packet));
+  }
 
-  // synchronized void say(final String message) {
-  //     final DataOutput stream = this.getStream(0);
-  //     try {
-  //         stream.writeByte(5);
-  //         stream.writeUTF(message);
-  //         this.sendPacket();
-  //     }
-  //     catch (Exception ex) {}
-  // }
+  startGame(roomId) {
+    const packet = {
+      type: "startGame",
+      roomId,
+    };
+    this.socket.send(JSON.stringify(packet));
+  }
+
+  say(message) {
+    const packet = {
+      type: "say",
+      message,
+    };
+    this.socket.send(JSON.stringify(packet));
+  }
 
   listUsernames() {
     // request a list of usernames from the server
@@ -211,7 +172,11 @@ export default class Network {
     this.socket.send(JSON.stringify(packet));
   }
 
-  // synchronized void leaveRoom() {
-  //     this.sendGeneric((byte)22, (short)(-2));
-  // }
+  leaveRoom() {
+    // this.sendGeneric((byte)22, (short)(-2));
+    const packet = {
+      type: "leaveRoom",
+    };
+    this.socket.send(JSON.stringify(packet));
+  }
 }

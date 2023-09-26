@@ -22,7 +22,7 @@ export default class PortalSprite extends Sprite {
       this.location.x - 60,
       this.location.y - 30,
       120,
-      60,
+      60
     );
 
     this.viewingRect = new Rectangle(100, 130);
@@ -80,7 +80,7 @@ export default class PortalSprite extends Sprite {
         this.game.orbitDistance * Math.cos(this.currentArcs) +
           this.game.worldCenter.x,
         this.game.orbitDistance * Math.sin(this.currentArcs) +
-          this.game.worldCenter.y,
+          this.game.worldCenter.y
       );
       this.currentDegrees += 0.5;
       this.currentDegrees %= 360;
@@ -90,7 +90,7 @@ export default class PortalSprite extends Sprite {
     if (this.warpDist < this.game.orbitDistance) {
       this.setLocation(
         this.warpDist * Math.cos(this.currentArcs) + this.game.worldCenter.x,
-        this.warpDist * Math.sin(this.currentArcs) + this.game.worldCenter.y,
+        this.warpDist * Math.sin(this.currentArcs) + this.game.worldCenter.y
       );
       this.warpDist += Math.max(6, this.game.orbitDistance - this.warpDist) / 3;
       return;
@@ -133,7 +133,7 @@ export default class PortalSprite extends Sprite {
           sprite = new WallCrawlerSprite(
             spriteXLoc,
             spriteYLoc,
-            WHUtil.randInt() % 2 == 0,
+            WHUtil.randInt() % 2 == 0
           );
           break;
         }
@@ -188,7 +188,7 @@ export default class PortalSprite extends Sprite {
         n,
         0,
         0,
-        2 * Math.PI,
+        2 * Math.PI
       );
       context.stroke();
     }
@@ -200,7 +200,7 @@ export default class PortalSprite extends Sprite {
     context.strokeText(
       `${this.info.username}'s WORMHOLE`,
       this.location.x - 70,
-      this.location.y + 60,
+      this.location.y + 60
     );
     context.stroke();
 
@@ -245,7 +245,7 @@ export default class PortalSprite extends Sprite {
         this.vOutgoingPowerups.addElement(bulletSprite);
         bulletSprite.setLocation(
           bulletSprite.x - this.x,
-          bulletSprite.y - this.y,
+          bulletSprite.y - this.y
         );
         bulletSprite.spriteCycle = 0;
         Sprite.model.usePowerup(
@@ -253,7 +253,7 @@ export default class PortalSprite extends Sprite {
           bulletSprite.upgradeLevel,
           this.info.slot,
           this.game.gameSession,
-          this.game.gameId,
+          this.game.gameId
         );
       }
     }
@@ -276,7 +276,7 @@ export default class PortalSprite extends Sprite {
     nukeSprite = new NukeSprite(n, n2, b);
     nukeSprite.setVelocity(
       (n - Sprite.g_centerX) / 125,
-      (n2 - Sprite.g_centerY) / 125,
+      (n2 - Sprite.g_centerY) / 125
     );
     nukeSprite.addSelf();
   }
@@ -303,10 +303,10 @@ export default class PortalSprite extends Sprite {
           ufo.addSelf();
           break;
         }
-          //   case 4: {
-          //     // new GunshipSprite(this.location.x, this.location.y).addSelf();
-          //     break;
-          //   }
+        //   case 4: {
+        //     // new GunshipSprite(this.location.x, this.location.y).addSelf();
+        //     break;
+        //   }
       }
       this.shouldGenEnemy = false;
     }
@@ -325,7 +325,7 @@ export default class PortalSprite extends Sprite {
             for (n2 = 0; n2 < 12; n2++) {
               let heatSeekerMissile = new HeatSeekerMissile(
                 this.location.x + (WHUtil.randInt() % 50),
-                this.location.y + (WHUtil.randInt() % 50),
+                this.location.y + (WHUtil.randInt() % 50)
               );
               heatSeekerMissile.rotate(WHUtil.randABSInt() % 360);
               heatSeekerMissile.doMaxThrust(heatSeekerMissile.maxThrust);
@@ -338,7 +338,7 @@ export default class PortalSprite extends Sprite {
             this.genMines(
               this.location.x,
               this.location.y,
-              this.powerupSlotQ[i],
+              this.powerupSlotQ[i]
             );
             continue;
           }
@@ -358,7 +358,7 @@ export default class PortalSprite extends Sprite {
               this.location.y,
               this.powerupQ[i],
               this.powerupSlotQ[i],
-              this.powerupUpgradeQ[i],
+              this.powerupUpgradeQ[i]
             );
             continue;
           }
@@ -366,7 +366,7 @@ export default class PortalSprite extends Sprite {
             this.genNuke(
               this.location.x,
               this.location.y,
-              this.powerupSlotQ[i],
+              this.powerupSlotQ[i]
             );
             continue;
           }

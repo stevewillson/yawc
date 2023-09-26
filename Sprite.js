@@ -280,7 +280,7 @@ export default class Sprite {
           poly.ypoints[i] + sprite2.location.y
         );
         if (
-          shapeRect.inside(
+          shapeRect.contains(
             poly.xpoints[i] + sprite2.location.x,
             poly.ypoints[i] + sprite2.location.y
           )
@@ -464,7 +464,8 @@ export default class Sprite {
   }
 
   isPolyCollision(sprite) {
-    let shapePoly = sprite.getShapePoly();
+    // get the polygon (not the RotationalPolygon)
+    let shapePoly = sprite.getShapePoly().polygon;
     if (shapePoly == null || this.polygon == null) {
       return false;
     }
@@ -500,10 +501,10 @@ export default class Sprite {
       return false;
     }
     if (shapeRect == null && shapeRect2 != null) {
-      return shapeRect2.inside(sprite.location.x, sprite.location.y);
+      return shapeRect2.contains(sprite.location.x, sprite.location.y);
     }
     if (shapeRect2 == null) {
-      return shapeRect.inside(this.location.x, this.location.y);
+      return shapeRect.contains(this.location.x, this.location.y);
     }
     return shapeRect.intersects(shapeRect2);
   }
@@ -520,7 +521,7 @@ export default class Sprite {
     if (this.game.globalBoundingRect == null) {
       return false;
     }
-    if (this.game.globalBoundingRect.inside(x, y)) {
+    if (this.game.globalBoundingRect.contains(x, y)) {
       return true;
     }
     return false;

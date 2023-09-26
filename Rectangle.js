@@ -65,7 +65,7 @@ export default class Rectangle {
     return false;
   }
 
-  inside(x, y) {
+  contains(x, y) {
     // check if the x, y points are inside the rectangle
     if (
       this.x <= x &&

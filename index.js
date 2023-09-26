@@ -1,6 +1,8 @@
 import GameNetLogic from "./GameNetLogic.js";
 
-let whGameNetLogic = null;
+// check here about logging in?
+
+let whGameNetLogic;
 window.onload = function () {
   whGameNetLogic = new GameNetLogic();
 };
