@@ -13,13 +13,15 @@ export default class WHUtil {
     return parseInt(Math.random() * Number.MAX_SAFE_INTEGER);
   }
 
-  drawRect(paramGraphics, paramRectangle) {
-    paramGraphics.drawRect(
-      paramRectangle.x,
-      paramRectangle.y,
-      paramRectangle.width,
-      paramRectangle.height
+  static drawRect(context, rectangle) {
+    context.beginPath();
+    context.strokeRect(
+      rectangle.x,
+      rectangle.y,
+      rectangle.width,
+      rectangle.height,
     );
+    context.stroke();
   }
 
   static symPolygon(n, n2, n3) {
@@ -36,26 +38,27 @@ export default class WHUtil {
       paramRectangle.x,
       paramRectangle.y,
       paramRectangle.width,
-      paramRectangle.height
+      paramRectangle.height,
     );
   }
 
   drawTarget(paramGraphics, paramInt1, paramInt2) {
-    for (let b = 0; b < g_target.length; b++)
+    for (let b = 0; b < g_target.length; b++) {
       paramGraphics.drawLine(
         paramInt1 + g_target[b][0],
         paramInt2 + g_target[b][1],
         paramInt1 + g_target[b][2],
-        paramInt2 + g_target[b][3]
+        paramInt2 + g_target[b][3],
       );
+    }
   }
 
   static drawPoly(context, polygon) {
     polygon.drawPolygon(context);
   }
 
-  scaleVector(paramDouble1, paramDouble2) {
-    return paramDouble1 / Math.hypot(paramDouble1, paramDouble2);
+  static scaleVector(n, n2) {
+    return n / Math.hypot(n, n2);
   }
 
   fillCenteredArc(
@@ -64,7 +67,7 @@ export default class WHUtil {
     paramDouble2,
     paramInt1,
     paramInt2,
-    paramInt3
+    paramInt3,
   ) {
     paramGraphics.fillArc(
       paramDouble1 - paramInt1,
@@ -72,7 +75,7 @@ export default class WHUtil {
       paramInt1 * 2,
       paramInt1 * 2,
       paramInt2,
-      paramInt3
+      paramInt3,
     );
   }
 
@@ -86,7 +89,7 @@ export default class WHUtil {
     paramInt2,
     paramInt3,
     paramColor1,
-    paramColor2
+    paramColor2,
   ) {
     paramGraphics.setColor(paramColor2);
     paramGraphics.fillOval(paramInt1, paramInt2, paramInt3, paramInt3);
@@ -116,7 +119,7 @@ export default class WHUtil {
     paramInt3,
     paramInt4,
     paramColor1,
-    paramColor2
+    paramColor2,
   ) {
     paramGraphics.setColor(paramColor2);
     paramGraphics.fillRect(paramInt1, paramInt2, paramInt3, paramInt4);
@@ -142,7 +145,7 @@ export default class WHUtil {
       i,
       j,
       int(paramPolygon.xpoints[0] * paramDouble),
-      int(paramPolygon.ypoints[0] * paramDouble)
+      int(paramPolygon.ypoints[0] * paramDouble),
     );
   }
 
@@ -151,14 +154,16 @@ export default class WHUtil {
     for (b = 0; b < paramPolygon1.npoints; b++) {
       if (
         paramPolygon2.inside(paramPolygon1.xpoints[b], paramPolygon1.ypoints[b])
-      )
+      ) {
         return true;
+      }
     }
     for (b = 0; b < paramPolygon2.npoints; b++) {
       if (
         paramPolygon1.inside(paramPolygon2.xpoints[b], paramPolygon2.ypoints[b])
-      )
+      ) {
         return true;
+      }
     }
     return false;
   }
@@ -169,7 +174,7 @@ export default class WHUtil {
     paramInt1,
     paramInt2,
     paramInt3,
-    paramInt4
+    paramInt4,
   ) {
     let b;
     for (b = 0; b < paramPolygon1.npoints; b++) {
@@ -177,30 +182,32 @@ export default class WHUtil {
         "test: " +
           (paramPolygon1.xpoints[b] + paramInt1) +
           "y: " +
-          (paramPolygon1.ypoints[b] + paramInt2)
+          (paramPolygon1.ypoints[b] + paramInt2),
       );
       if (
         paramPolygon2.contains(
           paramPolygon1.xpoints[b] + paramInt1,
-          paramPolygon1.ypoints[b] + paramInt2
+          paramPolygon1.ypoints[b] + paramInt2,
         )
-      )
+      ) {
         return true;
+      }
     }
     for (b = 0; b < paramPolygon2.npoints; b++) {
       System.out.println(
         "test: " +
           (paramPolygon2.xpoints[b] + paramInt3) +
           "Y: " +
-          (paramPolygon2.ypoints[b] + paramInt4)
+          (paramPolygon2.ypoints[b] + paramInt4),
       );
       if (
         paramPolygon1.contains(
           paramPolygon2.xpoints[b] + paramInt3,
-          paramPolygon2.ypoints[b] + paramInt4
+          paramPolygon2.ypoints[b] + paramInt4,
         )
-      )
+      ) {
         return true;
+      }
     }
     return false;
   }
@@ -211,7 +218,7 @@ export default class WHUtil {
       !paramRectangle2.inside(paramRectangle1.x, paramRectangle1.y) ||
       !paramRectangle2.inside(
         paramRectangle1.x + paramRectangle1.width,
-        paramRectangle1.y + paramRectangle1.height
+        paramRectangle1.y + paramRectangle1.height,
       )
     );
   }
@@ -232,7 +239,7 @@ export default class WHUtil {
         var r = (Math.random() * 16) | 0,
           v = c == "x" ? r : (r & 0x3) | 0x8;
         return v.toString(16);
-      }
+      },
     );
   }
 

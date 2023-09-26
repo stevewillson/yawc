@@ -14,6 +14,7 @@ export default class UFOSprite extends Sprite {
     this.game = game;
     this.init("ufo", location.x, location.y, true);
     this.spriteType = 1;
+    // TODO - update shape to bound the UFO
     this.shapeRect = new Rectangle(location.x - 30, location.y - 13, 60, 26);
     this.setHealth(40, 20);
     this.dRotate = 30;
@@ -32,7 +33,7 @@ export default class UFOSprite extends Sprite {
       26,
       0,
       0,
-      2 * Math.PI
+      2 * Math.PI,
     );
     context.stroke();
     context.beginPath();
@@ -46,7 +47,7 @@ export default class UFOSprite extends Sprite {
       12,
       0,
       0,
-      2 * Math.PI
+      2 * Math.PI,
     );
     context.fill();
     context.stroke();
@@ -60,7 +61,7 @@ export default class UFOSprite extends Sprite {
       12,
       0,
       0,
-      2 * Math.PI
+      2 * Math.PI,
     );
     context.stroke();
   }

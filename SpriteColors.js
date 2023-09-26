@@ -11,7 +11,7 @@ export default class SpriteColors {
     [0.7777, 1],
     [0.125, 1],
     [0.8333, 1],
-    [0.66677, 0.67]
+    [0.66677, 0.67],
   ];
 
   constructor() {

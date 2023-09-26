@@ -15,6 +15,7 @@ export default class InflatorSprite extends Sprite {
     this.setHealth(30, 15);
     this.perceivedSize = 20;
     this.powerupType = 10;
+    this.shapeRect = this.getShapeRect();
   }
 
   setCollided(collided) {
@@ -32,7 +33,7 @@ export default class InflatorSprite extends Sprite {
         if (this.perceivedSize > this.health + 20) {
           this.perceivedSize -= 5;
         } else {
-          --this.perceivedSize;
+          this.perceivedSize--;
         }
       } else if (this.perceivedSize + 20 < this.health) {
         this.perceivedSize += 5;
@@ -52,7 +53,7 @@ export default class InflatorSprite extends Sprite {
     let bounds = this.polygon.getBounds();
     bounds.setLocation(
       this.location.x - bounds.width / 2,
-      this.location.y - bounds.height / 2
+      this.location.y - bounds.height / 2,
     );
     return bounds;
   }

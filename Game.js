@@ -26,7 +26,11 @@ export default class Game {
   badGuys;
   goodGuys;
 
+  isDebugMode;
+
   constructor(gameNetLogic) {
+    // set a debug mode for displaying shapeRects
+    this.isDebugMode = true;
     this.logic = gameNetLogic;
     this.input = {
       right: false,
@@ -94,14 +98,14 @@ export default class Game {
       this.boardCenter.x - this.viewport.width / 2,
       this.boardCenter.y - this.viewport.height / 2,
       this.viewport.width,
-      this.viewport.height
+      this.viewport.height,
     );
 
     this.globalBoundingRect = new Rectangle(
       0,
       0,
       this.board.width,
-      this.board.height
+      this.board.height,
     );
 
     // https://stackoverflow.com/questions/16919601/html5-canvas-camera-viewport-how-to-actually-do-it
@@ -197,7 +201,7 @@ export default class Game {
     this.player = new PlayerSprite(
       this.boardCenter,
       this.playerFighterType,
-      this
+      this,
     );
     // this.imgLogo = (Image)this.mediaTable.get("img_bg_logo");
     // if (this.imgLogo != null) {
@@ -431,12 +435,13 @@ export default class Game {
     // loop through all the sprites and remove or do the behavior
     for (let i = 0; i < this.allSprites.length; i++) {
       let sprite = this.allSprites[i];
-      if (sprite != null)
+      if (sprite != null) {
         if (sprite.shouldRemoveSelf) {
           sprite.removeSelf();
         } else {
           sprite.behave();
         }
+      }
     }
     if (this.lastCycleForMessages < this.cycle && this.vMessages.size() > 0) {
       this.vMessages.removeElementAt(0);
@@ -502,8 +507,9 @@ export default class Game {
       this.teamId = paramByte;
     } else {
       for (let b = 0; b < this.players.length; b++) {
-        if (this.players[b].username == paramString)
+        if (this.players[b].username == paramString) {
           this.players[b].teamId = paramByte;
+        }
         this.players[b].bRefresh = true;
       }
     }
@@ -572,6 +578,11 @@ export default class Game {
           sprite.isInDrawingRect = sprite.inViewingRect(viewportRect);
           if (sprite.isInDrawingRect) {
             sprite.drawSelf(context);
+
+            // display shapeRects when in debug mode
+            if (this.isDebugMode) {
+              WHUtil.drawRect(context, sprite.shapeRect);
+            }
           }
         }
       });
@@ -657,10 +668,10 @@ export default class Game {
         this.player != null &&
         !this.players[i].gameOver
       ) {
-        let n =
-          this.players[i].portalSprite.location.x - this.player.location.x;
-        let n2 =
-          this.players[i].portalSprite.location.y - this.player.location.y;
+        let n = this.players[i].portalSprite.location.x -
+          this.player.location.x;
+        let n2 = this.players[i].portalSprite.location.y -
+          this.player.location.y;
         let hyp = Math.hypot(n, n2);
         if (hyp >= this.portalVisibility) {
           let n3 = (180 * n) / hyp;
@@ -686,7 +697,7 @@ export default class Game {
           context.moveTo(n5, n6);
           context.lineTo(
             n3 * 0.9 + this.viewportCenter.x,
-            n4 * 0.9 + this.viewportCenter.y
+            n4 * 0.9 + this.viewportCenter.y,
           );
 
           context.moveTo(n5, n6);
@@ -714,7 +725,7 @@ export default class Game {
       this.worldCenter.x,
       this.worldCenter.y,
       this.orbitDistance,
-      "gray"
+      "gray",
     );
   }
 
@@ -726,7 +737,7 @@ export default class Game {
         -i,
         -i,
         this.world.width + i * 2,
-        this.world.height + i * 2
+        this.world.height + i * 2,
       );
     }
   }
@@ -802,7 +813,7 @@ export default class Game {
           // this.logic.getPlayer(playerName).getIcons(),
           playerSlot,
           isGameOver,
-          b
+          b,
         );
         if (isGameOver == false) {
         }
@@ -872,7 +883,7 @@ export default class Game {
             let portalSprite = new PortalSprite(
               n * (360 / this.totalOpposingPlayers),
               this.players[i],
-              this
+              this,
             );
             n++;
             this.players[i].portalSprite = portalSprite;
@@ -900,13 +911,13 @@ export default class Game {
       this.bRefreshPlayerBar = true;
     } else if (gamePacket.type == "gameOverIndividual") {
       let slot = gamePacket.slot;
-      if (super.slot == slot) {
+      if (this.slot == slot) {
         this.winningPlayerString = "YOU WON";
         ++this.wins;
       } else {
         let translateSlot = this.translateSlot(slot);
-        this.winningPlayerString =
-          this.players[translateSlot].username + " WON";
+        this.winningPlayerString = this.players[translateSlot].username +
+          " WON";
         let playerInfo2 = this.players[translateSlot];
         playerInfo2.wins++;
         this.players[translateSlot].gameOver = true;
@@ -945,7 +956,7 @@ export default class Game {
         playerInfo4.portalSprite.killSelf();
       }
       playerInfo4.healthPercentage = 0;
-      if (killerSlot == super.slot) {
+      if (killerSlot == this.slot) {
         this.kills++;
         this.refreshStatus = true;
       }
@@ -981,7 +992,7 @@ export default class Game {
         this.players[translateSlot2].portalSprite,
         powerupType,
         fromSlot,
-        byte9
+        byte9,
       );
     } else if (gamePacket.type == "playerWins") {
       let numPlayers = gamePacket.numPlayers;
@@ -996,7 +1007,7 @@ export default class Game {
     } else if (gamePacket.type == "slotTeamId") {
       let slot = gamePacket.slot;
       let teamId = gamePacket.teamId;
-      if (slot == super.slot) {
+      if (slot == this.slot) {
         this.teamId = teamId;
       } else {
         let translateSlot = this.translateSlot(slot);

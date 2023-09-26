@@ -29,7 +29,7 @@ export default class BulletSprite extends Sprite {
     bulletSize,
     internalColor,
     spriteType,
-    game
+    game,
   ) {
     super(location, game);
     this.location = location;
@@ -39,7 +39,7 @@ export default class BulletSprite extends Sprite {
       location.x - 5,
       location.y - 5,
       bulletSize,
-      bulletSize
+      bulletSize,
     );
     this.spriteType = spriteType;
     this.internalColor = internalColor;
@@ -72,7 +72,7 @@ export default class BulletSprite extends Sprite {
         0,
         0,
         7,
-        this.game.colors.colors[super.slot][super.spriteCycle % 20]
+        this.game.colors.colors[super.slot][super.spriteCycle % 20],
       );
 
       context.moveTo(0, 0);
@@ -127,18 +127,25 @@ export default class BulletSprite extends Sprite {
     if (this.shouldRemoveSelf) {
       if (this.bPowerup) {
         let explosionSprite = new ExplosionSprite(
-          this.location,
+          { x: this.location.x, y: this.location.y },
           this.game,
-          this.game.slot
+          this.game.slot,
         );
         explosionSprite.setPowerupExplosion();
         explosionSprite.addSelf();
       } else {
-        let explosionSprite2 = new ExplosionSprite(this.location, this.game, 9);
+        let explosionSprite2 = new ExplosionSprite(
+          { x: this.location.x, y: this.location.y },
+          this.game,
+          9,
+        );
         explosionSprite2.RINGS = 2;
         explosionSprite2.addSelf();
       }
-      let particleSprite = new ParticleSprite(this.location, this.game);
+      let particleSprite = new ParticleSprite(
+        { x: this.location.x, y: this.location.y },
+        this.game,
+      );
       particleSprite.particleInit(8, 5);
       particleSprite.addSelf();
     }
@@ -156,10 +163,11 @@ export default class BulletSprite extends Sprite {
     }
   }
 
-  setVelocity(velocity) {
-    this.velocity = velocity;
-    this.offx = -1 * (velocity.x * 8);
-    this.offy = -1 * (velocity.y * 8);
+  setVelocity(x, y) {
+    this.velocity.x = x;
+    this.velocity.y = y;
+    this.offx = -1 * (x * 8);
+    this.offy = -1 * (y * 8);
   }
 
   setPowerup(powerupType) {

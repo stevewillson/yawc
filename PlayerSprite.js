@@ -439,13 +439,13 @@ export default class PlayerSprite extends Sprite {
       this.bulletSize,
       PlayerSprite.bulletColors[this.bulletType],
       2,
-      this.game
+      this.game,
     );
     bulletSprite.setPlayer(this.slot);
-    bulletSprite.setVelocity({
-      x: Math.cos(angle) * 10.0 + this.velocity.x,
-      y: Math.sin(angle) * 10.0 + this.velocity.y,
-    });
+    bulletSprite.setVelocity(
+      Math.cos(angle) * 10.0 + this.velocity.x,
+      Math.sin(angle) * 10.0 + this.velocity.y,
+    );
     bulletSprite.addSelf();
     this.lastShotCycle = this.spriteCycle + this.shotDelay;
   }
@@ -601,11 +601,11 @@ export default class PlayerSprite extends Sprite {
   drawOneThrust(paramDouble1, paramInt1, paramDouble2, paramInt2) {
     let d1 = Math.cos(paramDouble1) * 12.0;
     let d2 = Math.sin(paramDouble1) * 12.0;
-    let i = this.location.x - paramDouble2 * d1;
-    let j = this.location.y - paramDouble2 * d2;
+    let x = this.location.x - paramDouble2 * d1;
+    let y = this.location.y - paramDouble2 * d2;
 
-    let location = { x: i, y: j };
-    let thrustSprite = new ThrustSprite(location, this.game);
+    // let location = { x: i, y: j };
+    let thrustSprite = new ThrustSprite({ x, y }, this.game);
     thrustSprite.velocity.x = -2 * this.velocity.x;
     thrustSprite.velocity.y = -2 * this.velocity.y;
     thrustSprite.addSelf();
@@ -618,13 +618,13 @@ export default class PlayerSprite extends Sprite {
         (this.angle + i) * 0.017453292519943295,
         1 + (WHUtil.randInt() % 2),
         3.0,
-        0
+        0,
       );
       this.drawOneThrust(
         (this.angle - i) * 0.017453292519943295,
         1 + (WHUtil.randInt() % 2),
         3.0,
-        0
+        0,
       );
     }
     this.drawOneThrust(this.radAngle, Math.min(this.thrustCount, 5), 2.0, 0);
@@ -704,7 +704,7 @@ export default class PlayerSprite extends Sprite {
     let tertiaryFire = 0;
 
     if (tertiaryFire > 0) {
-      if (this.spriteCycle > this.nextTFireCycle)
+      if (this.spriteCycle > this.nextTFireCycle) {
         switch (this.specialType) {
           case 1:
             handleTurtleCannon();
@@ -725,6 +725,7 @@ export default class PlayerSprite extends Sprite {
             weaponsReady = false;
             break;
         }
+      }
     } else {
       this.isFiringAttractor = false;
     }
@@ -782,7 +783,7 @@ export default class PlayerSprite extends Sprite {
       this.location.x - this.game.viewport.width / 2,
       this.location.y - this.game.viewport.height / 2,
       this.game.viewport.width,
-      this.game.viewport.height
+      this.game.viewport.height,
     );
     return this.game.viewportRect;
   }
@@ -792,7 +793,7 @@ export default class PlayerSprite extends Sprite {
     let bounds = this.polygon.getBounds();
     bounds.setLocation(
       this.location.x - bounds.width / 2,
-      this.location.y - bounds.height / 2
+      this.location.y - bounds.height / 2,
     );
     return bounds;
   }

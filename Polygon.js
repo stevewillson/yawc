@@ -18,7 +18,7 @@ export default class Polygon {
       Math.min(...this.xpoints),
       Math.min(...this.ypoints),
       Math.max(...this.xpoints) - Math.min(...this.xpoints),
-      Math.max(...this.ypoints) - Math.min(...this.ypoints)
+      Math.max(...this.ypoints) - Math.min(...this.ypoints),
     );
   }
 

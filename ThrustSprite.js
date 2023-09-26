@@ -32,7 +32,7 @@ export default class ThrustSprite extends Sprite {
       this.location.x,
       this.location.y,
       this.radius,
-      this.color
+      this.color,
     );
   }
 

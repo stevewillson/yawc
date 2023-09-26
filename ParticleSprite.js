@@ -38,7 +38,7 @@ export default class ParticleSprite extends Sprite {
         this.x[i],
         this.y[i],
         12 - this.state[i],
-        12 - this.state[i]
+        12 - this.state[i],
       );
     }
     context.stroke();
