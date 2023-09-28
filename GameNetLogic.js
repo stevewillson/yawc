@@ -8,8 +8,7 @@ export default class GameNetLogic {
   loginPort2;
   network;
   bInATable;
-  bGuestAccount;
-  pnlGame;
+  gamePanel;
   threadNetwork;
   username;
   subscriptionLevel;
@@ -22,8 +21,9 @@ export default class GameNetLogic {
   htUnloadedIcons;
   commands;
   lastWhisperer;
+  isLoggedIn;
 
-  constructor() {
+  constructor(gamePanel) {
     this.host = "localhost";
     this.loginPort = 6049;
 
@@ -37,15 +37,16 @@ export default class GameNetLogic {
 
     // TODO - attempt to login before starting a new game
     this.game = new Game(this);
+    this.gamePanel = gamePanel;
 
     // TODO - set a fake username
-    this.username = "testUsername";
-    this.password = "testPassword";
-    this.isGuestAccount = false;
+    // this.username = "testUsername";
+    // this.password = "testPassword";
 
     this.icons = ["icon1", "icon2"];
+    this.isLoggedIn = false;
 
-    this.login(this.username, this.password, this.isGuestAccount);
+    // this.login(this.username, this.password);
 
     // set up a fake gamePacket
     let gamePacket = {
@@ -78,7 +79,7 @@ export default class GameNetLogic {
       ],
     };
 
-    this.game.handleGamePacket(gamePacket);
+    // this.game.handleGamePacket(gamePacket);
   }
 
   getPlayer(playerName) {
@@ -91,16 +92,6 @@ export default class GameNetLogic {
     return 123;
   }
 
-  getUsername() {
-    // TODO - set the username
-    return this.username;
-  }
-
-  getIcons() {
-    // TODO - set the icons
-    return this.icons;
-  }
-
   // processLogin() {
   //   // get information from the username / password text fields
   //   // final LoginPanel loginPanel = this.pnlGame.getLoginPanel();
@@ -108,7 +99,6 @@ export default class GameNetLogic {
 
   //   // display a logging in message
   //   loginPanel.setConnectionStatus("Logging in");
-  //   const isGuestAccount = loginPanel.getPassword().length() == 0;
 
   //   // get the username from the login area
   //   // username = loginPanel.getUsername();
@@ -119,25 +109,14 @@ export default class GameNetLogic {
   //     this.disconnect("Please enter username");
   //     return;
   //   }
-  //   //if (isGuestAccount) {
-  //   if (false) {
-  //     if (username.length() > 5) {
-  //       this.disconnect("Guest usernames cannot exceed 5 characters");
-  //       return;
-  //     }
-  //     username = CFPlayerElement.GUEST_STRING + username;
-  //   } else if (username.length() > 20) {
-  //     this.disconnect("Usernames cannot exceed 20 characters");
-  //     return;
-  //   }
-  //   let login = this.login(username, loginPanel.getPassword(), isGuestAccount);
+  //   let login = this.login(username, loginPanel.getPassword());
   //   if (login != null) {
   //     this.disconnect(login);
   //   }
   // }
 
   // login
-  login(username, password, isGuestAccount) {
+  login(username, password) {
     if (this.network != null) {
       // this.network.disconnect();
       this.network = null;
@@ -155,7 +134,6 @@ export default class GameNetLogic {
     // CFSkin.getSkin().addWelcomeMessage(
     //   this.pnlGame.getLobbyPanel().getChatPanel()
     // );
-    this.bGuestAccount = isGuestAccount;
 
     this.network = new Network(this);
     if (this.network != undefined) {
@@ -174,9 +152,8 @@ export default class GameNetLogic {
         minorVersion,
         username,
         password,
-        isGuestAccount,
         this.host,
-        this.loginPort,
+        this.loginPort
       ) != null
     ) {
       return this.network.login(
@@ -185,9 +162,8 @@ export default class GameNetLogic {
         minorVersion,
         username,
         password,
-        isGuestAccount,
         this.host2,
-        this.loginPort2,
+        this.loginPort2
       );
     }
     return null;
@@ -199,10 +175,12 @@ export default class GameNetLogic {
     this.roomId = -1;
     // TODO
     // this.pnlGame.getLobbyPanel().setUsername(this.username);
+
+    this.gamePanel.lobbyPanel.updateUsername(this.username);
+
     // this.pnlGame
     //   .getPlayingPanel()
     //   .getCreditsPanel()
-    //   .setRegistered(!this.bGuestAccount);
     // this.pnlGame.getLoginPanel().setLoginEnabled(true);
     // this.pnlGame.showLobby();
     this.network.listUsernames();
@@ -212,6 +190,7 @@ export default class GameNetLogic {
 
   processPackets(packet) {
     const packetJSON = JSON.parse(packet);
+    console.log(`Received: ${packet}`);
     let type = packetJSON.type;
     switch (type) {
       case 0: {
@@ -219,8 +198,20 @@ export default class GameNetLogic {
         this.disconnect(connectionStatusMsg);
         break;
       }
+
       case "loginSuccess": {
         this.finishLogin(packetJSON.userId, packetJSON.username);
+        break;
+      }
+
+      case "usernames": {
+        // set the list of usernames received those
+        break;
+      }
+
+      case "userInfo": {
+        // add this info to the player?
+        this.myAddPlayer(packetJSON);
         break;
       }
     }
@@ -572,4 +563,29 @@ export default class GameNetLogic {
   //         ex.printStackTrace();
   //     }
   // }
+
+  myAddPlayer(packet) {
+    const username = packet.username;
+    if (username.length == 0) {
+      return;
+    }
+    const rank = packet.rank;
+    const numIcons = packet.numIcons;
+    const clan = packet.clan;
+    let iconNames = [];
+    for (let i = 0; i < numIcons; i++) {
+      let iconName = packet.icons[i];
+      iconNames.push(iconName);
+      // if (
+      // this.m_htLoadedIcons.get(iconName) == null &&
+      // this.m_htUnloadedIcons.get(iconName) == null
+      // ) {
+      //final Image image = GamePanel.m_applet.getImage(GamePanel.m_applet.getCodeBase(), "images/icons/" + iconName);
+      //this.m_htUnloadedIcons.put(iconName, image);
+      //this.m_mtIcons.addImage(image, 0);
+      // }
+    }
+    // add the player to a local store of players
+    this.gamePanel.playerPanel.addPlayer(username, clan, rank, iconNames);
+  }
 }

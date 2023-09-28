@@ -1,7 +1,5 @@
 export default class Network {
   static LOGIN_TYPE_REGISTERED = 0;
-  static LOGIN_TYPE_GUEST = 1;
-  static LOGIN_TYPE_AUTO_GUEST = 3;
   socket;
   staticbConnected;
   gameNetLogic;
@@ -11,16 +9,7 @@ export default class Network {
     // this.login();
   }
 
-  login(
-    gameId,
-    majorVersion,
-    minorVersion,
-    username,
-    password,
-    guestAccount,
-    host,
-    port,
-  ) {
+  login(gameId, majorVersion, minorVersion, username, password, host, port) {
     // start a new websocket
     this.socket = new WebSocket(`ws://${host}:${port}`);
 
@@ -31,7 +20,6 @@ export default class Network {
     this.socket.onopen = (e) => {
       const packet = {
         type: "login",
-        guestAccount,
         username,
         // TODO - use a hash of the password
         password,
@@ -40,9 +28,10 @@ export default class Network {
         minorVersion,
         clientVersion: 1.2,
       };
+      console.log(`Sending ${JSON.stringify(packet)}`);
       this.socket.send(JSON.stringify(packet));
-      this.socket.onmessage = (e) => this.processPackets(e.data);
     };
+    this.socket.onmessage = (e) => this.processPackets(e.data);
     // success for login is null
     return null;
   }
@@ -88,7 +77,7 @@ export default class Network {
     boardSize,
     isBalancedRoom,
     allShips,
-    allPowerups,
+    allPowerups
   ) {
     const packet = {
       type: "createRoom",

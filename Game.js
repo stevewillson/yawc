@@ -16,7 +16,7 @@ export default class Game {
   canvas;
   context;
   loop;
-  logic;
+  gameNetLogic;
   input;
   players;
   colors;
@@ -31,7 +31,7 @@ export default class Game {
   constructor(gameNetLogic) {
     // set a debug mode for displaying shapeRects
     this.isDebugMode = false;
-    this.logic = gameNetLogic;
+    this.gameNetLogic = gameNetLogic;
     this.input = {
       right: false,
       left: false,
@@ -132,7 +132,7 @@ export default class Game {
 
     this.boardChanged = true;
 
-    this.gameOver = false;
+    this.isGameOver = false;
     this.refreshStatus = true;
 
     // clear sprite arrays
@@ -336,24 +336,25 @@ export default class Game {
     switch (this.mode) {
       case 0:
         this.handleDefaultModelBehavior();
-        if (this.gameOver) {
+        if (this.isGameOver) {
           // GameNetLogic method
           // this.logic.gameOver();
           this.mode = 3;
           if (this.winningPlayerString == null) {
-            gameOver(this.gameSession, this.killedBy, this.gameID);
+            this.gameOver(this.gameSession, this.killedBy);
             return;
           }
         }
         break;
       case 1:
         // case where the game is over
-        this.gameOver = true;
+        this.isGameOver = true;
         this.mode = 2;
         // drawStatusBar(this.pnlStatus.g);
         // this.pnlStatus.completeRepaint();
         this.bRefreshPlayerBar = true;
         break;
+      // case 2 is waiting for the game to start
       case 2:
         // checkSidebar();
         if (this.bRefreshPlayerBar) {
@@ -503,7 +504,7 @@ export default class Game {
   }
 
   setTeam(paramString, paramByte) {
-    if (this.logic.getUsername() == paramString) {
+    if (this.gameNetLogic.getUsername() == paramString) {
       this.teamId = paramByte;
     } else {
       for (let b = 0; b < this.players.length; b++) {
@@ -543,7 +544,7 @@ export default class Game {
       // if (
       //   this.teamID != 0 &&
       //   super.tableElement.isTeamTable() &&
-      //   !this.gameOver
+      //   !this.isGameOver
       // ) {
       //   this.drawTeamStuff(graphics);
       // }
@@ -580,9 +581,9 @@ export default class Game {
             sprite.drawSelf(context);
 
             // display shapeRects when in debug mode
-            if (this.isDebugMode) {
-              WHUtil.drawRect(context, sprite.shapeRect);
-            }
+            // if (this.isDebugMode) {
+            //   WHUtil.drawRect(context, sprite.shapeRect);
+            // }
           }
         }
       });
@@ -616,25 +617,25 @@ export default class Game {
       //     l * 15 + 31
       //   );
       // }
-      // if (this.m_winningPlayerString != null) {
+      // if (this.winningPlayerString != null) {
       //   this.drawShadowString(graphics, "GAME OVER!", 100, 100);
       //   this.drawShadowString(
       //     graphics,
-      //     "WINNER: " + this.m_winningPlayerString,
+      //     "WINNER: " + this.winningPlayerString,
       //     100,
       //     120
       //   );
       // }
       // graphics.setColor(Color.white);
       // graphics.setFont(WormholeModel.fontTwelve);
-      // for (let n = 0; n < this.m_vMessages.size(); n++) {
-      //   graphics.drawString(this.m_vMessages.elementAt(n), 10, 10 * (n + 1));
+      // for (let n = 0; n < this.vMessages.size(); n++) {
+      //   graphics.drawString(this.vMessages.elementAt(n), 10, 10 * (n + 1));
       // }
     }
-    //   if (this.m_teamID != 0) {
+    //   if (this.teamID != 0) {
     //     graphics.setFont(WormholeModel.fontTwelve);
-    //     graphics.setColor(CFSkin.TEAM_COLORS[this.m_teamID]);
-    //     graphics.drawString(CFSkin.TEAM_NAMES[this.m_teamID] + " member", this.boardWidth - 135, 13);
+    //     graphics.setColor(CFSkin.TEACOLORS[this.teamID]);
+    //     graphics.drawString(CFSkin.TEANAMES[this.teamID] + " member", this.boardWidth - 135, 13);
     // }
     // graphics.setColor(Color.white);
     // graphics.drawRect(0, 0, this.boardWidth - 1, this.boardHeight - 1);
@@ -804,12 +805,12 @@ export default class Game {
       let playerSlot = gamePacket.players[i].slot;
       let isGameOver = gamePacket.players[i].isGameOver;
       let teamId = gamePacket.players[i].teamId;
-      if (playerName != this.logic.getUsername()) {
+      if (playerName != this.gameNetLogic.getUsername()) {
         this.setPlayer(
           playerName,
-          this.logic.getPlayerRank(playerName),
+          this.gameNetLogic.getPlayerRank(playerName),
           teamId,
-          this.logic.getIcons(),
+          this.gameNetLogic.getIcons(),
           // this.logic.getPlayer(playerName).getIcons(),
           playerSlot,
           isGameOver,
@@ -841,6 +842,19 @@ export default class Game {
     this.setSlot(playerSlot);
   }
 
+  gameOver(gameSession, killedBy) {
+    // send a packet showing that the game is over
+    // stream.writeByte(110);
+    const packet = {
+      type: "gameOver",
+      gameSession,
+      killedBy,
+    };
+    this.gameNetLogic.network.socket.send(JSON.stringify(packet));
+  }
+
+  // monitorexit(super.logic.getNetwork())
+
   // ROUTINES FOR READING AND WRITING ON THE NETWORK
   /**
    * handles the game packet receipt
@@ -868,7 +882,7 @@ export default class Game {
         this.mode = 0;
         this.bRefreshPlayerBar = true;
         this.bRefreshAll = true;
-        this.gameOver = false;
+        this.isGameOver = false;
 
         let n = 0;
         for (let i = 0; i < gamePacket.totalPlayers; i++) {
@@ -900,7 +914,7 @@ export default class Game {
 
       case "updatePlayerInfo":
         let gameSession = gamePacket.gameSession;
-        if (gameSession != this.gameSession && !this.gameOver) {
+        if (gameSession != this.gameSession && !this.isGameOver) {
           return;
         }
         let slot = gamePacket.slot;
@@ -928,7 +942,7 @@ export default class Game {
           playerInfo2.wins++;
           this.players[translateSlot].gameOver = true;
         }
-        this.gameOver = true;
+        this.isGameOver = true;
         this.refreshStatus = true;
         this.bRefreshPlayerBar = true;
         break;
@@ -947,7 +961,7 @@ export default class Game {
             }
           }
         }
-        this.gameOver = true;
+        this.isGameOver = true;
         this.refreshStatus = true;
         this.bRefreshPlayerBar = true;
         break;
@@ -956,7 +970,7 @@ export default class Game {
         let deceasedSlot = gamePacket.deceasedSlot;
         let killerSlot = gamePacket.killerSlot;
         if (deceasedSlot == this.slot) {
-          this.gameOver = true;
+          this.isGameOver = true;
           return;
         }
         let playerInfo4 = this.players[this.translateSlot(deceasedSlot)];
@@ -988,7 +1002,7 @@ export default class Game {
         let toSlot = gamePacket.toSlot;
         gameSession = gamePacket.gameSession;
         let byte9 = gamePacket.byte9;
-        if (gameSession != this.gameSession && !this.gameOver) {
+        if (gameSession != this.gameSession && !this.isGameOver) {
           return;
         }
         let translateSlot2 = this.translateSlot(fromSlot);
@@ -999,7 +1013,7 @@ export default class Game {
           this.bRefreshPlayerBar = true;
           return;
         }
-        if (this.gameOver) {
+        if (this.isGameOver) {
           return;
         }
         this.addIncomingPowerup(
@@ -1036,5 +1050,34 @@ export default class Game {
         this.bRefreshPlayerBar = true;
         break;
     }
+  }
+
+  // combination of writeState and updateState
+  sendState(gameSession) {
+    // stream.writeByte(106);
+    let healthPercent = this.player.health / this.player.MAX_HEALTH;
+    const packet = {
+      type: "playerState",
+      healthPercent,
+      gameSession,
+      numPowerups: this.numPowerups,
+      powerups: this.powerups,
+      playerFighterType: this.playerFighterType,
+      strDamagedByPlayer: this.strDamagedByPlayer,
+      damagingPowerup: this.damagingPowerup,
+      lostHealth: this.player.lostHealth,
+    };
+    this.gameNetLogic.network.socket.send(JSON.stringify(packet));
+  }
+
+  // combination of writeEvent and updateEvent
+  sendEvent(eventString, gameSession) {
+    // stream.writeByte(109);
+    const packet = {
+      type: "event",
+      gameSession,
+      eventString: `${this.gameNetLogic.username} ${eventString}`,
+    };
+    this.gameNetLogic.network.socket.send(JSON.stringify(packet));
   }
 }

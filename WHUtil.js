@@ -9,8 +9,8 @@ export default class WHUtil {
   // implement later
   // target indicator around objects
   //    g_target = { { -60, -60, -40, -60 }, { -60, -60, -60, -40 }, { -60, 60, -40, 60 }, { -60, 60, -60, 40 }, { 60, -60, 40, -60 }, { 60, -60, 60, -40 }, { 60, 60, 40, 60 }, { 60, 60, 60, 40 } };
-  static randInt() {
-    return parseInt(Math.random() * Number.MAX_SAFE_INTEGER);
+  static randInt(number = Number.MAX_SAFE_INTEGER) {
+    return parseInt(Math.random() * Number.MAX_SAFE_INTEGER) % number;
   }
 
   static drawRect(context, rectangle) {

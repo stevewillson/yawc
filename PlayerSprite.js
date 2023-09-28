@@ -4,6 +4,7 @@ import Sprite from "./Sprite.js";
 import WHUtil from "./WHUtil.js";
 import Rectangle from "./Rectangle.js";
 import BulletSprite from "./BulletSprite.js";
+import ExplosionSprite from "./ExplosionSprite.js";
 
 export default class PlayerSprite extends Sprite {
   static shipShapes = [
@@ -412,9 +413,58 @@ export default class PlayerSprite extends Sprite {
       this.thrustUpgradeStatus++;
       this.thrust += n;
       // Sprite.model.refreshStatus = true;
-      if (this.m_thrustUpgradeStatus >= 3) {
+      if (this.thrustUpgradeStatus >= 3) {
         this.bMaxThrustUpgrade = true;
       }
+    }
+  }
+
+  setCollided(collided) {
+    let health = this.health;
+    super.setCollided(collided);
+    if (this.shouldRemoveSelf) {
+      if (collided.color != null) {
+        this.killedBy = this.game.getPlayer(collided.slot);
+        this.killedBySlot = collided.slot;
+      }
+      if (this.killedBy != null && !this.killedBy == "") {
+        this.game.sendEvent(
+          "killed by " + this.killedBy,
+          this.game.gameSession
+        );
+        this.game.killedBy = this.killedBySlot;
+      }
+      // create some explotion sprites and shrapnel sprites
+      let explosion = new ExplosionSprite(
+        { x: this.location.x, y: this.location.y },
+        this.game,
+        this.slot
+      );
+      explosion.addSelf();
+      // new ShrapnelSprite(super.intx, super.inty, 30, Sprite.model.color, 50).addSelf();
+      let n = 0;
+      for (let n = 0; n < 3; n++) {
+        let n2 = this.location.x + WHUtil.randInt(10);
+        let n3 = this.location.y + WHUtil.randInt(10);
+        new ExplosionSprite({ x: n2, y: n3 }, this.game, this.slot).addSelf();
+        // new ShrapnelSprite(n2, n3, 30, Sprite.model.color, 50).addSelf();
+      }
+      return;
+    }
+    if (health != this.health) {
+      // Sprite.model.refreshStatus = true;
+      this.game.strDamagedByPlayer = null;
+      if (collided.color != null && collided.bSentByPlayer) {
+        this.game.strDamagedByPlayer = this.game.getPlayer(collided.slot);
+        this.game.damagingPowerup = collided.powerupType;
+        this.lostHealth = health - this.health;
+      }
+      // new ShrapnelSprite(
+      //   super.intx,
+      //   super.inty,
+      //   10,
+      //   Sprite.model.color
+      // ).addSelf();
     }
   }
 
@@ -565,24 +615,23 @@ export default class PlayerSprite extends Sprite {
     //     WHUtil.drawCenteredCircle(paramGraphics, 0.0D, 0.0D, 18);
     //   }
     // }
-    // if (this.health < this.MAX_HEALTH / 3) {
-    //   paramGraphics.setColor(Color.red);
-    // } else if (this.health < 2 * this.MAX_HEALTH / 3) {
-    //   paramGraphics.setColor(Color.yellow);
-    // } else {
-    //   paramGraphics.setColor(Color.green);
-    // }
-    // double d = this.health / this.MAX_HEALTH;
-    // int i = (int)(d * 20.0D);
-    // paramGraphics.drawRect(18, 18, 5, 20);
-    // paramGraphics.fillRect(18, 38 - i, 5, i);
+    if (this.health < this.MAX_HEALTH / 3) {
+      context.fillStyle = "red";
+      context.strokeStyle = "red";
+    } else if (this.health < (2 / 3) * this.MAX_HEALTH) {
+      context.fillStyle = "yellow";
+      context.strokeStyle = "yellow";
+    } else {
+      context.fillStyle = "green";
+      context.strokeStyle = "green";
+    }
+    let i = 20 * (this.health / this.MAX_HEALTH);
+    // let i = d * 20;
+    context.beginPath();
+    context.strokeRect(18, 18, 5, 20);
+    context.fillRect(18, 38 - i, 5, i);
+    context.stroke();
     // Sprite.model.drawTeamShape(paramGraphics, 25, 15);
-
-    // context.translate(-this.location.x, -this.location.y);
-    // context.translate(
-    //   -this.game.viewportRect.width / 2,
-    //   -this.game.viewportRect.height / 2
-    // );
     context.translate(-this.location.x, -this.location.y);
 
     // draw thrust trail
@@ -597,17 +646,16 @@ export default class PlayerSprite extends Sprite {
     this.polygon.rotate(degrees);
   }
 
-  // current issue - when adding a thrust sprite, there is no x/y information
-  drawOneThrust(paramDouble1, paramInt1, paramDouble2, paramInt2) {
-    let d1 = Math.cos(paramDouble1) * 12.0;
-    let d2 = Math.sin(paramDouble1) * 12.0;
-    let x = this.location.x - paramDouble2 * d1;
-    let y = this.location.y - paramDouble2 * d2;
-
-    // let location = { x: i, y: j };
-    let thrustSprite = new ThrustSprite({ x, y }, this.game);
-    thrustSprite.velocity.x = -2 * this.velocity.x;
-    thrustSprite.velocity.y = -2 * this.velocity.y;
+  drawOneThrust(n, n2, n3, n4) {
+    let thrustSprite = new ThrustSprite(
+      {
+        x: this.location.x - n3 * (Math.cos(n) * 12),
+        y: this.location.y - n3 * (Math.sin(n) * 12),
+      },
+      this.game
+    );
+    thrustSprite.vectorx = -2 * super.vectorx;
+    thrustSprite.vectory = -2 * super.vectory;
     thrustSprite.addSelf();
   }
 
