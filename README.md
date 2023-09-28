@@ -1,4 +1,4 @@
-# Yet Another Wormhole Clone (yamc)
+# Yet Another Wormhole Clone (yawc)
 
 This project aims to re-create the CenterFleet Game Wormhole.
 
