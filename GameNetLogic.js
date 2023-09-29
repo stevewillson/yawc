@@ -39,38 +39,32 @@ export default class GameNetLogic {
     this.game = new Game(this);
     this.gamePanel = gamePanel;
 
-    // TODO - set a fake username
-    // this.username = "testUsername";
-    // this.password = "testPassword";
-
     this.icons = ["icon1", "icon2"];
     this.isLoggedIn = false;
-
-    // this.login(this.username, this.password);
 
     // set up a fake gamePacket
     let gamePacket = {
       type: "newGame",
       gameId: 12345,
       gameSession: 54321,
-      totalPlayers: 3,
-      players: [
+      totalUsers: 3,
+      users: [
         {
-          name: "player1",
+          name: "user1",
           teamId: 2,
           icons: ["test", "asdf"],
           slot: 0,
           isGameOver: false,
         },
         {
-          name: "player2",
+          name: "user2",
           teamId: 1,
           icons: ["test", "asdf"],
           slot: 1,
           isGameOver: false,
         },
         {
-          name: "player3",
+          name: "user3",
           teamId: 1,
           icons: ["test", "asdf"],
           slot: 2,
@@ -78,42 +72,7 @@ export default class GameNetLogic {
         },
       ],
     };
-
-    // this.game.handleGamePacket(gamePacket);
   }
-
-  getPlayer(playerName) {
-    // TODO - return actual player name
-    return "player1";
-  }
-
-  getPlayerRank(playerName) {
-    // TODO - return actual player rank
-    return 123;
-  }
-
-  // processLogin() {
-  //   // get information from the username / password text fields
-  //   // final LoginPanel loginPanel = this.pnlGame.getLoginPanel();
-  //   // loginPanel.setLoginEnabled(false);
-
-  //   // display a logging in message
-  //   loginPanel.setConnectionStatus("Logging in");
-
-  //   // get the username from the login area
-  //   // username = loginPanel.getUsername();
-
-  //   // get the password from the login area
-  //   loginPanel.getPassword();
-  //   if (username.length() == 0) {
-  //     this.disconnect("Please enter username");
-  //     return;
-  //   }
-  //   let login = this.login(username, loginPanel.getPassword());
-  //   if (login != null) {
-  //     this.disconnect(login);
-  //   }
-  // }
 
   // login
   login(username, password) {
@@ -129,7 +88,7 @@ export default class GameNetLogic {
     // }
     // (this.threadNetwork = new Thread(this)).start();
     // this.pnlGame.getLobbyPanel().getTablePanel().clearTables();
-    // this.pnlGame.getLobbyPanel().getPlayerPanel().clearPlayers();
+    // this.pnlGame.getLobbyPanel().getUserPanel().clearUsers();
     // this.pnlGame.getLobbyPanel().getChatPanel().clearLines();
     // CFSkin.getSkin().addWelcomeMessage(
     //   this.pnlGame.getLobbyPanel().getChatPanel()
@@ -145,6 +104,7 @@ export default class GameNetLogic {
     const gameId = 1;
     // Try to connect twice.
     // Login will return null if successful. If not null, then login will be retried.
+
     if (
       this.network.login(
         gameId,
@@ -154,36 +114,21 @@ export default class GameNetLogic {
         password,
         this.host,
         this.loginPort
-      ) != null
+      ) == true
     ) {
-      return this.network.login(
-        gameId,
-        majorVersion,
-        minorVersion,
-        username,
-        password,
-        this.host2,
-        this.loginPort2
-      );
+      return true;
     }
-    return null;
+
+    return false;
   }
 
   finishLogin(userId, username) {
     this.userId = userId;
     this.username = username;
     this.roomId = -1;
-    // TODO
-    // this.pnlGame.getLobbyPanel().setUsername(this.username);
-
     this.gamePanel.lobbyPanel.updateUsername(this.username);
-
-    // this.pnlGame
-    //   .getPlayingPanel()
-    //   .getCreditsPanel()
-    // this.pnlGame.getLoginPanel().setLoginEnabled(true);
-    // this.pnlGame.showLobby();
-    this.network.listUsernames();
+    // get a list of the users and rooms
+    this.network.listUsers();
     this.network.listRooms();
     this.nextTime = 0;
   }
@@ -199,19 +144,26 @@ export default class GameNetLogic {
         break;
       }
 
+      case "loginFailure": {
+        // show the login page again when login failure
+        break;
+      }
+
       case "loginSuccess": {
         this.finishLogin(packetJSON.userId, packetJSON.username);
         break;
       }
 
-      case "usernames": {
-        // set the list of usernames received those
+      case "roomInfo": {
+        // receive a list of rooms from the server
+
+        // TODO - check if a user is contained in the room and update the user's room display on the user panel
+        this.addRoom(packetJSON);
         break;
       }
 
       case "userInfo": {
-        // add this info to the player?
-        this.myAddPlayer(packetJSON);
+        this.addUser(packetJSON);
         break;
       }
     }
@@ -229,8 +181,8 @@ export default class GameNetLogic {
   //                 final String utf2 = dataInputStream.readUTF();
   //                 final String utf3 = dataInputStream.readUTF();
   //                 final String utf4 = dataInputStream.readUTF();
-  //                 final CFPlayerElement player = this.getPlayer(utf2);
-  //                 if (player != null && player.getIgnored()) {
+  //                 final CFUserElement user = this.getUser(utf2);
+  //                 if (user != null && user.getIgnored()) {
   //                     return;
   //                 }
   //                 String s;
@@ -256,30 +208,30 @@ export default class GameNetLogic {
   //             case 18: {
   //                 final String username = dataInputStream.readUTF();
   //                 final String message = dataInputStream.readUTF();
-  //                 final CFPlayerElement player2 = this.getPlayer(username);
-  //                 if (player2 != null && player2.getIgnored()) {
+  //                 final CFUserElement user2 = this.getUser(username);
+  //                 if (user2 != null && user2.getIgnored()) {
   //                     return;
   //                 }
   //                 ((byte1 == 5) ? this.pnlGame.getLobbyPanel().getChatPanel() : this.pnlGame.getPlayingPanel().getChatPanel()).addLine(username, message);
   //                 break;
   //             }
   //             case 13: {
-  //                 this.myAddPlayer(dataInputStream);
+  //                 this.myAddUser(dataInputStream);
   //                 break;
   //             }
   //             case 14: {
   //                 final String username = dataInputStream.readUTF();
-  //                 this.pnlGame.getLobbyPanel().getPlayerPanel().removePlayer(username);
-  //                 final CFPlayerDialog playerDialog = this.findPlayerDialog(username);
-  //                 if (playerDialog != null) {
-  //                     playerDialog.setUserLoggedOff();
+  //                 this.pnlGame.getLobbyPanel().getUserPanel().removeUser(username);
+  //                 final CFUserDialog userDialog = this.findUserDialog(username);
+  //                 if (userDialog != null) {
+  //                     userDialog.setUserLoggedOff();
   //                     return;
   //                 }
   //                 break;
   //             }
   //             case 9: {
   //                 for (short short1 = dataInputStream.readShort(), n2 = 0; n2 < short1; ++n2) {
-  //                     this.myAddPlayer(dataInputStream);
+  //                     this.myAddUser(dataInputStream);
   //                 }
   //                 break;
   //             }
@@ -317,8 +269,8 @@ export default class GameNetLogic {
   //                     for (short short5 = dataInputStream.readShort(), n4 = 0; n4 < short5; ++n4) {
   //                         final byte byte5 = dataInputStream.readByte();
   //                         final String utf9 = dataInputStream.readUTF();
-  //                         tablePanel.addPlayerToTable(short4, utf9, byte5);
-  //                         this.setTableForPlayer(utf9, short4);
+  //                         tablePanel.addUserToTable(short4, utf9, byte5);
+  //                         this.setTableForUser(utf9, short4);
   //                     }
   //                 }
   //                 break;
@@ -353,7 +305,7 @@ export default class GameNetLogic {
   //                 final String username = dataInputStream.readUTF();
   //                 final boolean isRanked = dataInputStream.readByte() == 1;
   //                 final boolean isPrivate = dataInputStream.readByte() == 1;
-  //                 final int numPlayerSlots = (dataInputStream.readByte() == 1) ? 8 : 4;
+  //                 final int numUserSlots = (dataInputStream.readByte() == 1) ? 8 : 4;
   //                 final boolean isTeamTable = dataInputStream.readByte() == 1;
   //                 byte boardSize = -1;
   //                 boolean isBalancedTable = false;
@@ -363,11 +315,11 @@ export default class GameNetLogic {
   //                 }
   //                 final String[][] tableOptions = this.readTableOptions(dataInputStream);
   //                 if (tablePanel3.findTable(tableId) == null) {
-  //                     tablePanel3.addTable(tableId, numPlayerSlots);
+  //                     tablePanel3.addTable(tableId, numUserSlots);
   //                 }
   //                 tablePanel3.setTableStatus(tableId, status, 0);
-  //                 tablePanel3.addPlayerToTable(tableId, username, (byte)0);
-  //                 this.setTableForPlayer(username, tableId);
+  //                 tablePanel3.addUserToTable(tableId, username, (byte)0);
+  //                 this.setTableForUser(username, tableId);
   //                 //tablePanel3.findTable(tableId).setOptions(isRanked, isPrivate, isTeamTable, boardSize, isBalancedTable, tableOptions);
   //                 if (username.equals(this.username)){
   //                     this.setInTable(tableId, 0, (username.length() == 0) ? null : username);
@@ -404,11 +356,11 @@ export default class GameNetLogic {
   //                 final String utf13 = dataInputStream.readUTF();
   //                 final byte byte10 = dataInputStream.readByte();
   //                 final byte byte11 = dataInputStream.readByte();
-  //                 this.pnlGame.getLobbyPanel().getTablePanel().addPlayerToTable(short9, utf13, byte10);
-  //                 this.setTableForPlayer(utf13, short9);
+  //                 this.pnlGame.getLobbyPanel().getTablePanel().addUserToTable(short9, utf13, byte10);
+  //                 this.setTableForUser(utf13, short9);
   //                 if (this.tableId == short9 && this.bInATable) {
-  //                     final CFPlayerElement player3 = this.getPlayer(utf13);
-  //                     this.pnlGame.getPlayingPanel().getGameBoard().addPlayer(utf13, player3.getRank(), byte11, player3.getIcons(), byte10);
+  //                     final CFUserElement user3 = this.getUser(utf13);
+  //                     this.pnlGame.getPlayingPanel().getGameBoard().addUser(utf13, user3.getRank(), byte11, user3.getIcons(), byte10);
   //                     return;
   //                 }
   //                 break;
@@ -417,10 +369,10 @@ export default class GameNetLogic {
   //                 final CFTablePanel tablePanel4 = this.pnlGame.getLobbyPanel().getTablePanel();
   //                 final short tableId = dataInputStream.readShort();
   //                 final String username = dataInputStream.readUTF();
-  //                 tablePanel4.removePlayerFromTable(tableId, username);
-  //                 this.setTableForPlayer(username, -1);
+  //                 tablePanel4.removeUserFromTable(tableId, username);
+  //                 this.setTableForUser(username, -1);
   //                 if (this.bInATable && this.tableId == tableId) {
-  //                     this.pnlGame.getPlayingPanel().getGameBoard().removePlayer(username);
+  //                     this.pnlGame.getPlayingPanel().getGameBoard().removeUser(username);
   //                     return;
   //                 }
   //                 break;
@@ -448,21 +400,21 @@ export default class GameNetLogic {
   //                     final short short13 = dataInputStream.readShort();
   //                     final short short14 = dataInputStream.readShort();
   //                     if (short12 == this.tableId) {
-  //                         this.pnlGame.getPlayingPanel().getGameBoard().getModel().updatePlayerRank(utf15, short13, short14);
+  //                         this.pnlGame.getPlayingPanel().getGameBoard().getModel().updateUserRank(utf15, short13, short14);
   //                         if (utf15.equals(this.username)) {
   //                             this.pnlGame.getPlayingPanel().repaint();
   //                         }
   //                     }
-  //                     final CFPlayerElement player4 = this.getPlayer(utf15);
-  //                     if (player4 != null) {
-  //                         player4.setRank(short14);
-  //                         final CFTableElement table = this.pnlGame.getLobbyPanel().getTablePanel().findTable(player4.getTableId());
+  //                     final CFUserElement user4 = this.getUser(utf15);
+  //                     if (user4 != null) {
+  //                         user4.setRank(short14);
+  //                         final CFTableElement table = this.pnlGame.getLobbyPanel().getTablePanel().findTable(user4.getTableId());
   //                         if (table != null) {
   //                             table.repaint();
   //                         }
-  //                         final CFPlayerDialog playerDialog2 = this.findPlayerDialog(utf15);
-  //                         if (playerDialog2 != null) {
-  //                             playerDialog2.repaint();
+  //                         final CFUserDialog userDialog2 = this.findUserDialog(utf15);
+  //                         if (userDialog2 != null) {
+  //                             userDialog2.repaint();
   //                         }
   //                     }
   //                 }
@@ -478,33 +430,33 @@ export default class GameNetLogic {
   //                 byte status = dataInputStream.readByte();
   //                 boolean isRanked = dataInputStream.readByte() == 1;
   //                 boolean isPrivate = dataInputStream.readByte() == 1;
-  //                 int numPlayerSlots = (dataInputStream.readByte() == 1) ? 8 : 4;
+  //                 int numUserSlots = (dataInputStream.readByte() == 1) ? 8 : 4;
   //                 boolean allShipsAllowed = dataInputStream.readByte() == 1;
   //                 boolean allPowerupsAllowed = dataInputStream.readByte() == 1;
   //                 boolean isTeamTable = dataInputStream.readByte() == 1;
   //                 byte boardSize = dataInputStream.readByte();
   //                 boolean isBalancedTable = (dataInputStream.readByte() == 1);
 
-  //                 String[] players = new String[numPlayerSlots];
-  //                 for (int i=0; i < numPlayerSlots; i++) {
-  //                   players[i] = dataInputStream.readUTF();
+  //                 String[] users = new String[numUserSlots];
+  //                 for (int i=0; i < numUserSlots; i++) {
+  //                   users[i] = dataInputStream.readUTF();
   //                 }
 
   //                 String[][] tableOptions = this.readTableOptions(dataInputStream);
 
   //                 CFTableElement table = tablePanel.findTable(tableId);
   //                 if (table == null) {
-  //                   tablePanel.addTable(tableId, numPlayerSlots);
+  //                   tablePanel.addTable(tableId, numUserSlots);
   //                   table = tablePanel.findTable(tableId);
   //                 }
   //                 table.setStatus(status);
   //                 table.setOptions(isRanked, isPrivate, allShipsAllowed, allPowerupsAllowed, isTeamTable, boardSize, isBalancedTable, tableOptions);
-  //                 for (int i=0; i < numPlayerSlots; i++) {
+  //                 for (int i=0; i < numUserSlots; i++) {
   //                 byte slot = (byte)i;
-  //                 String username = players[i];
+  //                 String username = users[i];
   //                   if (username.length() > 0) {
-  //                     table.addPlayer(username, slot);
-  //                     this.setTableForPlayer(username, tableId);
+  //                     table.addUser(username, slot);
+  //                     this.setTableForUser(username, tableId);
   //                         if (username.equals(this.username)){
   //                           String tablePassword = dataInputStream.readUTF();
   //                             this.setInTable(tableId, slot, tablePassword);
@@ -521,28 +473,28 @@ export default class GameNetLogic {
   //                 CFTablePanel tablePanel = this.pnlGame.getLobbyPanel().getTablePanel();
   //                 CFTableElement table = tablePanel.findTable(tableId);
 
-  //                 table.addPlayer(username, slot);
-  //                 this.setTableForPlayer(username, tableId);
+  //                 table.addUser(username, slot);
+  //                 this.setTableForUser(username, tableId);
   //                 GameBoard gameBoard = this.pnlGame.getPlayingPanel().getGameBoard();
   //                 if (this.tableId == tableId && this.bInATable) {
   //                     byte teamId = Team.NOTEAM;
   //                     if (table.isTeamTable()) {
   //                       teamId = Team.GOLDTEAM;	// gold team is default starting team
   //                     }
-  //                     CFPlayerElement player = this.getPlayer(username);
-  //                     gameBoard.addPlayer(username, player.getRank(), teamId, player.getIcons(), slot);
+  //                     CFUserElement user = this.getUser(username);
+  //                     gameBoard.addUser(username, user.getRank(), teamId, user.getIcons(), slot);
   //                 }
   //                 else if (username.equals(this.username)){
   //                   String tablePassword = dataInputStream.readUTF();
   //                     this.setInTable(tableId, slot, tablePassword);
-  //                     for (byte i=0; i<table.getNumPlayers(); i++) {
-  //                         CFPlayerElement player = this.getPlayer(table.getPlayer(i));
-  //                         if (player != null) {
+  //                     for (byte i=0; i<table.getNumUsers(); i++) {
+  //                         CFUserElement user = this.getUser(table.getUser(i));
+  //                         if (user != null) {
   //                             byte teamId = Team.NOTEAM;
   //                             if (table.isTeamTable()) {
   //                               teamId = dataInputStream.readByte();
   //                             }
-  //                           gameBoard.addPlayer(player.getName(), player.getRank(), teamId, player.getIcons(), i);
+  //                           gameBoard.addUser(user.getName(), user.getRank(), teamId, user.getIcons(), i);
   //                         }
   //                     }
   //                     this.pnlGame.getPlayingPanel().repaint();
@@ -564,7 +516,51 @@ export default class GameNetLogic {
   //     }
   // }
 
-  myAddPlayer(packet) {
+  addRoom(packet) {
+    // TODO - add the room here
+    // contents of the packet
+    // {"type":"roomInfo",
+    // "roomId":"02f2e893-c287-4953-890b-8252350a3af4",
+    // "status":0,"isRanked":false,"isPrivate":false,
+    // "isBigRoom":false,"allShipsAllowed":true,
+    // "allPowerupsAllowed":true,"isTeamRoom":false,
+    // "boardSize":3,"isBalancedRoom":false,
+    // "roomUsers":[{"username":"asdfee"}],"options":0,
+    // "password":""}
+    // create a new room
+
+    const roomId = packet.roomId;
+    const status = packet.status;
+    const isRanked = packet.isRanked;
+    const isPrivate = packet.isPrivate;
+    const isBigRoom = packet.isBigRoom;
+    const allShipsAllowed = packet.allShipsAllowed;
+    const allPowerupsAllowed = packet.allPowerupsAllowed;
+    const isTeamRoom = packet.isTeamRoom;
+    const boardSize = packet.boardSize;
+    const isBalancedRoom = packet.isBalancedRoom;
+    const roomUsers = packet.roomUsers;
+    const numSlots = packet.numSlots;
+    const password = packet.password;
+
+    this.gamePanel.lobbyPanel.roomPanel.addRoom(
+      roomId,
+      status,
+      isRanked,
+      isPrivate,
+      isBigRoom,
+      allShipsAllowed,
+      allPowerupsAllowed,
+      isTeamRoom,
+      boardSize,
+      isBalancedRoom,
+      roomUsers,
+      numSlots,
+      password
+    );
+  }
+
+  addUser(packet) {
     const username = packet.username;
     if (username.length == 0) {
       return;
@@ -585,7 +581,12 @@ export default class GameNetLogic {
       //this.m_mtIcons.addImage(image, 0);
       // }
     }
-    // add the player to a local store of players
-    this.gamePanel.playerPanel.addPlayer(username, clan, rank, iconNames);
+    // add the user to a local store of users
+    this.gamePanel.lobbyPanel.userPanel.addUser(
+      username,
+      clan,
+      rank,
+      iconNames
+    );
   }
 }

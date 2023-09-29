@@ -50,8 +50,8 @@ export class Server {
     this.clients.forEach((client) => client.sendUserLogout(user));
   }
 
-  broadcastCreateRoom(room) {
-    this.clients.forEach((client) => client.sendFullRoom(room));
+  broadcastRoom(room) {
+    this.clients.forEach((client) => client.sendRoom(room));
   }
 
   broadcastJoinRoom(room, username, slot, teamId) {
@@ -94,7 +94,7 @@ export class Server {
     });
   }
 
-  broadcastPlayerState(
+  broadcastUserState(
     room,
     gameSession,
     slot,
@@ -104,7 +104,7 @@ export class Server {
   ) {
     room.users.forEach((user) => {
       if (user != null) {
-        user.client.sendPlayerState(
+        user.client.sendUserState(
           gameSession,
           slot,
           healthPerc,
@@ -115,10 +115,10 @@ export class Server {
     });
   }
 
-  broadcastPlayerEvent(room, gameSession, eventString) {
+  broadcastUserEvent(room, gameSession, eventString) {
     room.users.forEach((user) => {
       if (user != null) {
-        user.client.sendPlayerEvent(gameSession, eventString);
+        user.client.sendUserEvent(gameSession, eventString);
       }
     });
   }
@@ -140,17 +140,15 @@ export class Server {
   }
 
   broadcastLobbyMessage(username, message) {
-    const isForLobby = true;
     this.clients.forEach((client) => {
-      client.sendLobbyMessage(username, message, isForLobby);
+      client.sendLobbyMessage(username, message);
     });
   }
 
   broadcastRoomMessage(room, username, message) {
-    const isForLobby = false;
     room.users.forEach((user) => {
-      if (user != null) {
-        user.client.sendLobbyMessage(username, message, isForLobby);
+      if (user != "Open Slot") {
+        user.client.sendRoomMessage(username, message);
       }
     });
   }

@@ -1,6 +1,6 @@
-import PlayerSprite from "./PlayerSprite.js";
+import UserSprite from "./UserSprite.js";
 // import Sprite from "./Sprite.js";
-import PlayerInfo from "./PlayerInfo.js";
+import UserInfo from "./UserInfo.js";
 import SpriteColors from "./SpriteColors.js";
 import WHUtil from "./WHUtil.js";
 import Rectangle from "./Rectangle.js";
@@ -18,7 +18,7 @@ export default class Game {
   loop;
   gameNetLogic;
   input;
-  players;
+  users;
   colors;
   mode;
 
@@ -45,10 +45,10 @@ export default class Game {
     // state machine mode for the game
     // this.mode = 0;
 
-    // array of PlayerInfo objects
-    this.players = new Array(8);
-    for (let i = 0; i < this.players.length; i++) {
-      this.players[i] = new PlayerInfo();
+    // array of UserInfo objects
+    this.users = new Array(8);
+    for (let i = 0; i < this.users.length; i++) {
+      this.users[i] = new UserInfo();
     }
 
     this.colors = new SpriteColors();
@@ -70,6 +70,8 @@ export default class Game {
     // when jointing a table
     this.slot = 0;
     this.setSlot(this.slot);
+
+    this.mode = 1;
   }
 
   init() {
@@ -98,14 +100,14 @@ export default class Game {
       this.boardCenter.x - this.viewport.width / 2,
       this.boardCenter.y - this.viewport.height / 2,
       this.viewport.width,
-      this.viewport.height
+      this.viewport.height,
     );
 
     this.globalBoundingRect = new Rectangle(
       0,
       0,
       this.board.width,
-      this.board.height
+      this.board.height,
     );
 
     // https://stackoverflow.com/questions/16919601/html5-canvas-camera-viewport-how-to-actually-do-it
@@ -113,8 +115,8 @@ export default class Game {
 
     this.portalVisibility = (this.board.width / 2) * 1.45;
 
-    // get a random player fighter type
-    this.playerFighterType = WHUtil.randInt() % 8;
+    // get a random user fighter type
+    this.userFighterType = WHUtil.randInt() % 8;
 
     this.incomingIconIndex = 0;
     this.incomingCycle = 0;
@@ -126,8 +128,8 @@ export default class Game {
     this.startTime = Date.now();
 
     // reset powerups
-    for (let i = 0; i < this.players.length; i++) {
-      this.players[i].resetPowerups();
+    for (let i = 0; i < this.users.length; i++) {
+      this.users[i].resetPowerups();
     }
 
     this.boardChanged = true;
@@ -143,25 +145,25 @@ export default class Game {
     this.orbitDistance = 240;
     let n = 3;
 
-    // set the orbitDistance based on the number of players
+    // set the orbitDistance based on the number of users
     //   if (super.tableElement != null) {
-    //     totalOpposingPlayingPlayers = this.totalOpposingPlayingPlayers;
+    //     totalOpposingPlayingUsers = this.totalOpposingPlayingUsers;
     //     switch (super.tableElement.getBoardSize()) {
-    //       // setting local totalOpposingPlayingPlayers to change the board size
+    //       // setting local totalOpposingPlayingUsers to change the board size
     //         case 1: {
-    //             totalOpposingPlayingPlayers = 1;
+    //             totalOpposingPlayingUsers = 1;
     //             break;
     //         }
     //         case 2: {
-    //             totalOpposingPlayingPlayers = 2;
+    //             totalOpposingPlayingUsers = 2;
     //             break;
     //         }
     //         case 3: {
-    //             totalOpposingPlayingPlayers = 4;
+    //             totalOpposingPlayingUsers = 4;
     //             break;
     //         }
     //     }
-    //     switch (totalOpposingPlayingPlayers) {
+    //     switch (totalOpposingPlayingUsers) {
     //         case 1: {
     //             n = 2.0;
     //             this.orbitDistance = 150;
@@ -194,15 +196,11 @@ export default class Game {
 
     this.initBorderShade();
 
-    this.winningPlayerString = null;
+    this.winningUserString = null;
 
-    // create a new player that starts at the center of the board
+    // create a new user that starts at the center of the board
     // with the specified ship type
-    this.player = new PlayerSprite(
-      this.boardCenter,
-      this.playerFighterType,
-      this
-    );
+    this.user = new UserSprite(this.boardCenter, this.userFighterType, this);
     // this.imgLogo = (Image)this.mediaTable.get("img_bg_logo");
     // if (this.imgLogo != null) {
     //   this.rectLogo.setBounds(
@@ -212,8 +210,8 @@ export default class Game {
     //     this.imgLogo.getHeight(null)
     //   );
     // }
-    this.player.addSelf();
-    this.player.setPlayer(this.slot);
+    this.user.addSelf();
+    this.user.setUser(this.slot);
 
     let wc1 = new WallCrawlerSprite({ x: 0, y: 0 }, this, true);
     let wc2 = new WallCrawlerSprite({ x: 0, y: 0 }, this, false);
@@ -266,18 +264,18 @@ export default class Game {
   update() {
     // console.log("gameloop updating");
     if (this.input.right) {
-      this.player.dRotate = Math.abs(this.player.dRotate);
-      this.player.isRotating = true;
+      this.user.dRotate = Math.abs(this.user.dRotate);
+      this.user.isRotating = true;
     }
     if (this.input.left) {
-      this.player.dRotate = -1 * Math.abs(this.player.dRotate);
-      this.player.isRotating = true;
+      this.user.dRotate = -1 * Math.abs(this.user.dRotate);
+      this.user.isRotating = true;
     }
     if (this.input.up) {
-      this.player.thrustOn = true;
+      this.user.thrustOn = true;
     }
     if (this.input.spacebar) {
-      this.player.firePrimaryWeapon = true;
+      this.user.firePrimaryWeapon = true;
     }
 
     // methods from doPlayCycle
@@ -302,11 +300,11 @@ export default class Game {
       // drawStatusBar(this.pnlStatus.g);
 
       // updateState(this.gameSession, gameID);
-      this.strDamagedByPlayer = null;
+      this.strDamagedByUser = null;
       this.damagingPowerup = -1;
     }
-    if (this.bRefreshPlayerBar) {
-      // drawPlayerBar(this.pnlOtherPlayers.g, this.bRefreshAll);
+    if (this.bRefreshUserBar) {
+      // drawUserBar(this.pnlOtherUsers.g, this.bRefreshAll);
       this.bRefreshAll = false;
     }
   }
@@ -327,41 +325,51 @@ export default class Game {
     // GameBoard.playSound((AudioClip)g_mediaTable.get("snd_silence"));
 
     // state machine
-    // there are 5 'modes'
-    // 0 -> 3
-    // 1 -> 2
-    // 2
-    // 3 -> 4
-    // 4 -> 1
+    // playing -> gameOver
+    // gameOver -> resetGame
+    // resetGame -> waiting
+    // waiting (should go to start game?), when the "Start Game" button
+    // is pushed, the "startGame" packet is received,
+    // which sets the mode to "playing" in handleGamePacket
+
     switch (this.mode) {
-      case 0:
+      case "playing": {
         this.handleDefaultModelBehavior();
         if (this.isGameOver) {
           // GameNetLogic method
           // this.logic.gameOver();
-          this.mode = 3;
-          if (this.winningPlayerString == null) {
+          this.gameOverCycle = 0;
+          this.mode = "gameOver";
+          if (this.winningUserString == null) {
             this.gameOver(this.gameSession, this.killedBy);
             return;
           }
         }
         break;
-      case 1:
+      }
+
+      case "resetGame": {
         // case where the game is over
         this.isGameOver = true;
-        this.mode = 2;
+        this.mode = "waiting";
+        // draw the bar across the top of the screen
         // drawStatusBar(this.pnlStatus.g);
-        // this.pnlStatus.completeRepaint();
-        this.bRefreshPlayerBar = true;
+        this.bRefreshUserBar = true;
         break;
+      }
+
       // case 2 is waiting for the game to start
-      case 2:
+      case "waiting": {
+        // this is the timeout attacks function
         // checkSidebar();
-        if (this.bRefreshPlayerBar) {
-          //   drawPlayerBar(this.pnlOtherPlayers.g, true);
-          //   this.pnlOtherPlayers.completeRepaint();
+
+        // only draw the user bar if it should be refreshed
+        if (this.bRefreshUserBar) {
+          //   drawUserBar(this.pnlOtherUsers.g, true);
         }
+
         // this.draw(this.context);
+        // ship selection area
         // drawIntro(this.pnlPlaying.g);
         // if (this.tableElement.getStatus() == 4) {
         //   drawStrings(this.pnlPlaying.g, "Waiting for", "Next Game");
@@ -372,23 +380,24 @@ export default class Game {
         //     "Countdown",
         //     "" + this.tableElement.getCountdown()
         //   );
-        // } else if (this.tableElement.getPlayers() < 2) {
-        //   drawStrings(this.pnlPlaying.g, "Waiting for", "More Players");
+        // write a message depending on how many users there are
+        // } else if (this.tableElement.getUsers() < 2) {
+        //   drawStrings(this.pnlPlaying.g, "Waiting for", "More Users");
         // } else {
         //   drawStrings(this.pnlPlaying.g, "Press Play Button", "To Start");
         // }
         // this.pnlPlaying.completeRepaint();
         return;
-      case 3:
-        this.gameOverCycle = 0;
-        this.mode = 4;
-      case 4:
+      }
+
+      case "gameOver": {
         this.handleDefaultModelBehavior();
-        if (this.gameOverCycle++ > 120 || this.winningPlayerString != null) {
-          this.mode = 1;
+        if (this.gameOverCycle++ > 120 || this.winningUserString != null) {
+          this.mode = "resetGame";
           return;
         }
         break;
+      }
     }
   }
 
@@ -404,8 +413,8 @@ export default class Game {
   //   this.model.readJoin(paramDataInput);
   // }
 
-  // addPlayer(paramString, paramInt1, paramByte, paramArrayOfString, paramInt2) {
-  //   this.model.addPlayer(
+  // addUser(paramString, paramInt1, paramByte, paramArrayOfString, paramInt2) {
+  //   this.model.addUser(
   //     paramString,
   //     paramInt1,
   //     paramByte,
@@ -414,8 +423,8 @@ export default class Game {
   //   );
   // }
 
-  // removePlayer(paramString) {
-  //   this.model.removePlayer(paramString);
+  // removeUser(paramString) {
+  //   this.model.removeUser(paramString);
   // }
 
   setTable(paramCFTableElement) {
@@ -462,15 +471,15 @@ export default class Game {
 
     // is this randomness to generate enemies from a portal?
     if (WHUtil.randInt() % genEnemyProb == 1) {
-      // we are generating enemies for all players currently playing
-      // but this starts at a 'random' player and generates enemies for all players
-      // now, just loop through all players to generate enemies
-      // let j = WHUtil.randInt() % this.players.length;
-      for (let b = 0; b < this.players.length; b++) {
-        // let playerInfo = this.players[(j + b) % this.players.length];
-        let playerInfo = this.players[b];
-        if (playerInfo.isPlaying() && playerInfo.portalSprite != null) {
-          playerInfo.portalSprite.shouldGenEnemy = true;
+      // we are generating enemies for all users currently playing
+      // but this starts at a 'random' user and generates enemies for all users
+      // now, just loop through all users to generate enemies
+      // let j = WHUtil.randInt() % this.users.length;
+      for (let b = 0; b < this.users.length; b++) {
+        // let userInfo = this.users[(j + b) % this.users.length];
+        let userInfo = this.users[b];
+        if (userInfo.isPlaying() && userInfo.portalSprite != null) {
+          userInfo.portalSprite.shouldGenEnemy = true;
           return;
         }
       }
@@ -498,8 +507,8 @@ export default class Game {
   }
 
   checkSidebar() {
-    for (let b = 0; b < this.players.length; b++) {
-      if (this.players[b].timeoutAttacks()) this.bRefreshPlayerBar = true;
+    for (let b = 0; b < this.users.length; b++) {
+      if (this.users[b].timeoutAttacks()) this.bRefreshUserBar = true;
     }
   }
 
@@ -507,14 +516,14 @@ export default class Game {
     if (this.gameNetLogic.getUsername() == paramString) {
       this.teamId = paramByte;
     } else {
-      for (let b = 0; b < this.players.length; b++) {
-        if (this.players[b].username == paramString) {
-          this.players[b].teamId = paramByte;
+      for (let b = 0; b < this.users.length; b++) {
+        if (this.users[b].username == paramString) {
+          this.users[b].teamId = paramByte;
         }
-        this.players[b].bRefresh = true;
+        this.users[b].bRefresh = true;
       }
     }
-    this.bRefreshPlayerBar = true;
+    this.bRefreshUserBar = true;
   }
 
   setSlot(slotNum) {
@@ -524,11 +533,11 @@ export default class Game {
 
   // draw the Game to the canvas
   draw(context) {
-    // check if the player is defined
-    // this.player is an instance of a playerSprite
-    if (this.player != null) {
-      // get the viewable area for the player
-      let viewportRect = this.player.getViewportRect();
+    // check if the user is defined
+    // this.user is an instance of a userSprite
+    if (this.user != null) {
+      // get the viewable area for the user
+      let viewportRect = this.user.getViewportRect();
 
       context.fillStyle = "black";
       context.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -617,11 +626,11 @@ export default class Game {
       //     l * 15 + 31
       //   );
       // }
-      // if (this.winningPlayerString != null) {
+      // if (this.winningUserString != null) {
       //   this.drawShadowString(graphics, "GAME OVER!", 100, 100);
       //   this.drawShadowString(
       //     graphics,
-      //     "WINNER: " + this.winningPlayerString,
+      //     "WINNER: " + this.winningUserString,
       //     100,
       //     120
       //   );
@@ -662,17 +671,15 @@ export default class Game {
 
   // draw a line to point to other wormholes
   drawPointers(context) {
-    for (let i = 0; i < this.players.length; i++) {
+    for (let i = 0; i < this.users.length; i++) {
       if (
-        !this.players[i].bEmpty &&
-        this.players[i].portalSprite != null &&
-        this.player != null &&
-        !this.players[i].gameOver
+        !this.users[i].bEmpty &&
+        this.users[i].portalSprite != null &&
+        this.user != null &&
+        !this.users[i].gameOver
       ) {
-        let n =
-          this.players[i].portalSprite.location.x - this.player.location.x;
-        let n2 =
-          this.players[i].portalSprite.location.y - this.player.location.y;
+        let n = this.users[i].portalSprite.location.x - this.user.location.x;
+        let n2 = this.users[i].portalSprite.location.y - this.user.location.y;
         let hyp = Math.hypot(n, n2);
         if (hyp >= this.portalVisibility) {
           let n3 = (180 * n) / hyp;
@@ -692,13 +699,13 @@ export default class Game {
           let n12 = n7 * Math.cos(n9) + this.viewportCenter.x;
           let n13 = n7 * Math.sin(n9) + this.viewportCenter.y;
 
-          context.strokeStyle = this.players[i].color;
+          context.strokeStyle = this.users[i].color;
           context.beginPath();
 
           context.moveTo(n5, n6);
           context.lineTo(
             n3 * 0.9 + this.viewportCenter.x,
-            n4 * 0.9 + this.viewportCenter.y
+            n4 * 0.9 + this.viewportCenter.y,
           );
 
           context.moveTo(n5, n6);
@@ -726,7 +733,7 @@ export default class Game {
       this.worldCenter.x,
       this.worldCenter.y,
       this.orbitDistance,
-      "gray"
+      "gray",
     );
   }
 
@@ -738,7 +745,7 @@ export default class Game {
         -i,
         -i,
         this.world.width + i * 2,
-        this.world.height + i * 2
+        this.world.height + i * 2,
       );
     }
   }
@@ -798,48 +805,48 @@ export default class Game {
     return newSlot;
   }
 
-  setPlayers(gamePacket, b) {
-    let totalPlayers = gamePacket.totalPlayers;
-    for (let i = 0; i < totalPlayers; i++) {
-      let playerName = gamePacket.players[i].name;
-      let playerSlot = gamePacket.players[i].slot;
-      let isGameOver = gamePacket.players[i].isGameOver;
-      let teamId = gamePacket.players[i].teamId;
-      if (playerName != this.gameNetLogic.getUsername()) {
-        this.setPlayer(
-          playerName,
-          this.gameNetLogic.getPlayerRank(playerName),
+  setUsers(gamePacket, b) {
+    let totalUsers = gamePacket.totalUsers;
+    for (let i = 0; i < totalUsers; i++) {
+      let userName = gamePacket.users[i].name;
+      let userSlot = gamePacket.users[i].slot;
+      let isGameOver = gamePacket.users[i].isGameOver;
+      let teamId = gamePacket.users[i].teamId;
+      if (userName != this.gameNetLogic.getUsername()) {
+        this.setUser(
+          userName,
+          this.gameNetLogic.getUserRank(userName),
           teamId,
           this.gameNetLogic.getIcons(),
-          // this.logic.getPlayer(playerName).getIcons(),
-          playerSlot,
+          // this.logic.getUser(userName).getIcons(),
+          userSlot,
           isGameOver,
-          b
+          b,
         );
         if (isGameOver == false) {
         }
       } else {
-        this.slot = playerSlot;
+        this.slot = userSlot;
         this.color = this.colors.colors[this.slot][0];
         this.teamId = teamId;
       }
     }
-    this.bRefreshPlayerBar = true;
+    this.bRefreshUserBar = true;
   }
 
-  setPlayer(name, rank, teamId, icons, playerSlot, isGameOver, b2) {
-    let playerInfo = this.players[this.translateSlot(playerSlot)];
-    playerInfo.reset();
-    playerInfo.resetPowerups();
+  setUser(name, rank, teamId, icons, userSlot, isGameOver, b2) {
+    let userInfo = this.users[this.translateSlot(userSlot)];
+    userInfo.reset();
+    userInfo.resetPowerups();
     // sets the username and the slot/colors
-    playerInfo.setState(name, playerSlot);
-    playerInfo.gameOver = isGameOver;
-    playerInfo.nPowerups = 0;
-    playerInfo.rank = rank;
-    playerInfo.icons = icons;
-    playerInfo.teamId = teamId;
-    this.bRefreshPlayerBar = true;
-    this.setSlot(playerSlot);
+    userInfo.setState(name, userSlot);
+    userInfo.gameOver = isGameOver;
+    userInfo.nPowerups = 0;
+    userInfo.rank = rank;
+    userInfo.icons = icons;
+    userInfo.teamId = teamId;
+    this.bRefreshUserBar = true;
+    this.setSlot(userSlot);
   }
 
   gameOver(gameSession, killedBy) {
@@ -862,34 +869,35 @@ export default class Game {
   handleGamePacket(gamePacket) {
     const type = gamePacket.type;
     switch (type) {
-      case "newGame":
+      case "startGame":
         this.gameId = gamePacket.gameId;
         this.gameSession = gamePacket.gameSession;
-        this.setPlayers(gamePacket, false);
-        this.totalOpposingPlayers = 0;
-        for (let i = 0; i < gamePacket.totalPlayers; i++) {
-          if (!this.players[i].isEmpty) {
+
+        this.setUsers(gamePacket, false);
+        this.totalOpposingUsers = 0;
+        for (let i = 0; i < gamePacket.totalUsers; i++) {
+          if (!this.users[i].isEmpty) {
             // if (super.tableElement.isTeamTable()) {
-            if (this.players[i].teamId != this.teamId) {
-              this.totalOpposingPlayers++;
+            if (this.users[i].teamId != this.teamId) {
+              this.totalOpposingUsers++;
             }
             // } else {
-            // this.totalOpposingPlayers++;
+            // this.totalOpposingUsers++;
             // }
           }
         }
         this.init();
-        this.mode = 0;
-        this.bRefreshPlayerBar = true;
+        this.mode = "playing";
+        this.bRefreshUserBar = true;
         this.bRefreshAll = true;
         this.isGameOver = false;
 
         let n = 0;
-        for (let i = 0; i < gamePacket.totalPlayers; i++) {
-          if (!this.players[i].isEmpty) {
+        for (let i = 0; i < gamePacket.totalUsers; i++) {
+          if (!this.users[i].isEmpty) {
             let b = false;
             // if (super.tableElement.isTeamTable()) {
-            if (this.players[i].teamId != this.teamId) {
+            if (this.users[i].teamId != this.teamId) {
               b = true;
             }
             // } else {
@@ -897,22 +905,22 @@ export default class Game {
             // }
             if (b) {
               let portalSprite = new PortalSprite(
-                n * (360 / this.totalOpposingPlayers),
-                this.players[i],
-                this
+                n * (360 / this.totalOpposingUsers),
+                this.users[i],
+                this,
               );
               n++;
-              this.players[i].portalSprite = portalSprite;
+              this.users[i].portalSprite = portalSprite;
               portalSprite.addSelf();
               portalSprite.setWarpingIn();
             } else {
-              this.players[i].portalSprite = null;
+              this.users[i].portalSprite = null;
             }
           }
         }
         break;
 
-      case "updatePlayerInfo":
+      case "updateUserInfo":
         let gameSession = gamePacket.gameSession;
         if (gameSession != this.gameSession && !this.isGameOver) {
           return;
@@ -921,70 +929,69 @@ export default class Game {
         if (slot == this.slot) {
           return;
         }
-        let playerInfo = this.players[this.translateSlot(slot)];
-        if (playerInfo.gameOver || playerInfo.bEmpty) {
+        let userInfo = this.users[this.translateSlot(slot)];
+        if (userInfo.gameOver || userInfo.bEmpty) {
           return;
         }
-        playerInfo.readState(gamePacket.playerInfo);
-        this.bRefreshPlayerBar = true;
+        userInfo.readState(gamePacket.userInfo);
+        this.bRefreshUserBar = true;
         break;
 
       case "gameOverIndividual":
         slot = gamePacket.slot;
         if (this.slot == slot) {
-          this.winningPlayerString = "YOU WON";
+          this.winningUserString = "YOU WON";
           ++this.wins;
         } else {
           let translateSlot = this.translateSlot(slot);
-          this.winningPlayerString =
-            this.players[translateSlot].username + " WON";
-          let playerInfo2 = this.players[translateSlot];
-          playerInfo2.wins++;
-          this.players[translateSlot].gameOver = true;
+          this.winningUserString = this.users[translateSlot].username + " WON";
+          let userInfo2 = this.users[translateSlot];
+          userInfo2.wins++;
+          this.users[translateSlot].gameOver = true;
         }
         this.isGameOver = true;
         this.refreshStatus = true;
-        this.bRefreshPlayerBar = true;
+        this.bRefreshUserBar = true;
         break;
 
       case "gameOverTeam":
         let teamId = gamePacket.teamId;
-        this.winningPlayerString = CFSkin.TEANAMES[teamId] + " WON";
+        this.winningUserString = CFSkin.TEANAMES[teamId] + " WON";
         if (this.teamId == teamId) {
           this.wins++;
         } else {
-          for (let k = 0; k < this.players.length; ++k) {
-            if (this.players[k].teamId == teamId) {
-              let playerInfo3 = this.players[k];
-              playerInfo3.wins++;
-              this.players[k].gameOver = true;
+          for (let k = 0; k < this.users.length; ++k) {
+            if (this.users[k].teamId == teamId) {
+              let userInfo3 = this.users[k];
+              userInfo3.wins++;
+              this.users[k].gameOver = true;
             }
           }
         }
         this.isGameOver = true;
         this.refreshStatus = true;
-        this.bRefreshPlayerBar = true;
+        this.bRefreshUserBar = true;
         break;
 
-      case "killPlayer":
+      case "killUser":
         let deceasedSlot = gamePacket.deceasedSlot;
         let killerSlot = gamePacket.killerSlot;
         if (deceasedSlot == this.slot) {
           this.isGameOver = true;
           return;
         }
-        let playerInfo4 = this.players[this.translateSlot(deceasedSlot)];
-        playerInfo4.gameOver = true;
-        playerInfo4.bRefresh = true;
-        if (playerInfo4.portalSprite != null) {
-          playerInfo4.portalSprite.killSelf();
+        let userInfo4 = this.users[this.translateSlot(deceasedSlot)];
+        userInfo4.gameOver = true;
+        userInfo4.bRefresh = true;
+        if (userInfo4.portalSprite != null) {
+          userInfo4.portalSprite.killSelf();
         }
-        playerInfo4.healthPercentage = 0;
+        userInfo4.healthPercentage = 0;
         if (killerSlot == this.slot) {
           this.kills++;
           this.refreshStatus = true;
         }
-        this.bRefreshPlayerBar = true;
+        this.bRefreshUserBar = true;
         break;
 
       case "message":
@@ -1010,28 +1017,28 @@ export default class Game {
           return;
         }
         if (toSlot != this.slot) {
-          this.bRefreshPlayerBar = true;
+          this.bRefreshUserBar = true;
           return;
         }
         if (this.isGameOver) {
           return;
         }
         this.addIncomingPowerup(
-          this.players[translateSlot2].portalSprite,
+          this.users[translateSlot2].portalSprite,
           powerupType,
           fromSlot,
-          byte9
+          byte9,
         );
         break;
 
-      case "playerWins":
-        let numPlayers = gamePacket.numPlayers;
-        for (let i = 0; i < numPlayers; i++) {
+      case "userWins":
+        let numUsers = gamePacket.numUsers;
+        for (let i = 0; i < numUsers; i++) {
           let slot = gamePacket.slot[i];
           let winCount = gamePacket.winCount[i];
           let translateSlot = this.translateSlot(slot);
-          let playerInfo = this.players[translateSlot];
-          playerInfo.wins = winCount;
+          let userInfo = this.users[translateSlot];
+          userInfo.wins = winCount;
           this.refreshStatus = true;
         }
         break;
@@ -1043,11 +1050,11 @@ export default class Game {
           this.teamId = teamId;
         } else {
           let translateSlot = this.translateSlot(slot);
-          let playerInfo = this.players[translateSlot];
-          playerInfo.teamId = teamId;
-          playerInfo.bRefresh = true;
+          let userInfo = this.users[translateSlot];
+          userInfo.teamId = teamId;
+          userInfo.bRefresh = true;
         }
-        this.bRefreshPlayerBar = true;
+        this.bRefreshUserBar = true;
         break;
     }
   }
@@ -1055,17 +1062,17 @@ export default class Game {
   // combination of writeState and updateState
   sendState(gameSession) {
     // stream.writeByte(106);
-    let healthPercent = this.player.health / this.player.MAX_HEALTH;
+    let healthPercent = this.user.health / this.user.MAX_HEALTH;
     const packet = {
-      type: "playerState",
+      type: "userState",
       healthPercent,
       gameSession,
       numPowerups: this.numPowerups,
       powerups: this.powerups,
-      playerFighterType: this.playerFighterType,
-      strDamagedByPlayer: this.strDamagedByPlayer,
+      userFighterType: this.userFighterType,
+      strDamagedByUser: this.strDamagedByUser,
       damagingPowerup: this.damagingPowerup,
-      lostHealth: this.player.lostHealth,
+      lostHealth: this.user.lostHealth,
     };
     this.gameNetLogic.network.socket.send(JSON.stringify(packet));
   }

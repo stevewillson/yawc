@@ -1,12 +1,14 @@
 import GameNetLogic from "./GameNetLogic.js";
 import LoginPanel from "./LoginPanel.js";
 import LobbyPanel from "./LobbyPanel.js";
-import PlayerPanel from "./PlayerPanel.js";
+import UserPanel from "./UserPanel.js";
+import RoomPanel from "./RoomPanel.js";
 
 // GamePanel is a wrapper for the different displays
 export default class GamePanel {
   lobbyPanel;
   loginPanel;
+  roomPanel;
   playingPanel;
   gameNetLogic;
 
@@ -16,7 +18,6 @@ export default class GamePanel {
     this.gameNetLogic = new GameNetLogic(this);
     this.loginPanel = new LoginPanel(this);
     this.lobbyPanel = new LobbyPanel(this);
-    this.playerPanel = new PlayerPanel();
 
     this.showLogin();
   }
@@ -50,9 +51,9 @@ export default class GamePanel {
   }
 
   showRoom() {
-    // shows a room for players to join
+    // shows a room for users to join
     // allows selecting a ship
-    // shows the players name and bar across the top
+    // shows the users name and bar across the top
     // chat panel on the left of the screen for the game
     // <!-- <main>
     // <canvas id="GameCanvas"></canvas>

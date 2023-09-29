@@ -18,7 +18,7 @@ export default class UFOSprite extends Sprite {
       location.x - this.ufoW / 2,
       location.y - this.ufoH / 2,
       this.ufoW,
-      this.ufoH
+      this.ufoH,
     );
     this.setHealth(40, 20);
     this.dRotate = 30;
@@ -37,7 +37,7 @@ export default class UFOSprite extends Sprite {
       this.ufoH,
       0,
       0,
-      2 * Math.PI
+      2 * Math.PI,
     );
     context.stroke();
     context.beginPath();
@@ -51,7 +51,7 @@ export default class UFOSprite extends Sprite {
       this.ufoH * 0.6,
       0,
       0,
-      2 * Math.PI
+      2 * Math.PI,
     );
     context.fill();
     context.stroke();
@@ -65,7 +65,7 @@ export default class UFOSprite extends Sprite {
       this.ufoH * 0.6,
       0,
       0,
-      2 * Math.PI
+      2 * Math.PI,
     );
     context.stroke();
   }

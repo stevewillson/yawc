@@ -32,8 +32,8 @@ export default class Network {
       this.socket.send(JSON.stringify(packet));
     };
     this.socket.onmessage = (e) => this.processPackets(e.data);
-    // success for login is null
-    return null;
+    // success for login is true
+    return true;
   }
 
   processPackets(packet) {
@@ -70,15 +70,16 @@ export default class Network {
   }
 
   createRoom(
-    password,
-    isRanked,
-    isBigRoom,
-    isTeamRoom,
-    boardSize,
-    isBalancedRoom,
-    allShips,
-    allPowerups
+    password = "",
+    isRanked = false,
+    isBigRoom = false,
+    isTeamRoom = false,
+    boardSize = 3,
+    isBalancedRoom = false,
+    allShips = true,
+    allPowerups = true
   ) {
+    console.log(`Sending a packet to create a new room`);
     const packet = {
       type: "createRoom",
       isRanked,
@@ -143,11 +144,11 @@ export default class Network {
     this.socket.send(JSON.stringify(packet));
   }
 
-  listUsernames() {
-    // request a list of usernames from the server
+  listUsers() {
+    // request a list of users from the server
     // this.sendGeneric((byte)9, (short)(-2));
     const packet = {
-      type: "listUsernames",
+      type: "listUsers",
     };
     this.socket.send(JSON.stringify(packet));
   }

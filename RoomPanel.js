@@ -2,17 +2,16 @@ import RoomElement from "./RoomElement.js";
 
 export default class RoomPanel {
   rooms;
+  gamePanel;
 
-  constructor() {
-    // maybe just use an array here
+  constructor(gamePanel) {
+    this.gamePanel = gamePanel;
     this.rooms = [];
   }
 
   toHtml() {
     const roomPanelDiv = document.createElement("div");
-    roomPanelDiv.style.border = "6px solid";
-    roomPanelDiv.style.borderColor = "#cccccc";
-    roomPanelDiv.style.backgroundColor = "#3F1710";
+    roomPanelDiv.className = "lobbyPanel";
     roomPanelDiv.id = "roomPanelDiv";
     this.rooms.forEach((room) => {
       const el = room.toHtml();
@@ -43,27 +42,75 @@ export default class RoomPanel {
     }
   }
 
-  addRoom(n, n2) {
-    // create a new room element
-    let newRoom = new RoomElement();
+  addRoom(
+    roomId,
+    status,
+    isRanked,
+    isPrivate,
+    isBigRoom,
+    allShipsAllowed,
+    allPowerupsAllowed,
+    isTeamRoom,
+    boardSize,
+    isBalancedRoom,
+    roomUsers,
+    numSlots,
+    password
+  ) {
+    // create a new room
 
-    // let generateroomElement = CFSkin.getSkin().generateroomElement(
-    // super.listener,
-    // n,
-    // this.getSize().width - 30,
-    // n2
-    // );
-    // add the room to the sorted order,
-    // how should rooms be sorted?
-    this.rooms.push(newRoom);
-    // this.rooms.set(newRoom.roomId, newRoom);
-    // this.addSortedElement(newRoom);
+    // check if the room already exists by roomId
+    if (this.roomIndex(roomId) == -1) {
+      // the room is not found
+      let newRoomElement = new RoomElement(
+        this,
+        roomId,
+        status,
+        isRanked,
+        isPrivate,
+        isBigRoom,
+        allShipsAllowed,
+        allPowerupsAllowed,
+        isTeamRoom,
+        boardSize,
+        isBalancedRoom,
+        roomUsers,
+        numSlots,
+        password
+      );
+
+      // let generateroomElement = CFSkin.getSkin().generateroomElement(
+      // super.listener,
+      // n,
+      // this.getSize().width - 30,
+      // n2
+      // );
+      // add the room to the sorted order,
+      // how should rooms be sorted?
+      this.rooms.push(newRoomElement);
+      // this.rooms.set(newRoom.roomId, newRoom);
+      // this.addSortedElement(newRoom);
+
+      let roomPanelDiv = document.getElementById("roomPanelDiv");
+      roomPanelDiv.appendChild(newRoomElement.toHtml());
+    }
+
+    // server created the new room, it has a room id assigned
   }
 
-  addPlayerToRoom(n, s, b) {
+  roomIndex(roomId) {
+    for (let i = 0; i < this.rooms.length; i++) {
+      if (this.rooms[i].roomId == roomId) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  addUserToRoom(n, s, b) {
     let room = this.findRoom(n);
     if (room != null) {
-      room.addPlayer(s, b);
+      room.addUser(s, b);
     }
   }
 
@@ -71,10 +118,10 @@ export default class RoomPanel {
     this.rooms = Map();
   }
 
-  removePlayerFromRoom(n, s) {
+  removeUserFromRoom(n, s) {
     room = this.findRoom(n);
     if (room != null) {
-      room.removePlayer(s);
+      room.removeUser(s);
     }
   }
 }

@@ -17,14 +17,13 @@ export class ServerUserManager {
   }
 
   addUser(user) {
-    user.id = crypto.randomUUID();
-    this.users.set(user.id, user);
+    this.users.set(user.userId, user);
     this.usernames.add(user.username);
   }
 
   removeUser(user) {
     // remove the user by the user's id
-    this.users.delete(user.id);
+    this.users.delete(user.userId);
     // remove the username
     this.usernames.delete(user.username);
   }

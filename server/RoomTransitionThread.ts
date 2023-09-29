@@ -33,24 +33,24 @@ export class RoomTransitionThread {
   countDownTransition() {
     for (let i = 0; i < ServerThread.TABLE_COUNTDOWN; i++) {
       this.server.broadcastRoomStatusChange(
-        this.room.id,
+        this.room.roomId,
         this.room.status,
         this.countdown,
       );
       this.countdown--;
       // Thread.sleep(1000);
       if (
-        this.room.numPlayers() < 2 ||
-        this.room.isTeamRoom() &&
+        this.room.numUsers < 2 ||
+        this.room.isTeamRoom &&
           (this.room.teamSize(Team.GOLDTEAM) <= 0 ||
             this.room.teamSize(Team.BLUETEAM) <= 0) ||
-        this.room.isBalancedRoom() &&
+        this.room.isBalancedRoom &&
           (this.room.teamSize(Team.GOLDTEAM) !=
             this.room.teamSize(Team.BLUETEAM))
       ) { // People left, we need to stop counting down
-        this.room.setStatus(RoomStatus.IDLE);
+        this.room.status = RoomStatus.IDLE;
         this.server.broadcastRoomStatusChange(
-          this.room.id,
+          this.room.roomId,
           this.room.status,
           ServerThread.TABLE_COUNTDOWN,
         );
@@ -58,9 +58,9 @@ export class RoomTransitionThread {
       }
     }
     // Game is ready to start
-    this.room.setStatus(RoomStatus.PLAYING);
-    this.room.setPlayersAlive();
-    this.server.broadcastRoomStatusChange(this.room.id, this.room.status, -1);
+    this.room.status = RoomStatus.PLAYING;
+    this.room.setUsersAlive();
+    this.server.broadcastRoomStatusChange(this.room.roomId, this.room.status, -1);
     this.server.broadcastGameStart(this.room);
   }
 }

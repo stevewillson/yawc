@@ -1,8 +1,8 @@
 import { Team } from "./Team.ts";
 
 export class ServerRoom {
-  id;
-  numPlayers;
+  roomId;
+  numUsers;
   isRanked;
   isBigRoom;
   allShipsAllowed;
@@ -13,7 +13,6 @@ export class ServerRoom {
   boardSize;
   status;
   password;
-  names;
   wins;
   users;
   numSlots;
@@ -38,146 +37,142 @@ export class ServerRoom {
     this.isBalancedRoom = isBalancedRoom;
     this.isPrivate = false;
     this.status = 0;
-    this.numPlayers = 0;
-    this.id = -1;
+    this.numUsers = 0;
+    this.roomId = crypto.randomUUID();
 
     this.numSlots = isBigRoom ? 8 : 4;
-    this.names = [];
     this.users = [];
     this.wins = [];
 
-    if (password.length() > 0) {
+    // initialize the slot to be "Open Slot"
+    // initialize wins to be all 0's
+    for (let i = 0; i < this.numSlots; i++) {
+      this.users.push("Open Slot");
+      this.wins.push(0);
+    }
+
+    if (password.length > 0) {
       this.isPrivate = true;
     }
   }
 
   removeUser(user) {
     let slot = user.slot;
-    this.names[slot] = null;
-    this.users[slot] = null;
+    this.users[slot] = "Open Slot";
     this.wins[slot] = 0;
-    this.numPlayers--;
+    this.numUsers--;
   }
 
   isFull() {
+    // check the table for an open slot
     for (let i = 0; i < this.users.length; i++) {
-      if (this.users[i] == null) {
+      if (this.users[i] == "Open Slot") {
         return false;
       }
     }
     return true;
   }
 
-  setPlayersAlive() {
+  setUsersAlive() {
     this.users.forEach((user) => {
-      if (user != null) {
-        user.setAlive(true);
+      if (user != "Open Slot") {
+        user.isAlive = true;
       }
     });
   }
 
-  addUserByUsername(username) {
-    for (let i = 0; i < this.names.length; i++) {
-      if (this.names[i] == null) {
-        this.names[i] = username;
-        this.numPlayers++;
+  addUser(user) {
+    for (let i = 0; i < this.users.length; i++) {
+      if (this.users[i] == "Open Slot") {
+        this.users[i] = user;
+        this.wins[i] = 0;
         return i;
       }
     }
     return -1;
   }
-  addUser(user) {
-    for (let i = 0; i < this.users.length; i++) {
-      if (this.users[i] == null) {
-        this.users[i] = user;
-        i;
-      }
-    }
-    return -1;
+
+  numUsersAlive() {
+    // let count = 0;
+    // filter and count the length of the result
+    const numUsersAlive =
+      this.users.filter((user) => user != "Open Slot" && user.isAlive).length;
+    return numUsersAlive;
+    // for (let i = 0; i < this.users.length; i++) {
+    //   if (this.users[i] != null) {
+    //     if (this.users[i].isAlive) {
+    //       count++;
+    //     }
+    //   }
+    // }
+    // return count;
   }
 
-  player(i) {
-    return this.names[i] != null ? this.names[i] : "";
-  }
-
-  hasPlayer(player) {
-    for (let i = 0; i < this.names.length; i++) {
-      if (this.names[i] != null && this.names[i] == player) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  numPlayerSlots() {
-    return this.names.length;
-  }
-
-  numPlayersAlive() {
-    let count = 0;
-    for (let i = 0; i < this.users.length; i++) {
-      if (this.users[i] != null) {
-        if (this.users[i].isAlive()) {
-          count++;
-        }
-      }
-    }
-    return count;
-  }
-
-  numPlayersAliveForTeam(teamId: number) {
-    let count = 0;
-    for (let i = 0; i < this.users.length; i++) {
-      if (this.users[i] != null) {
-        if (this.users[i].isAlive() && this.users[i].teamId() == teamId) {
-          count++;
-        }
-      }
-    }
-    return count;
+  numUsersAliveForTeam(teamId: number) {
+    // use a filter for here as well
+    const numUsersAlive =
+      this.users.filter((user) =>
+        user != "Open Slot" && user.teamId == teamId && user.isAlive
+      ).length;
+    return numUsersAlive;
+    // let count = 0;
+    // for (let i = 0; i < this.users.length; i++) {
+    //   if (this.users[i] != null) {
+    //     if (this.users[i].isAlive() && this.users[i].teamId == teamId) {
+    //       count++;
+    //     }
+    //   }
+    // }
+    // return count;
   }
 
   gameOver() {
     if (this.isTeamRoom) {
-      let goldTeamDead = this.numPlayersAliveForTeam(Team.GOLDTEAM) == 0;
-      let blueTeamDead = this.numPlayersAliveForTeam(Team.BLUETEAM) == 0;
+      let goldTeamDead = this.numUsersAliveForTeam(Team.GOLDTEAM) == 0;
+      let blueTeamDead = this.numUsersAliveForTeam(Team.BLUETEAM) == 0;
       return goldTeamDead || blueTeamDead;
     }
 
-    return this.numPlayersAlive() == 1;
+    return this.numUsersAlive() == 1;
   }
 
   increaseWinCounts() {
     this.users.forEach((user) => {
-      if (user != null && user.isAlive) {
+      if (user != "Open Slot" && user.isAlive) {
         this.wins[user.slot]++;
       }
     });
   }
 
   teamSize(teamId: number) {
-    let count = 0;
-    for (let i = 0; i < this.users.length; i++) {
-      if (this.users[i] != null && this.users[i].teamId() == teamId) {
-        count++;
-      }
-    }
-    return count;
+    const teamSize =
+      this.users.filter((user) => user != "Open Slot" && user.teamId == teamId)
+        .length;
+    return teamSize;
+    // let count = 0;
+    // for (let i = 0; i < this.users.length; i++) {
+    //   if (this.users[i] != "Open Slot" && this.users[i].teamId == teamId) {
+    //     count++;
+    //   }
+    // }
+    // return count;
   }
 
   winnerSlot() {
     if (this.isTeamRoom) {
-      return this.numPlayersAliveForTeam(Team.GOLDTEAM) > 0
+      return this.numUsersAliveForTeam(Team.GOLDTEAM) > 0
         ? Team.GOLDTEAM
         : Team.BLUETEAM;
-    }
-    for (let i = 0; i < this.users.length; i++) {
-      if (this.users[i] != null && this.users[i].isAlive) {
-        return this.users[i].slot;
+    } else {
+      for (let i = 0; i < this.users.length; i++) {
+        if (this.users[i] != "Open Slot" && this.users[i].isAlive) {
+          return this.users[i].slot;
+        }
       }
     }
     return -1;
   }
+
   winCountOf(slot: number) {
     return this.wins[slot];
   }

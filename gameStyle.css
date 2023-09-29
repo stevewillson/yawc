@@ -1,0 +1,77 @@
+
+
+html,
+.lobbyButton,
+.roomElementTable,
+.joinRoomButton
+{
+    font-family: Helvetica;
+    font-size: small;
+    font-weight: 600;
+}
+
+.lobbyText {
+    color:#C09760;
+}
+
+.lobbyButton
+{
+    color: #C09760;
+    background-color: #735A49;
+    border-radius: 8px;
+}
+
+.lobbyButton:hover {
+    color: #FCD39C;
+}
+
+  .lobbyDiv {
+    background-color: #735A49;
+}
+
+.lobbyPanel {
+    background-color: #3F1710;
+    color: #FCD385;
+    border: 2px solid;
+    border-color: #cccccc;
+}
+
+.chatArea {
+    color: white;
+}
+
+.roomElementTable {
+    color: black;
+    border: 2px solid;
+    border-color: #FFFF00;
+    background-color: #464646;
+}   
+
+.userPanelTable {
+    border: 2px solid;
+    border-color: #C09760;
+}
+
+.userElementRow {
+    color: #FCD385;
+}
+
+.userElementHeader {
+    color: black;
+    background-color: #CCCCCC;
+}
+
+.joinRoomButton {
+    background-color: #464646;
+    border-radius: 8px;
+    border: 2px solid;
+    border-color: #00FF00;
+    color: #00FF00;
+}
+
+.joinRoomButton:hover {
+    background-color: #00FF00;
+    border-color: #464646;
+    color: #464646;
+}
+

@@ -82,17 +82,14 @@ export default class LoginPanel {
     const password = document.getElementById("password").value;
     console.log(`Logging in. Username: ${username} Password: ${password}`);
 
-    const loginSuccess =
-      this.gamePanel.gameNetLogic.login(username, password) == null;
+    const loginSuccess = this.gamePanel.gameNetLogic.login(username, password);
 
     // if a successful login, show the lobby screen
     if (loginSuccess) {
       this.gamePanel.showLobby();
     }
 
-    // return false so the page does not get reloaded
+    // return false so the page does not get reloaded by the form submission
     return false;
-
-    // otherwise, show a message and then show the login page
   }
 }

@@ -1,10 +1,8 @@
 export class ServerUser {
   username;
   client;
-  id = -1;
-  totalCredits;
-  subscriptionLevel;
   slot;
+  userId;
   teamId;
   rank;
   clan;
@@ -17,6 +15,7 @@ export class ServerUser {
     this.username = username;
     this.icons = [];
     this.room = null;
+    this.userId = crypto.randomUUID();
     this.teamId = 0;
 
     // Set some placeholder values that we aren't really using yet.

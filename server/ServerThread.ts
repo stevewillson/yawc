@@ -16,13 +16,10 @@ export class ServerThread {
     this.server = server;
     this.socket = socket;
     socket.onopen = () => {
-      console.log(`CONNECTION ESTABLISHED`);
+      console.log(`WebSocket Connection Opened`);
     };
     socket.onmessage = (e) => this.processPackets(e.data);
-    socket.onclose = () => {
-      console.log(`DISCONNECTED`);
-      // remove the socket from the list of client sockets
-    };
+    socket.onclose = () => this.handleUserLogout();
     socket.onerror = (error) => console.error("ERROR:", error);
   }
 
@@ -35,6 +32,7 @@ export class ServerThread {
   }
 
   handleUserLogout() {
+    console.log(`User ${this.user.username} logged out`)
     this.server.userManager.removeUser(this.user);
     this.server.clients.delete(this);
     if (this.user.room != null) {
@@ -44,8 +42,8 @@ export class ServerThread {
   }
 
   receiveLogin(packet) {
-    // this.isGuestAccount = packet.guestAccount;
     const username = packet.username;
+    console.log(`Login from ${username}`);
     // this.password = packet.password;
     // this.gameId = packet.gameId;
     // this.majorVersion = packet.majorVersion;
@@ -54,7 +52,7 @@ export class ServerThread {
     this.user = new ServerUser(this, username);
   }
 
-  // receivePlayerState() throws IOException {
+  // receiveUserState() throws IOException {
   // 	 stream = this.pr.getStream();
 
   // 	short	gameSession		= stream.readShort();
@@ -67,17 +65,17 @@ export class ServerThread {
   //     }
 
   //     byte 		shipType 		= stream.readByte();
-  //     boolean		damagedByPlayer	= stream.readByte() == 1;
-  //     if (damagedByPlayer) {
-  //         String 	damagingPlayer 	= stream.readUTF();
+  //     boolean		damagedByUser	= stream.readByte() == 1;
+  //     if (damagedByUser) {
+  //         String 	damagingUser 	= stream.readUTF();
   //         byte	damagingPowerup = stream.readByte();
   //         byte	lostHealth		= stream.readByte();
   //     }
 
-  //     server.broadcastPlayerState(user().room(), gameSession, user().slot(), healthPerc, powerups, shipType);
+  //     server.broadcastUserState(user().room(), gameSession, user().slot(), healthPerc, powerups, shipType);
   // }
 
-  // public void receivePlayerDeath() throws IOException {
+  // public void receiveUserDeath() throws IOException {
   // 	final DataInputStream stream = this.pr.getStream();
 
   // 	short	gameSession		= stream.readShort();
@@ -92,13 +90,13 @@ export class ServerThread {
   // 	}
   // }
 
-  // public void receivePlayerEvent() throws IOException {
+  // public void receiveUserEvent() throws IOException {
   // 	final DataInputStream stream = this.pr.getStream();
 
   // 	short	gameSession		= stream.readShort();
   // 	String	eventString		= stream.readUTF();
 
-  // 	server.broadcastPlayerEvent(user().room(), gameSession, eventString);
+  // 	server.broadcastUserEvent(user().room(), gameSession, eventString);
   // }
 
   // /*
@@ -168,13 +166,15 @@ export class ServerThread {
       boardSize,
       isBalancedRoom,
     );
-    let slot = room.addUser(this.user.username);
-    room.addUser(this.user);
+
+    // add the user to the room by the user object
+    // we can get the username from the user
+    let slot = room.addUser(this.user);
     this.user.slot = slot;
     this.user.room = room;
-    this.user.setTeamId(room.isTeamRoom ? Team.GOLDTEAM : Team.NOTEAM);
+    this.user.teamId = room.isTeamRoom ? Team.GOLDTEAM : Team.NOTEAM;
     this.server.addRoom(room);
-    this.server.broadcastCreateRoom(room);
+    this.server.broadcastRoom(room);
   }
 
   receiveJoinRoom(packet) {
@@ -205,8 +205,8 @@ export class ServerThread {
     room.removeUser(this.user);
     this.server.broadcastLeaveRoom(room.id, this.user.username);
     this.user.room = null;
-    if (room.numPlayers() <= 0) {
-      this.server.broadcastRoomStatusChange(room.id, RoomStatus.DELETE, -1);
+    if (room.numUsers <= 0) {
+      this.server.broadcastRoomStatusChange(room.roomId, RoomStatus.DELETE, -1);
       this.server.roomManager.removeRoom(room);
     }
     if (room.status == RoomStatus.PLAYING && room.gameOver()) {
@@ -245,7 +245,7 @@ export class ServerThread {
     let roomId = packet.roomId;
     let room = this.server.roomManager.getRoom(roomId);
 
-    if (room.status == RoomStatus.IDLE && room.numPlayers() > 1) {
+    if (room.status == RoomStatus.IDLE && room.numUsers() > 1) {
       if (
         !room.isTeamRoom() ||
         room.teamSize(Team.GOLDTEAM) == room.teamSize(Team.BLUETEAM) ||
@@ -259,13 +259,22 @@ export class ServerThread {
     }
   }
 
-  sendLobbyMessage(username, message, isForLobby) {
+  sendLobbyMessage(username, message) {
     // 	byte opcode = isForLobby ? (byte)5 : (byte)18;
     const packet = {
       type: "lobbyMessage",
       username,
       message,
-      isForLobby,
+    };
+    this.socket.send(JSON.stringify(packet));
+  }
+
+  sendRoomMessage(username, message) {
+    // 	byte opcode = isForLobby ? (byte)5 : (byte)18;
+    const packet = {
+      type: "roomMessage",
+      username,
+      message,
     };
     this.socket.send(JSON.stringify(packet));
   }
@@ -281,7 +290,7 @@ export class ServerThread {
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendRoomStatusChange(roomId: number, status, countdown) {
+  sendRoomStatusChange(roomId: number, status: number, countdown: number) {
     // 	byte opcode = 66;
     const packet = {
       type: "roomStatusChange",
@@ -340,20 +349,59 @@ export class ServerThread {
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendUsernames() {
+  sendUsers() {
+    // Send current user list to client
+    this.server.userManager.users.forEach((user) => {
+      // if (user != null) {
+      this.sendUser(user);
+      // }
+    });
+  }
+
+  sendRoom(room) {
+    let roomUsers: string[] = [];
+    room.users.forEach((user) => {
+      if (user != "Open Slot") {
+      roomUsers.push(user.username);
+      } else {
+        roomUsers.push("Open Slot");
+      }
+    });
+
+    let password = "";
+    if (this.user.room == room) {
+      password = room.password;
+    }
+    // byte opcode = 101;
+    // call this "newRoom"
     const packet = {
-      type: "usernames",
-      usernames: this.server.userManager.usernames.values(),
+      type: "roomInfo",
+      roomId: room.roomId,
+      status: room.status,
+      isRanked: room.isRanked,
+      isPrivate: room.isPrivate,
+      isBigRoom: room.isBigRoom,
+
+      allShipsAllowed: room.allShipsAllowed,
+      allPowerupsAllowed: room.allPowerupsAllowed,
+      isTeamRoom: room.isTeamRoom,
+      boardSize: room.boardSize,
+      isBalancedRoom: room.isBalancedRoom,
+      roomUsers: roomUsers,
+      numSlots: room.numSlots,
+      options: 0,
+      password: password,
     };
     this.socket.send(JSON.stringify(packet));
   }
 
+  // send the current list of rooms
   sendRooms() {
-    const packet = {
-      type: "rooms",
-      usernames: this.server.roomManager.rooms.values(),
-    };
-    this.socket.send(JSON.stringify(packet));
+    this.server.roomManager.rooms.forEach((room) => {
+      // if (room != null) {
+      this.sendRoom(room);
+      // }
+    });
   }
 
   sendUserLogout(user) {
@@ -389,7 +437,7 @@ export class ServerThread {
       type: "gameStart",
       gameId: 0,
       sessionId: 0,
-      numPlayers: room.numPlayers,
+      numUsers: room.numUsers,
       roomUsers,
     };
     this.socket.send(JSON.stringify(packet));
@@ -465,42 +513,8 @@ export class ServerThread {
     // 	byte opcode2 = 120;
     const packet = {
       type: "roomWins",
-      numPlayers: room.numPlayers,
+      numUsers: room.numUsers,
       roomUsers: roomUsers,
-    };
-    this.socket.send(JSON.stringify(packet));
-  }
-
-  sendFullRoom(room) {
-    let roomUsers: { username: string }[] = [];
-    room.users.forEach((user) => {
-      if (user != null) {
-        roomUsers.push({
-          username: user.username,
-        });
-      }
-    });
-
-    let password = "";
-    if (this.user.room == room) {
-      password = room.password;
-    }
-    // 	byte opcode = 101;
-    const packet = {
-      type: "fullRoom",
-      roomId: room.id,
-      status: room.status,
-      isRanked: room.isRanked,
-      isPrivate: room.isPrivate,
-      isBigRoom: room.isBigRoom,
-      allShipsAllowed: room.allShipsAllowed,
-      allPowerupsAllowed: room.allPowerupsAllowed,
-      isTeamRoom: room.isTeamRoom,
-      boardSize: room.boardSize,
-      isBalancedRoom: room.isBalancedRoom,
-      roomUsers: roomUsers,
-      options: 0,
-      password: password,
     };
     this.socket.send(JSON.stringify(packet));
   }
@@ -519,7 +533,7 @@ export class ServerThread {
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendPlayerState(gameSession, slot, healthPercent, powerups, shipType) {
+  sendUserState(gameSession, slot, healthPercent, powerups, shipType) {
     let powerupArray: { powerup: string }[] = [];
     powerups.forEach((powerup) => {
       powerupArray.push(powerup);
@@ -538,7 +552,7 @@ export class ServerThread {
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendPlayerEvent(gameSession, eventString) {
+  sendUserEvent(gameSession, eventString) {
     // 	byte opcode1 = 80;
     // 	byte opcode2 = 109;
     const packet = {
@@ -577,10 +591,14 @@ export class ServerThread {
     let operation = packetJSON.type;
     console.log(`Received ${operation} type packet`);
     switch (operation) {
-      case "noop":
+      case "noop": {
+        // TODO - check how to add a "pong" function
+        // to send a message back when the server
+        // sends a "ping"
         // NOOP, heartbeat
         break;
-      case "login":
+      }
+      case "login":{
         console.log("Login attempted...");
         this.receiveLogin(packetJSON);
 
@@ -600,32 +618,23 @@ export class ServerThread {
 
         this.sendLoginSucceed();
 
-        // Send current user list to client
-        this.server.userManager.users.forEach((user) => {
-          if (user != null) {
-            this.sendUser(user);
-          }
-        });
-        // Send current table list to client
-        // for (ServerTable table : server.tableManager.tables()) {
-        //     if (table != null) {
-        //         sendFullTable(table);
-        //     }
-        // }
-
         // Add user and broadcast to all clients
         this.server.addUser(this.user);
         // this.server.broadcastUser(this.user);
         break;
-      case "listUsernames":
-        this.sendUsernames();
+      }
+      case "listUsers": {
+        this.sendUsers();
         break;
-      case "listRooms":
+      }
+      case "listRooms": {
         this.sendRooms();
         break;
-      case "logout":
+      }
+      case "logout": {
         this.handleUserLogout();
         break;
+      }
       // case 5:
       // 	receiveSay();
       // 	break;
@@ -636,20 +645,21 @@ export class ServerThread {
       // 	receiveRoomSay();
       // 	break;
       // case 106:
-      // 	receivePlayerState();
+      // 	receiveUserState();
       // 	break;
       // case 107:
       // 	receivePowerup();
       // 	break;
       // case 109:
-      // 	receivePlayerEvent();
+      // 	receiveUserEvent();
       // 	break;
       // case 110:
-      // 	receivePlayerDeath();
+      // 	receiveUserDeath();
       // 	break;
-      // case 20:
-      // 	receiveCreateRoom();
-      // 	break;
+      case "createRoom": {
+        this.receiveCreateRoom(packetJSON);
+        break;
+      }
       // case 21:
       // 	receiveJoinRoom();
       // 	break;

@@ -1,11 +1,11 @@
 // import RoomPanel from "./RoomPanel.js";
-import PlayerPanel from "./PlayerPanel.js";
+import UserPanel from "./UserPanel.js";
 import ChatPanel from "./ChatPanel.js";
 import RoomPanel from "./RoomPanel.js";
 
 export default class LobbyPanel {
   roomPanel;
-  playerPanel;
+  userPanel;
   chatPanel;
   gameNetLogic;
   gamePanel;
@@ -13,10 +13,10 @@ export default class LobbyPanel {
   constructor(gamePanel) {
     // this.vURLButtons = new Vector();
     // this.cfTablePanel = skin.generateCFTablePanel(listener);
-    // this.cfPlayerPanel = skin.generateCFPlayerPanel(listener);
+    // this.cfUserPanel = skin.generateCFUserPanel(listener);
     // this.cfChatPanel = skin.generateCFChatPanel(listener);
     // this.add(this.cfTablePanel);
-    // this.add(this.cfPlayerPanel);
+    // this.add(this.cfUserPanel);
     // this.add(this.cfChatPanel);
     // this.cfBtnLogout = skin.generateCFButton("Logout", listener, 1);
     // this.cfBtnCreateTable = skin.generateCFButton("Create Table", listener, 3);
@@ -28,12 +28,11 @@ export default class LobbyPanel {
     // this.add(this.cfBtnLogout);
     // this.add(this.cfBtnCreateTable);
     // this.add(this.cfBtnCreateTableOptions);
-
-    this.roomPanel = new RoomPanel();
-    this.playerPanel = new PlayerPanel();
-    this.chatPanel = new ChatPanel();
-    this.gameNetLogic = gamePanel.gameNetLogic;
     this.gamePanel = gamePanel;
+    this.gameNetLogic = gamePanel.gameNetLogic;
+    this.roomPanel = new RoomPanel(this.gamePanel);
+    this.userPanel = new UserPanel(this.gamePanel);
+    this.chatPanel = new ChatPanel(this.gamePanel);
   }
 
   updateUsername(username) {
@@ -51,47 +50,38 @@ export default class LobbyPanel {
     const usernameText = document.createElement("p");
     usernameText.id = "loggedInUsername";
     usernameText.innerText = `User: ${this.gameNetLogic.username}`;
-    usernameText.style.color = "#C09760";
+    usernameText.className = "lobbyText";
+
     userArea.appendChild(usernameText);
 
     // make some buttons
     const instructionsButton = document.createElement("button");
     instructionsButton.innerText = "Instructions & Tips";
-    instructionsButton.style.color = "#C09760";
-    instructionsButton.style.backgroundColor = "#735A49";
-    instructionsButton.style.borderRadius = "8px";
+    instructionsButton.className = "lobbyButton";
 
     // instructionsButton.onclick = () => this.processLogin();
 
     const signupButton = document.createElement("button");
     signupButton.innerText = "Sign Up!";
-    signupButton.style.color = "#C09760";
-    signupButton.style.backgroundColor = "#735A49";
-    signupButton.style.borderRadius = "8px";
+    signupButton.className = "lobbyButton";
 
     // signupButton.onclick = () => this.processLogin();
 
     const missionsButton = document.createElement("button");
     missionsButton.innerText = "Missions";
-    missionsButton.style.color = "#C09760";
-    missionsButton.style.backgroundColor = "#735A49";
-    missionsButton.style.borderRadius = "8px";
+    missionsButton.className = "lobbyButton";
 
     // missionsButton.onclick = () => this.processLogin();
 
     const clansButton = document.createElement("button");
     clansButton.innerText = "Clans";
-    clansButton.style.color = "#C09760";
-    clansButton.style.backgroundColor = "#735A49";
-    clansButton.style.borderRadius = "8px";
+    clansButton.className = "lobbyButton";
 
     // clansButton.onclick = () => this.processLogin();
 
     const logoutButton = document.createElement("button");
     logoutButton.innerText = "Logout";
-    logoutButton.style.color = "#C09760";
-    logoutButton.style.backgroundColor = "#735A49";
-    logoutButton.style.borderRadius = "8px";
+    logoutButton.className = "lobbyButton";
 
     // logoutButton.onclick = () => this.processLogin();
 
@@ -131,17 +121,13 @@ export default class LobbyPanel {
 
     const createRoomButton = document.createElement("button");
     createRoomButton.innerText = "Create Room";
-    createRoomButton.style.color = "#C09760";
-    createRoomButton.style.backgroundColor = "#735A49";
-    createRoomButton.style.borderRadius = "8px";
-
-    // clansButton.onclick = () => this.processLogin();
+    createRoomButton.className = "lobbyButton";
+    // create a room with default options
+    createRoomButton.onclick = () => this.gameNetLogic.network.createRoom();
 
     const createRoomOptionsButton = document.createElement("button");
     createRoomOptionsButton.innerText = "Create Room Options";
-    createRoomOptionsButton.style.color = "#C09760";
-    createRoomOptionsButton.style.backgroundColor = "#735A49";
-    createRoomOptionsButton.style.borderRadius = "8px";
+    createRoomOptionsButton.className = "lobbyButton";
 
     createRoomButtonsDiv.appendChild(createRoomButton);
     createRoomButtonsDiv.appendChild(createRoomOptionsButton);
@@ -155,7 +141,7 @@ export default class LobbyPanel {
 
     // set the layout to a grid layout two columns
     const lobbyPanelDiv = document.createElement("div");
-    lobbyPanelDiv.style.backgroundColor = "#735A49";
+    lobbyPanelDiv.className = "lobbyDiv";
 
     lobbyPanelDiv.style.display = "grid";
     lobbyPanelDiv.style["grid-template-columns"] = "1fr 2fr";
@@ -165,8 +151,8 @@ export default class LobbyPanel {
 
     leftDiv.appendChild(this.userAreaHtml());
 
-    // add the player panel to the left side of the lobby
-    leftDiv.appendChild(this.playerPanel.toHtml());
+    // add the user panel to the left side of the lobby
+    leftDiv.appendChild(this.userPanel.toHtml());
 
     rightDiv.appendChild(this.createRoomButtonsDiv());
 
@@ -178,19 +164,19 @@ export default class LobbyPanel {
 
     return lobbyPanelDiv;
 
-    // Players Area below on left
+    // Users Area below on left
     // Clan / User / Table / Rank
     // show Ranking Key on Bottom
     // on right column
     // buttons - Create Table / Create Table Options
     // Tables
     // Join Table
-    // show the players in the table
+    // show the users in the table
     // below
     // Chat
     // Instructions:
     // Click on a table to jump into a game.
-    // (green text) Green tables are collecting players.
+    // (green text) Green tables are collecting users.
     // (yellow text) Yellow tables are about to start.
     // (red text) Red tables are playing
     // Type '/help' to list chat commands
