@@ -9,9 +9,11 @@ export class Server {
   roomManager;
 
   constructor(serverPort = 6049) {
-    this.clients = new Set();
-    this.userManager = new ServerUserManager();
-    this.roomManager = new ServerRoomManager();
+    // change to a map, user the userId as the key and then the client
+    // as the value
+    this.clients = new Map();
+    this.userManager = new ServerUserManager(this);
+    this.roomManager = new ServerRoomManager(this);
     this.PORT = serverPort;
 
     Deno.serve({
@@ -35,37 +37,39 @@ export class Server {
     // add a client
     let client = new ServerThread(this, ws);
 
-    // add client to a Set of clients
-    this.clients.add(client);
+    // add client to a Set of clients using the clientId as the key
+    this.clients.set(client.clientId, client);
     return response;
   }
 
-  // send a message to all users
+  // send a message to all clients with the user's information
   broadcastUser(user) {
     // loop over the clients
-    this.clients.forEach((client) => client.sendUser(user));
+    this.clients.values().forEach((client) => client.sendUser(user));
   }
 
-  broadcastUserLogout(user) {
-    this.clients.forEach((client) => client.sendUserLogout(user));
+  broadcastUserLogout(userId) {
+    this.clients.values().forEach((client) => client.sendUserLogout(userId));
   }
 
   broadcastRoom(room) {
-    this.clients.forEach((client) => client.sendRoom(room));
+    this.clients.values().forEach((client) => client.sendRoom(room));
   }
 
-  broadcastJoinRoom(room, username, slot, teamId) {
-    this.clients.forEach((client) =>
-      client.sendJoinRoom(room, username, slot, teamId)
+  broadcastJoinRoom(roomId, userId, slot, teamId) {
+    this.clients.values().forEach((client) =>
+      client.sendJoinRoom(roomId, userId, slot, teamId)
     );
   }
 
   broadcastLeaveRoom(roomId, username) {
-    this.clients.forEach((client) => client.sendLeaveRoom(roomId, username));
+    this.clients.values().forEach((client) =>
+      client.sendLeaveRoom(roomId, username)
+    );
   }
 
   broadcastRoomStatusChange(roomId, status, countdown) {
-    this.clients.forEach((client) =>
+    this.clients.values().forEach((client) =>
       client.sendRoomStatusChange(roomId, status, countdown)
     );
   }
@@ -140,7 +144,7 @@ export class Server {
   }
 
   broadcastLobbyMessage(username, message) {
-    this.clients.forEach((client) => {
+    this.clients.values().forEach((client) => {
       client.sendLobbyMessage(username, message);
     });
   }
@@ -154,18 +158,10 @@ export class Server {
   }
 
   broadcastPrivateMessage(fromUser, toUser, message) {
-    this.clients.forEach((client) => {
+    this.clients.values().forEach((client) => {
       if (client.user.username == toUser || client.user.username == fromUser) {
         client.sendPrivateMessage(fromUser, toUser, message);
       }
     });
-  }
-
-  addUser(user) {
-    this.userManager.addUser(user);
-  }
-
-  addRoom(room) {
-    this.roomManager.addRoom(room);
   }
 }

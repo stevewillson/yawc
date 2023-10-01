@@ -1,30 +1,31 @@
 export class ServerUserManager {
-  usernames;
+  server;
   users;
 
-  constructor() {
-    this.usernames = new Set();
+  constructor(server) {
+    this.server = server;
     this.users = new Map();
   }
 
-  getUser(id) {
-    // returns undefined if there is no user with that id
-    return this.users.get(id);
-  }
+  usernameTaken(targetUsername) {
+    // get the usernames and then test
+    // to determine whether the target usernames
+    // is in those usernames
 
-  usernameTaken(username) {
-    return this.usernames.has(username);
+    // let userValues = this.users.values();
+
+    return this.users.values()
+      .map((user) => user.username)
+      .some((username) => username == targetUsername);
+    // return this.usernames.has(username);
   }
 
   addUser(user) {
     this.users.set(user.userId, user);
-    this.usernames.add(user.username);
   }
 
   removeUser(user) {
     // remove the user by the user's id
     this.users.delete(user.userId);
-    // remove the username
-    this.usernames.delete(user.username);
   }
 }

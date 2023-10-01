@@ -27,7 +27,11 @@ export class RoomTransitionThread {
   endGameTransition() {
     // Thread.sleep(3000);
     this.room.setStatus(RoomStatus.IDLE);
-    this.server.broadcastRoomStatusChange(this.room.id, this.room.status, -1);
+    this.server.broadcastRoomStatusChange(
+      this.room.roomId,
+      this.room.status,
+      -1,
+    );
   }
 
   countDownTransition() {
@@ -60,7 +64,11 @@ export class RoomTransitionThread {
     // Game is ready to start
     this.room.status = RoomStatus.PLAYING;
     this.room.setUsersAlive();
-    this.server.broadcastRoomStatusChange(this.room.roomId, this.room.status, -1);
+    this.server.broadcastRoomStatusChange(
+      this.room.roomId,
+      this.room.status,
+      -1,
+    );
     this.server.broadcastGameStart(this.room);
   }
 }

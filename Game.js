@@ -722,6 +722,23 @@ export default class Game {
     }
   }
 
+  // TODO based off of GameBoard.java
+  addPlayer() {}
+  //   public void addPlayer(final String s, final int n, final byte b, final String[] array, final int n2) {
+  //     if (!s.equals(super.m_logic.getUsername())) {
+  //         this.setPlayer(s, n, b, array, (byte)n2, true, true);
+  //     }
+  // causes the player bar to be redrawn
+  //     if (super.m_tableElement.isTeamTable()) {
+  //         this.m_bRefreshAll = true;
+  //     }
+  // }
+
+  removePlayer() {}
+  //   public void removePlayer(final String s) throws IOException {
+  //     this.m_model.removePlayer(s);
+  // }
+
   /**
    * drawRing
    * @param context a canvas context to draw the ring

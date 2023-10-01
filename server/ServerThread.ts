@@ -8,18 +8,20 @@ export class ServerThread {
   static TABLE_COUNTDOWN = 5;
   server;
   user;
-  nextTime;
   clientVersion;
   socket;
+  clientId;
 
   constructor(server, socket) {
     this.server = server;
     this.socket = socket;
+    this.clientId = crypto.randomUUID();
+    this.user = null;
     socket.onopen = () => {
       console.log(`WebSocket Connection Opened`);
     };
     socket.onmessage = (e) => this.processPackets(e.data);
-    socket.onclose = () => this.handleUserLogout();
+    socket.onclose = () => this.handleUserDisconnect();
     socket.onerror = (error) => console.error("ERROR:", error);
   }
 
@@ -27,21 +29,13 @@ export class ServerThread {
     room.increaseWinCounts();
     room.status = RoomStatus.GAMEOVER;
     this.server.broadcastGameEnd(room);
-    this.server.broadcastRoomStatusChange(room.id, room.status, -1);
+    this.server.broadcastRoomStatusChange(room.roomId, room.status, -1);
     let rtt = new RoomTransitionThread(this.server, room, room.status);
   }
 
-  handleUserLogout() {
-    console.log(`User ${this.user.username} logged out`)
-    this.server.userManager.removeUser(this.user);
-    this.server.clients.delete(this);
-    if (this.user.room != null) {
-      this.receiveLeaveRoom();
-    }
-    this.server.broadcastUserLogout(this.user);
-  }
-
   receiveLogin(packet) {
+    console.log("Login attempted...");
+
     const username = packet.username;
     console.log(`Login from ${username}`);
     // this.password = packet.password;
@@ -49,7 +43,42 @@ export class ServerThread {
     // this.majorVersion = packet.majorVersion;
     // this.minorVersion = packet.minorVersion;
     this.clientVersion = packet.clientVersion;
-    this.user = new ServerUser(this, username);
+    this.user = new ServerUser(this.clientId, username);
+
+    if (this.server.userManager.usernameTaken(this.user.username)) {
+      this.sendLoginFailed("Username already taken");
+      this.server.clients.delete(this);
+      return;
+    }
+
+    if (this.clientVersion != 1.2) {
+      this.sendLoginFailed(
+        "Wrong client version, check website for updated client",
+      );
+      this.server.clients.delete(this);
+      return;
+    }
+
+    this.sendLoginSucceed();
+
+    // Add user
+    this.server.userManager.addUser(this.user);
+
+    // send out user logging in to all clients
+    this.server.broadcastUser(this.user);
+  }
+
+  handleUserDisconnect() {
+    // check if the user was logged in
+    if (this.user != null) {
+      console.log(`User ${this.user.username} logged out`);
+      this.server.userManager.removeUser(this.user);
+      this.server.clients.delete(this.clientId);
+      if (this.user.room != null) {
+        this.receiveLeaveRoom();
+      }
+      this.server.broadcastUserLogout(this.user);
+    }
   }
 
   // receiveUserState() throws IOException {
@@ -169,30 +198,28 @@ export class ServerThread {
 
     // add the user to the room by the user object
     // we can get the username from the user
-    let slot = room.addUser(this.user);
-    this.user.slot = slot;
-    this.user.room = room;
-    this.user.teamId = room.isTeamRoom ? Team.GOLDTEAM : Team.NOTEAM;
-    this.server.addRoom(room);
+
+    // TODO - check if '-1' returned, there was an error adding the user to the table
+    this.server.roomManager.addRoom(room);
+    this.server.roomManager.addUserToRoom(room.roomId, this.user.userId);
     this.server.broadcastRoom(room);
   }
 
   receiveJoinRoom(packet) {
-    let roomId = packet.roomId;
-    let password = packet.password;
-    let room = this.server.roomManager.getRoom(roomId);
-    if (room == null || room.isFull || this.user.room == room) {
+    const roomId = packet.roomId;
+    const password = packet.password;
+    const room = this.server.roomManager.rooms.get(roomId);
+    // check for undefined if there is no room with that id
+    if (room == undefined || room.isFull || this.user.roomId == room.roomId) {
+      // room doesn't exist, is full, or the user is already in the room
       return;
     }
 
-    let teamId = room.isTeamRoom ? Team.GOLDTEAM : Team.NOTEAM; // Gold team is default when joining
+    const teamId = room.isTeamRoom ? Team.GOLDTEAM : Team.NOTEAM; // Gold team is default when joining
 
     if (!room.isPrivate || password == room.password) {
       let slot = room.addUser(this.user.username());
-      room.addUser(this.user);
-      this.user.setSlot(slot);
-      this.user.setRoom(room);
-      this.user.setTeamId(teamId);
+      this.server.roomManager.addUserToRoom(roomId, this.user.userId);
       this.server.broadcastJoinRoom(room, this.user.username, slot, teamId);
       this.sendRoomWins(room);
     } else { // user entered the wrong password to join the room
@@ -203,11 +230,11 @@ export class ServerThread {
   receiveLeaveRoom() {
     const room = this.user.room;
     room.removeUser(this.user);
-    this.server.broadcastLeaveRoom(room.id, this.user.username);
+    this.server.broadcastLeaveRoom(room.roomId, this.user.username);
     this.user.room = null;
     if (room.numUsers <= 0) {
       this.server.broadcastRoomStatusChange(room.roomId, RoomStatus.DELETE, -1);
-      this.server.roomManager.removeRoom(room);
+      this.server.roomManager.removeRoom(room.roomId);
     }
     if (room.status == RoomStatus.PLAYING && room.gameOver()) {
       this.handleGameEnd(room);
@@ -243,7 +270,7 @@ export class ServerThread {
 
   receiveStartGame(packet) {
     let roomId = packet.roomId;
-    let room = this.server.roomManager.getRoom(roomId);
+    let room = this.server.roomManager.rooms.get(roomId);
 
     if (room.status == RoomStatus.IDLE && room.numUsers() > 1) {
       if (
@@ -333,18 +360,10 @@ export class ServerThread {
   }
 
   sendUser(user) {
-    let iconArray: string[] = [];
-    user.icons.forEach((icon) => {
-      iconArray.push(icon);
-    });
     // byte opcode = 13;
     const packet = {
       type: "userInfo",
-      username: user.username,
-      rank: user.rank,
-      numIcons: user.icons.length,
-      icons: iconArray,
-      clan: user.clan,
+      user,
     };
     this.socket.send(JSON.stringify(packet));
   }
@@ -352,45 +371,18 @@ export class ServerThread {
   sendUsers() {
     // Send current user list to client
     this.server.userManager.users.forEach((user) => {
-      // if (user != null) {
       this.sendUser(user);
-      // }
     });
   }
 
   sendRoom(room) {
-    let roomUsers: string[] = [];
-    room.users.forEach((user) => {
-      if (user != "Open Slot") {
-      roomUsers.push(user.username);
-      } else {
-        roomUsers.push("Open Slot");
-      }
-    });
-
-    let password = "";
-    if (this.user.room == room) {
-      password = room.password;
-    }
+    // TODO - don't store the password in the room,
+    // make a roomPasswordManager for the server
+    // to check if the password is correct
     // byte opcode = 101;
-    // call this "newRoom"
     const packet = {
       type: "roomInfo",
-      roomId: room.roomId,
-      status: room.status,
-      isRanked: room.isRanked,
-      isPrivate: room.isPrivate,
-      isBigRoom: room.isBigRoom,
-
-      allShipsAllowed: room.allShipsAllowed,
-      allPowerupsAllowed: room.allPowerupsAllowed,
-      isTeamRoom: room.isTeamRoom,
-      boardSize: room.boardSize,
-      isBalancedRoom: room.isBalancedRoom,
-      roomUsers: roomUsers,
-      numSlots: room.numSlots,
-      options: 0,
-      password: password,
+      room,
     };
     this.socket.send(JSON.stringify(packet));
   }
@@ -443,40 +435,46 @@ export class ServerThread {
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendJoinRoom(room, username, slot, teamId) {
+  sendJoinRoom(roomId, userId, slot, teamId) {
+    const room = this.server.roomManager.rooms.get(roomId);
+    const user = this.server.userManager.users.get(userId);
+
+    // TODO - remove this section to only handle passwords
+    // on the server
     let roomPassword = "";
-    if (this.user.room == room) {
+    if (user.roomId == roomId) {
       roomPassword = room.password;
     }
 
-    let roomUsers: { slot: number; winCount: number }[] = [];
-    room.users.forEach((user) => {
-      if (user != null) {
-        roomUsers.push({
-          slot: user.slot,
-          winCount: room.winCountOf(user.slot),
-        });
-      }
-    });
+    // let roomUsers: { slot: number; winCount: number, teamId: number }[] = [];
+    // room.userIds.forEach((userId) => {
+    //   if (userId != "Open Slot") {
+    //     const curUser = this.server.userManager.users.get(userId);
+    //     roomUsers.push({
+    //       slot: user.slot,
+    //       winCount: room.winCountOf(user.slot),
+    //       teamId: user.teamId
+    //     });
+    //   }
+    // });
 
-    // if team room, then we need to send to the new player the teamIds of the other players
-    let userTeamIds: number[] = [];
-    if (room.isTeamRoom && this.user.username == username) {
-      room.users.forEach((user) => {
-        if (user != null) {
-          userTeamIds.push(user.teamId);
-        }
-      });
-    }
+    // let userTeamIds: number[] = [];
+    // if (room.isTeamRoom && user.userId == userId) {
+    //   room.userIds.forEach((userId) => {
+    //     if (user != "Open Slot") {
+    //       const curUser = this.server.userManager.users.get(userId);
+    //       userTeamIds.push(curUser.teamId);
+    //     }
+    //   });
+    // }
 
     // 	byte opcode = 102;
     const packet = {
       type: "joinRoom",
-      roomId: room.id,
-      username,
+      roomId: room.roomId,
+      userId,
       slot,
-      password: roomPassword,
-      userTeamIds,
+      teamId,
     };
   }
 
@@ -493,6 +491,7 @@ export class ServerThread {
     const packet = {
       type: "leaveRoom",
       roomId,
+      // TODO - just use the userId here
       username,
     };
     this.socket.send(JSON.stringify(packet));
@@ -598,29 +597,12 @@ export class ServerThread {
         // NOOP, heartbeat
         break;
       }
-      case "login":{
-        console.log("Login attempted...");
+      case "login": {
         this.receiveLogin(packetJSON);
-
-        if (this.server.userManager.usernameTaken(this.user.username)) {
-          this.sendLoginFailed("Username already taken");
-          this.server.clients.delete(this);
-          return;
-        }
-
-        if (this.clientVersion != 1.2) {
-          this.sendLoginFailed(
-            "Wrong client version, check website for updated client",
-          );
-          this.server.clients.delete(this);
-          return;
-        }
-
-        this.sendLoginSucceed();
-
-        // Add user and broadcast to all clients
-        this.server.addUser(this.user);
-        // this.server.broadcastUser(this.user);
+        break;
+      }
+      case "logout": {
+        this.handleUserDisconnect();
         break;
       }
       case "listUsers": {
@@ -631,8 +613,12 @@ export class ServerThread {
         this.sendRooms();
         break;
       }
-      case "logout": {
-        this.handleUserLogout();
+      case "createRoom": {
+        this.receiveCreateRoom(packetJSON);
+        break;
+      }
+      case "changeTeam": {
+        this.receiveChangeTeam(packetJSON);
         break;
       }
       // case 5:
@@ -656,10 +642,6 @@ export class ServerThread {
       // case 110:
       // 	receiveUserDeath();
       // 	break;
-      case "createRoom": {
-        this.receiveCreateRoom(packetJSON);
-        break;
-      }
       // case 21:
       // 	receiveJoinRoom();
       // 	break;
@@ -672,85 +654,9 @@ export class ServerThread {
       // case 30:
       // 	receiveStartGame(packet);
       // 	break;
-      case "changeTeam":
-        this.receiveChangeTeam(packetJSON);
-        break;
       default:
         break;
     }
     return operation;
   }
 }
-
-// TODO - implement this method for logging in
-// public void run() {
-// 	try {
-// 		receiveLogin();
-
-// 		if (server.userManager.usernameTaken(user().username())){
-// 			sendLoginFailed("Username already taken");
-// 			server.clients.remove(this);
-// 			return;
-// 		}
-
-// 		if (!this.clientVersion.equals("version1.2")){
-// 			sendLoginFailed("Wrong client version, check website for updated client");
-// 			server.clients.remove(this);
-// 			return;
-// 		}
-
-// 		sendLoginSucceed();
-
-// 		// Send current user list to client
-// 		for (ServerUser user : server.userManager.users()) {
-// 			if (user != null) {
-// 				sendUser(user);
-// 			}
-// 		}
-
-// 		// Send current room list to client
-// 		for (ServerRoom room : server.roomManager.rooms()) {
-// 			if (room != null) {
-// 				sendFullRoom(room);
-// 			}
-// 		}
-
-// 		// Add user and broadcast to all clients
-// 		server.addUser(this.user);
-// 		server.broadcastUser(this.user);
-
-// 		// Start processing packets from client
-// 		final DataInputStream stream = pr.getStream();
-// 		this.nextTime = System.currentTimeMillis() + GameNetLogic.NOOP_DURATION*2;
-// 		while (true) {
-// 			try {
-// 				while (!sendMessages.isEmpty()) {
-// 					sendMessages.poll().run();
-// 				}
-// 				if (stream.available() > 0) {
-// 					short numBytes = stream.readShort();	// packetStreamWriter/Reader let first short be size, we do not use that here
-// 					if (numBytes > 0) {
-// 						byte opcode = processPackets(stream);
-// 						if (opcode == 1) {	// user logout
-// 							break;
-// 						}
-// 					}
-// 					this.nextTime = System.currentTimeMillis() + GameNetLogic.NOOP_DURATION*2;
-// 				}
-// 				else {
-// 					if (System.currentTimeMillis() > this.nextTime) {	// no communication from client
-// 						handleUserLogout();
-// 						break;
-// 					}
-// 				}
-// 			} catch (EOFException e) {
-// 				// No more communication to client
-// 				handleUserLogout();
-// 				break;
-// 			}
-// 		}
-// 	} catch (Exception e) {
-// 		e.printStackTrace();
-// 		return;
-// 	}
-// }

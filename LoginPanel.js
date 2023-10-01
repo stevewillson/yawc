@@ -36,29 +36,33 @@ export default class LoginPanel {
     wormholeGraphic.src = "./images/leftbanner.gif";
     loginDiv.appendChild(wormholeGraphic);
 
-    const loginForm = document.createElement("form");
+    // const loginForm = document.createElement("form");
 
     const usernameLabel = document.createElement("label");
     usernameLabel.innerText = "Username:";
-    loginForm.appendChild(usernameLabel);
+    loginDiv.appendChild(usernameLabel);
+    // loginForm.appendChild(usernameLabel);
 
     const usernameField = document.createElement("input");
     usernameField.name = "username";
     usernameField.id = "username";
     usernameField.type = "text";
-    loginForm.appendChild(usernameField);
+    loginDiv.appendChild(usernameField);
+    // loginForm.appendChild(usernameField);
 
     usernameLabel.for = usernameField.id;
 
     const passwordLabel = document.createElement("label");
     passwordLabel.innerText = "Password:";
-    loginForm.appendChild(passwordLabel);
+    // loginForm.appendChild(passwordLabel);
+    loginDiv.appendChild(passwordLabel);
 
     const passwordField = document.createElement("input");
     passwordField.name = "password";
     passwordField.id = "password";
     passwordField.type = "password";
-    loginForm.appendChild(passwordField);
+    loginDiv.appendChild(passwordField);
+    // loginForm.appendChild(passwordField);
 
     passwordLabel.for = passwordField.id;
 
@@ -68,9 +72,10 @@ export default class LoginPanel {
     loginButton.type = "submit";
     loginButton.onclick = () => this.processLogin();
 
-    loginForm.appendChild(loginButton);
+    // loginForm.appendChild(loginButton);
+    loginDiv.appendChild(loginButton);
 
-    loginDiv.appendChild(loginForm);
+    // loginDiv.appendChild(loginForm);
 
     return loginDiv;
   }

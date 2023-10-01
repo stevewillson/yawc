@@ -1,17 +1,20 @@
 export default class CFChatPanel {
+  gamePanel;
   maxLines;
   tfChat;
+
+  constructor(gamePanel) {
+    this.gamePanel = gamePanel;
+    this.maxLines = 20;
+    // this.maxLines = maxLines;
+    // (this.tfChat = new TextField(128)).setSize(1, n);
+    // this.tfChat.addActionListener(this);
+    // this.add(this.tfChat);
+  }
 
   clearLines() {
     this.resetChatLine();
     this.removeAllElements();
-  }
-
-  constructor(maxLines, n) {
-    this.maxLines = maxLines;
-    // (this.tfChat = new TextField(128)).setSize(1, n);
-    // this.tfChat.addActionListener(this);
-    // this.add(this.tfChat);
   }
 
   toHtml() {
@@ -56,6 +59,7 @@ export default class CFChatPanel {
     // <input id="data" placeholder="send message" />;
     return chatPanelDiv;
   }
+
   addLine(s, s2, s3, color) {
     super.vComponents.addElement(
       CFSkin.getSkin().generateCFChatElement(

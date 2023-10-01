@@ -1,11 +1,11 @@
-// import RoomPanel from "./RoomPanel.js";
-import UserPanel from "./UserPanel.js";
+// import RoomListPanel from "./RoomListPanel.js";
+import UserListPanel from "./UserListPanel.js";
 import ChatPanel from "./ChatPanel.js";
-import RoomPanel from "./RoomPanel.js";
+import RoomListPanel from "./RoomListPanel.js";
 
 export default class LobbyPanel {
-  roomPanel;
-  userPanel;
+  roomListPanel;
+  userListPanel;
   chatPanel;
   gameNetLogic;
   gamePanel;
@@ -30,8 +30,14 @@ export default class LobbyPanel {
     // this.add(this.cfBtnCreateTableOptions);
     this.gamePanel = gamePanel;
     this.gameNetLogic = gamePanel.gameNetLogic;
-    this.roomPanel = new RoomPanel(this.gamePanel);
-    this.userPanel = new UserPanel(this.gamePanel);
+    this.roomListPanel = new RoomListPanel(
+      this.gamePanel,
+      this.gameNetLogic.clientRoomManager
+    );
+    this.userPanel = new UserListPanel(
+      this.gamePanel,
+      this.gameNetLogic.clientUserManager
+    );
     this.chatPanel = new ChatPanel(this.gamePanel);
   }
 
@@ -142,6 +148,7 @@ export default class LobbyPanel {
     // set the layout to a grid layout two columns
     const lobbyPanelDiv = document.createElement("div");
     lobbyPanelDiv.className = "lobbyDiv";
+    lobbyPanelDiv.id = "lobbyPanelDiv";
 
     lobbyPanelDiv.style.display = "grid";
     lobbyPanelDiv.style["grid-template-columns"] = "1fr 2fr";
@@ -156,7 +163,7 @@ export default class LobbyPanel {
 
     rightDiv.appendChild(this.createRoomButtonsDiv());
 
-    rightDiv.appendChild(this.roomPanel.toHtml());
+    rightDiv.appendChild(this.roomListPanel.toHtml());
     rightDiv.appendChild(this.chatPanel.toHtml());
 
     lobbyPanelDiv.appendChild(leftDiv);

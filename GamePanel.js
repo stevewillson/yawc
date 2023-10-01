@@ -1,7 +1,6 @@
 import GameNetLogic from "./GameNetLogic.js";
 import LoginPanel from "./LoginPanel.js";
 import LobbyPanel from "./LobbyPanel.js";
-import UserPanel from "./UserPanel.js";
 import RoomPanel from "./RoomPanel.js";
 
 // GamePanel is a wrapper for the different displays
@@ -15,19 +14,24 @@ export default class GamePanel {
   constructor() {
     // lobby panel
     // playing panel (for the game)
+    // connection between the logic and the display
     this.gameNetLogic = new GameNetLogic(this);
+
+    // display for login and lobby
     this.loginPanel = new LoginPanel(this);
     this.lobbyPanel = new LobbyPanel(this);
+    this.roomPanel = new RoomPanel(this);
 
     this.showLogin();
   }
 
   showLogin() {
     // add the loginPanel div to the html
-    if (document.getElementById("loginPanelDiv") != undefined) {
-      document.getElementById("loginPanelDiv").hidden = false;
+    let loginPanelDiv = document.getElementById("loginPanelDiv");
+    if (loginPanelDiv != undefined) {
+      loginPanelDiv.hidden = false;
     } else {
-      const loginPanelDiv = this.loginPanel.toHtml();
+      loginPanelDiv = this.loginPanel.toHtml();
       document.body.appendChild(loginPanelDiv);
       loginPanelDiv.hidden = false;
     }
@@ -43,25 +47,57 @@ export default class GamePanel {
 
     // clear the page
     // need to wait until the
-    document.getElementById("loginPanelDiv").hidden = true;
-    // document.body.removeChild(document.getElementById("loginScreen"));
-    const lobbyPanelDiv = this.lobbyPanel.toHtml();
 
-    document.body.appendChild(lobbyPanelDiv);
+    // hide the lobby and the room panel
+
+    const loginPanelDiv = document.getElementById("loginPanelDiv");
+    const roomPanelDiv = document.getElementById("roomPanelDiv");
+
+    if (loginPanelDiv != undefined) {
+      loginPanelDiv.hidden = true;
+    }
+    if (roomPanelDiv != undefined) {
+      roomPanelDiv.hidden = true;
+    }
+
+    let lobbyPanelDiv = document.getElementById("lobbyPanelDiv");
+
+    if (lobbyPanelDiv != undefined) {
+      lobbyPanelDiv.hidden = false;
+    } else {
+      lobbyPanelDiv = this.lobbyPanel.toHtml();
+      document.body.appendChild(lobbyPanelDiv);
+    }
   }
 
   showRoom() {
-    // shows a room for users to join
+    // shows a room with users inside
     // allows selecting a ship
     // shows the users name and bar across the top
     // chat panel on the left of the screen for the game
     // <!-- <main>
     // <canvas id="GameCanvas"></canvas>
     // </main> -->
-  }
 
-  showGame() {
-    // show a game once it starts from the lobby
-    // this.cardLayout.show(this, "Playing");
+    // hide the lobby and the login panel
+    const loginPanelDiv = document.getElementById("loginPanelDiv");
+    const lobbyPanelDiv = document.getElementById("lobbyPanelDiv");
+    let roomPanelDiv = document.getElementById("roomPanelDiv");
+
+    if (loginPanelDiv != undefined || loginPanelDiv != null) {
+      loginPanelDiv.hidden = true;
+    }
+
+    // TODO - does not appear to hide the lobby Panel
+    if (lobbyPanelDiv != undefined || lobbyPanelDiv != null) {
+      lobbyPanelDiv.hidden = true;
+    }
+
+    if (roomPanelDiv != undefined || roomPanelDiv != null) {
+      roomPanelDiv.hidden = false;
+    } else {
+      roomPanelDiv = this.roomPanel.toHtml();
+      document.body.appendChild(roomPanelDiv);
+    }
   }
 }

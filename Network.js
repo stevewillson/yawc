@@ -6,7 +6,6 @@ export default class Network {
 
   constructor(gameNetLogic) {
     this.gameNetLogic = gameNetLogic;
-    // this.login();
   }
 
   login(gameId, majorVersion, minorVersion, username, password, host, port) {
@@ -77,7 +76,7 @@ export default class Network {
     boardSize = 3,
     isBalancedRoom = false,
     allShips = true,
-    allPowerups = true
+    allPowerups = true,
   ) {
     console.log(`Sending a packet to create a new room`);
     const packet = {
