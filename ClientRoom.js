@@ -14,7 +14,6 @@ export default class ClientRoom {
   isBigRoom;
   allShipsAllowed;
   allPowerupsAllowed;
-  isTeamRoom;
   isBalancedRoom;
 
   boardSize;
@@ -48,7 +47,6 @@ export default class ClientRoom {
       this.roomId
     )}`;
     joinRoomButton.className = "joinRoomButton";
-    // TODO
     joinRoomButton.onclick = () =>
       this.clientRoomManager.gameNetLogic.handleJoinRoom(this.roomId);
 
@@ -121,29 +119,19 @@ export default class ClientRoom {
     return this.getOption(s) != null;
   }
 
-  // remove the user from the room
-  removeUser(userId) {
-    for (let i = 0; i < this.userIds.length; i++) {
-      if (this.userIds[i] == userId) {
-        this.userIds[i] = "Open Slot";
-        return i;
-      }
-    }
-  }
-
   setOptions(
     bRanked,
     bPrivate,
     bAllShipsAllowed,
     bAllPowerupsAllowed,
-    bTeamRoom,
+    isTeamRoom,
     boardSize,
     bBalancedTeams,
     options
   ) {
     this.bRanked = bRanked;
     this.bPrivate = bPrivate;
-    this.bTeamRoom = bTeamRoom;
+    this.isTeamRoom = isTeamRoom;
     this.boardSize = boardSize;
     this.bAllShipsAllowed = bAllShipsAllowed;
     this.bAllPowerupsAllowed = bAllPowerupsAllowed;
@@ -167,6 +155,16 @@ export default class ClientRoom {
     this.userIds[slot] = userId;
   }
 
+  // remove the user from the room
+  removeUser(userId) {
+    for (let i = 0; i < this.userIds.length; i++) {
+      if (this.userIds[i] == userId) {
+        this.userIds[i] = "Open Slot";
+        return i;
+      }
+    }
+  }
+
   setStatus(status, countdown = this.countdown) {
     if (this.countdown != countdown) {
       this.countdown = countdown;
@@ -187,6 +185,6 @@ export default class ClientRoom {
         return i;
       }
     }
-    return -1;
+    return null;
   }
 }

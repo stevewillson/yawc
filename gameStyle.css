@@ -14,14 +14,14 @@ html,
     color:#C09760;
 }
 
-.lobbyButton
+.lobbyButton, .roomButton
 {
     color: #C09760;
     background-color: #735A49;
     border-radius: 8px;
 }
 
-.lobbyButton:hover {
+.lobbyButton:hover, .roomButton:hover {
     color: #FCD39C;
 }
 
@@ -75,3 +75,6 @@ html,
     color: #464646;
 }
 
+[hidden] {
+    display: none !important;
+}

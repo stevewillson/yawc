@@ -2,10 +2,11 @@ import { RoomStatus } from "./RoomStatus.ts";
 import { ServerUser } from "./ServerUser.ts";
 import { ServerRoom } from "./ServerRoom.ts";
 import { Team } from "./Team.ts";
-import { RoomTransitionThread } from "./RoomTransitionThread.ts";
+// import { RoomTransitionThread } from "./RoomTransitionThread.ts";
 
 export class ServerThread {
-  static TABLE_COUNTDOWN = 5;
+  // moving the TABLE_COUNTDOWN to the ServerRoomManager
+  // static TABLE_COUNTDOWN = 5;
   server;
   user;
   clientVersion;
@@ -25,13 +26,19 @@ export class ServerThread {
     socket.onerror = (error) => console.error("ERROR:", error);
   }
 
-  handleGameEnd(room) {
+  handleGameEnd(roomId) {
+    const room = this.server.roomManager.rooms.get(roomId);
     room.increaseWinCounts();
     room.status = RoomStatus.GAMEOVER;
-    this.server.broadcastGameEnd(room);
-    this.server.broadcastRoomStatusChange(room.roomId, room.status, -1);
-    let rtt = new RoomTransitionThread(this.server, room, room.status);
+    this.server.broadcastGameEnd(roomId);
+    this.server.broadcastRoomStatusChange(roomId, room.status, -1);
+    this.server.roomManager.endGameTransition(roomId);
+
+    // use the serverroom manager to do this now
+    // let rtt = new RoomTransitionThread(this.server, room, room.status);
   }
+
+ 
 
   receiveLogin(packet) {
     console.log("Login attempted...");
@@ -65,7 +72,7 @@ export class ServerThread {
     this.server.userManager.addUser(this.user);
 
     // send out user logging in to all clients
-    this.server.broadcastUser(this.user);
+    this.server.broadcastUser(this.user.userId);
   }
 
   handleUserDisconnect() {
@@ -77,7 +84,7 @@ export class ServerThread {
       if (this.user.room != null) {
         this.receiveLeaveRoom();
       }
-      this.server.broadcastUserLogout(this.user);
+      this.server.broadcastUserLogout(this.user.userId);
     }
   }
 
@@ -101,6 +108,7 @@ export class ServerThread {
   //         byte	lostHealth		= stream.readByte();
   //     }
 
+  // TODO - use the roomId here
   //     server.broadcastUserState(user().room(), gameSession, user().slot(), healthPerc, powerups, shipType);
   // }
 
@@ -111,6 +119,8 @@ export class ServerThread {
   // 	byte	killedBy		= stream.readByte();
 
   // 	ServerRoom room = user().room();
+
+  // user the room ID here
   // 	server.broadcastGameOver(room, gameSession, user().slot(), killedBy);
 
   // 	user().setAlive(false);
@@ -125,6 +135,7 @@ export class ServerThread {
   // 	short	gameSession		= stream.readShort();
   // 	String	eventString		= stream.readUTF();
 
+  // TODO - use the roomId here
   // 	server.broadcastUserEvent(user().room(), gameSession, eventString);
   // }
 
@@ -138,6 +149,7 @@ export class ServerThread {
   // 	int		timeElapsed		= stream.readInt();
   // }
 
+  // TODO - make sure that the message sent from the client is formatted properly
   receiveChangeTeam(packet) {
     const teamId = packet.teamId;
     this.user.setTeamId(teamId);
@@ -152,6 +164,7 @@ export class ServerThread {
   // 	byte	toSlot			= stream.readByte();
   // 	byte 	upgradeLevel	= stream.readByte();
 
+  // TODO - use the room Id here
   // 	server.broadcastPowerup(user().room(), powerupType, user().slot(), toSlot, gameSession, (byte)0);
   // }
 
@@ -199,10 +212,15 @@ export class ServerThread {
     // add the user to the room by the user object
     // we can get the username from the user
 
+    const slot = 0;
+    const teamId = isTeamRoom ? Team.GOLDTEAM : Team.NOTEAM;
+
     // TODO - check if '-1' returned, there was an error adding the user to the table
     this.server.roomManager.addRoom(room);
+    this.server.broadcastRoom(room.roomId);
+
     this.server.roomManager.addUserToRoom(room.roomId, this.user.userId);
-    this.server.broadcastRoom(room);
+    this.server.broadcastJoinRoom(room.roomId, this.user.userId, slot, teamId);
   }
 
   receiveJoinRoom(packet) {
@@ -210,7 +228,7 @@ export class ServerThread {
     const password = packet.password;
     const room = this.server.roomManager.rooms.get(roomId);
     // check for undefined if there is no room with that id
-    if (room == undefined || room.isFull || this.user.roomId == room.roomId) {
+    if (room == undefined || room.isFull() || this.user.roomId == room.roomId) {
       // room doesn't exist, is full, or the user is already in the room
       return;
     }
@@ -218,21 +236,30 @@ export class ServerThread {
     const teamId = room.isTeamRoom ? Team.GOLDTEAM : Team.NOTEAM; // Gold team is default when joining
 
     if (!room.isPrivate || password == room.password) {
-      let slot = room.addUser(this.user.username());
-      this.server.roomManager.addUserToRoom(roomId, this.user.userId);
-      this.server.broadcastJoinRoom(room, this.user.username, slot, teamId);
+      let slot = this.server.roomManager.addUserToRoom(
+        roomId,
+        this.user.userId,
+      );
+      // this.server.roomManager.addUserToRoom(roomId, this.user.userId);
+      this.server.broadcastJoinRoom(
+        room.roomId,
+        this.user.userId,
+        slot,
+        teamId,
+      );
       this.sendRoomWins(room);
     } else { // user entered the wrong password to join the room
       this.sendIncorrectRoomPassword();
     }
   }
 
+  // received a packet from the client to leave a room
   receiveLeaveRoom() {
-    const room = this.user.room;
-    room.removeUser(this.user);
-    this.server.broadcastLeaveRoom(room.roomId, this.user.username);
-    this.user.room = null;
-    if (room.numUsers <= 0) {
+    // get the room from the user's Id
+    const room = this.server.roomManager.rooms.get(this.user.roomId);
+    this.server.roomManager.removeUserFromRoom(room.roomId, this.user.userId);
+    this.server.broadcastLeaveRoom(this.user.userId);
+    if (room.numUsers() <= 0) {
       this.server.broadcastRoomStatusChange(room.roomId, RoomStatus.DELETE, -1);
       this.server.roomManager.removeRoom(room.roomId);
     }
@@ -268,20 +295,27 @@ export class ServerThread {
     );
   }
 
+  // client sent the 'startGame' packet from the room
   receiveStartGame(packet) {
     let roomId = packet.roomId;
     let room = this.server.roomManager.rooms.get(roomId);
 
+    // check some settings for the teams,
+    // TODO - implement teams, for now we will just have single player
+    // games
     if (room.status == RoomStatus.IDLE && room.numUsers() > 1) {
       if (
-        !room.isTeamRoom() ||
+        !room.isTeamRoom ||
         room.teamSize(Team.GOLDTEAM) == room.teamSize(Team.BLUETEAM) ||
         !room.isBalancedRoom() &&
           (room.teamSize(Team.GOLDTEAM) > 0 && room.teamSize(Team.BLUETEAM) > 0)
       ) {
-        room.setStatus(RoomStatus.COUNTDOWN);
+        room.status = RoomStatus.COUNTDOWN;
+        // use the room manager to send out informatino about the room
+        this.server.roomManager.startGameTransition(room.roomId);
+        // doing this in the roomManager now
         // start a new RoomTransitionThread
-        let rtt = new RoomTransitionThread(this.server, room, room.status);
+        // let rtt = new RoomTransitionThread(this.server, room, room.status);
       }
     }
   }
@@ -396,16 +430,16 @@ export class ServerThread {
     });
   }
 
-  sendUserLogout(user) {
+  sendUserLogout(userId) {
     // 	byte opcode = 14;
     const packet = {
       type: "logout",
-      username: user.username,
+      userId,
     };
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendGameStart(room) {
+  sendGameStart(roomId) {
     // 	byte opcode = 80;
     // 	byte opcode2 = 100;
     let roomUsers: {
@@ -414,8 +448,10 @@ export class ServerThread {
       gameOver: boolean;
       teamId: number;
     }[] = [];
-    room.users.forEach((user) => {
-      if (user != null) {
+    const room = this.server.roomManager.rooms.get(roomId)
+    room.userIds.forEach((userId) => {
+      if (userId != "Open Slot") {
+        const user = this.server.userManager.users.get(userId);
         roomUsers.push({
           username: user.username,
           slot: user.slot,
@@ -426,7 +462,7 @@ export class ServerThread {
     });
 
     const packet = {
-      type: "gameStart",
+      type: "startGame",
       gameId: 0,
       sessionId: 0,
       numUsers: room.numUsers,
@@ -471,11 +507,12 @@ export class ServerThread {
     // 	byte opcode = 102;
     const packet = {
       type: "joinRoom",
-      roomId: room.roomId,
+      roomId,
       userId,
       slot,
       teamId,
     };
+    this.socket.send(JSON.stringify(packet));
   }
 
   sendIncorrectRoomPassword() {
@@ -486,20 +523,20 @@ export class ServerThread {
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendLeaveRoom(roomId, username) {
+  sendLeaveRoom(userId) {
     // 	byte opcode = 65;
     const packet = {
       type: "leaveRoom",
-      roomId,
-      // TODO - just use the userId here
-      username,
+      userId,
     };
     this.socket.send(JSON.stringify(packet));
   }
 
   sendRoomWins(room) {
     let roomUsers: { slot: number; winCount: number }[] = [];
-    room.users.forEach((user) => {
+    room.userIds.forEach((userId) => {
+      // resolve the userId to a user
+      const user = this.server.userManager.users.get(userId);
       if (user != null) {
         roomUsers.push({
           slot: user.slot,
@@ -597,30 +634,49 @@ export class ServerThread {
         // NOOP, heartbeat
         break;
       }
+
       case "login": {
         this.receiveLogin(packetJSON);
         break;
       }
+
       case "logout": {
         this.handleUserDisconnect();
         break;
       }
+
       case "listUsers": {
         this.sendUsers();
         break;
       }
+
       case "listRooms": {
         this.sendRooms();
         break;
       }
+
       case "createRoom": {
         this.receiveCreateRoom(packetJSON);
         break;
       }
+
       case "changeTeam": {
         this.receiveChangeTeam(packetJSON);
         break;
       }
+
+      case "joinRoom": {
+        // case 21:
+        this.receiveJoinRoom(packetJSON);
+        break;
+      }
+
+      case "leaveRoom": {
+        // case 22:
+        this.receiveLeaveRoom();
+        break;
+      }
+
       // case 5:
       // 	receiveSay();
       // 	break;
@@ -630,6 +686,8 @@ export class ServerThread {
       // case 18:
       // 	receiveRoomSay();
       // 	break;
+
+      // TODO
       // case 106:
       // 	receiveUserState();
       // 	break;
@@ -642,18 +700,13 @@ export class ServerThread {
       // case 110:
       // 	receiveUserDeath();
       // 	break;
-      // case 21:
-      // 	receiveJoinRoom();
-      // 	break;
-      // case 22:
-      // 	receiveLeaveRoom();
-      // 	break;
-      // case 27:
-      // 	receiveCredits();
-      // 	break;
-      // case 30:
-      // 	receiveStartGame(packet);
-      // 	break;
+
+      case "startGame": {
+        // case 30:
+        this.receiveStartGame(packetJSON);
+        break;
+      }
+
       default:
         break;
     }

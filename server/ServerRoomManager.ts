@@ -1,6 +1,13 @@
 import { Team } from "./Team.ts";
+// import { ServerThread } from "./ServerThread.ts";
+import { RoomStatus } from "./RoomStatus.ts";
+// import { ServerRoom } from "./ServerRoom.ts";
+
+// include the RoomTransitionThread class here
+// when a game starts or ends, the room transition thread object is created
 
 export class ServerRoomManager {
+  static TABLE_COUNTDOWN = 5;
   server;
   rooms;
   userManager;
@@ -41,8 +48,7 @@ export class ServerRoomManager {
     const user = this.userManager.users.get(userId);
     // get the room by the room Id
     const room = this.rooms.get(roomId);
-
-    room.removeuser(userId);
+    room.removeUser(userId);
 
     user.roomId = null;
     user.slot = null;
@@ -155,5 +161,61 @@ export class ServerRoomManager {
       }
     }
     return -1;
+  }
+
+  // start status of 3 causes a countdowntransition to happen
+  startGameTransition(roomId) {
+    const room = this.rooms.get(roomId);
+    let countdown = ServerRoomManager.TABLE_COUNTDOWN;
+    for (let i = 0; i < ServerRoomManager.TABLE_COUNTDOWN; i++) {
+      this.server.broadcastRoomStatusChange(
+        room.roomId,
+        room.status,
+        countdown,
+      );
+      countdown--;
+      // what is the TS equivalent for sleep?
+      // Thread.sleep(1000);
+      if (
+        room.numUsers() < 2 ||
+        room.isTeamRoom &&
+          (room.teamSize(Team.GOLDTEAM) <= 0 ||
+            room.teamSize(Team.BLUETEAM) <= 0) ||
+        room.isBalancedRoom &&
+          (room.teamSize(Team.GOLDTEAM) !=
+            room.teamSize(Team.BLUETEAM))
+      ) {
+        // People left, we need to stop counting down
+        room.status = RoomStatus.IDLE;
+        this.server.broadcastRoomStatusChange(
+          room.roomId,
+          room.status,
+          ServerRoomManager.TABLE_COUNTDOWN,
+        );
+        return;
+      }
+    }
+    // Game is ready to start
+    room.status = RoomStatus.PLAYING;
+    this.setUsersAlive(room.roomId);
+    this.server.broadcastRoomStatusChange(
+      room.roomId,
+      room.status,
+      null,
+    );
+    this.server.broadcastGameStart(room.roomId);
+  }
+
+  // wait 3 seconds and then send a room status change packet
+  // saying that the room is now idle
+  // startStatus of 5 causes an end game transition
+  endGameTransition(roomId) {
+    const room = this.rooms.get(roomId);
+    room.status = RoomStatus.IDLE;
+    this.server.broadcastRoomStatusChange(
+      room.roomId,
+      room.status,
+      null,
+    );
   }
 }

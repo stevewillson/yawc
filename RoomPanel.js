@@ -1,3 +1,5 @@
+import Game from "./Game.js";
+
 // called PlayingPanel.java for wormhole
 export default class RoomPanel {
   userStatusCanvas;
@@ -8,18 +10,42 @@ export default class RoomPanel {
   gameNetLogic;
   gamePanel;
 
-  //     private int m_countdown;
-  //     private boolean m_bCountdown;
+  countdown;
+  inCountdown;
 
   constructor(gamePanel) {
     this.gamePanel = gamePanel;
+
+    this.countdown = null;
+    this.inCountdown = null;
   }
 
   toHtml() {
     const roomPanelDiv = document.createElement("div");
     roomPanelDiv.className = "roomDiv";
+    roomPanelDiv.id = "roomPanelDiv";
+
+    roomPanelDiv.style.display = "grid";
+    roomPanelDiv.style["grid-template-columns"] = "1fr 2fr 1fr";
 
     roomPanelDiv.appendChild(this.userAreaHtml());
+
+    const gameCanvas = document.createElement("canvas");
+    gameCanvas.id = "GameCanvas";
+    gameCanvas.style.margin = 0;
+    gameCanvas.style.padding = 0;
+
+    roomPanelDiv.appendChild(gameCanvas);
+
+    // setup a new area for the game to populate
+    this.game = new Game(this.gamePanel.gameNetLogic);
+
+    // TODO add a canvas for the user status
+
+    // TODO add a canvas for the other players' status
+
+    // TODO add a roomChatPanel
+
     return roomPanelDiv;
   }
 
@@ -47,7 +73,13 @@ export default class RoomPanel {
     startGameButton.innerText = "Start Game";
     startGameButton.className = "roomButton";
 
-    // startGameButton.onclick = () => startCountdown(roomId);
+    // need to get the room id for the current user?
+    const user = this.gamePanel.gameNetLogic.clientUserManager.users.get(
+      this.gamePanel.gameNetLogic.userId
+    );
+
+    startGameButton.onclick = () =>
+      this.gamePanel.gameNetLogic.network.startGame(user.roomId);
 
     const toggleSoundButton = document.createElement("button");
     toggleSoundButton.innerText = "Sound on";
@@ -65,7 +97,8 @@ export default class RoomPanel {
     leaveRoomButton.innerText = "Leave Room";
     leaveRoomButton.className = "roomButton";
 
-    // leaveRoomButton.onclick = () => leaveRoom(roomId, userId);
+    leaveRoomButton.onclick = () =>
+      this.gamePanel.gameNetLogic.handleLeaveRoom();
 
     userArea.appendChild(startGameButton);
     userArea.appendChild(toggleSoundButton);
@@ -171,8 +204,8 @@ export default class RoomPanel {
   //         this.m_password = password;
   //     }
 
-  //     public void setInCountdown(final boolean bCountdown, final int countdown) {
-  //         this.m_bCountdown = bCountdown;
-  //         this.m_countdown = countdown;
-  //     }
+  setInCountdown(inCountdown, countdown) {
+    this.inCountdown = inCountdown;
+    this.countdown = countdown;
+  }
 }

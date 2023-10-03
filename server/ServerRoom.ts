@@ -1,4 +1,5 @@
 import { Team } from "./Team.ts";
+import { RoomStatus } from "./RoomStatus.ts";
 
 export class ServerRoom {
   roomId;
@@ -35,7 +36,7 @@ export class ServerRoom {
     this.boardSize = boardSize;
     this.isBalancedRoom = isBalancedRoom;
     this.isPrivate = false;
-    this.status = 0;
+    this.status = RoomStatus.IDLE;
     this.roomId = crypto.randomUUID();
 
     this.numSlots = isBigRoom ? 8 : 4;
@@ -88,5 +89,15 @@ export class ServerRoom {
 
   winCountOf(slot: number) {
     return this.wins[slot];
+  }
+
+  numUsers() {
+    let count = 0;
+    for (let i = 0; i < this.numSlots; i++) {
+      if (this.userIds[i] != "Open Slot") {
+        count++;
+      }
+    }
+    return count;
   }
 }

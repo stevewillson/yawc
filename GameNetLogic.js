@@ -1,15 +1,13 @@
 import ClientUserManager from "./ClientUserManager.js";
 import ClientRoomManager from "./ClientRoomManager.js";
-import Game from "./Game.js";
 import Network from "./Network.js";
-import ClientRoom from "./ClientRoom.js";
 
 export default class GameNetLogic {
   userId;
   tableId;
   loginPort;
   network;
-  bInATable;
+  isInARoom;
   gamePanel;
   threadNetwork;
   username;
@@ -38,8 +36,6 @@ export default class GameNetLogic {
     this.htUnloadedIcons = new Map();
     this.nextTime = Date.now() + 10000000;
 
-    // TODO - attempt to login before starting a new game
-    this.game = new Game(this);
     this.gamePanel = gamePanel;
 
     this.icons = ["icon1", "icon2"];
@@ -48,37 +44,6 @@ export default class GameNetLogic {
     // create the client user and room managers
     this.clientUserManager = new ClientUserManager(this);
     this.clientRoomManager = new ClientRoomManager(this);
-
-    // set up a fake gamePacket
-    let gamePacket = {
-      type: "newGame",
-      gameId: 12345,
-      gameSession: 54321,
-      totalUsers: 3,
-      users: [
-        {
-          name: "user1",
-          teamId: 2,
-          icons: ["test", "asdf"],
-          slot: 0,
-          isGameOver: false,
-        },
-        {
-          name: "user2",
-          teamId: 1,
-          icons: ["test", "asdf"],
-          slot: 1,
-          isGameOver: false,
-        },
-        {
-          name: "user3",
-          teamId: 1,
-          icons: ["test", "asdf"],
-          slot: 2,
-          isGameOver: false,
-        },
-      ],
-    };
   }
 
   // login
@@ -142,6 +107,71 @@ export default class GameNetLogic {
     this.nextTime = 0;
   }
 
+  handleRoomStatusChange(roomId, status, countdown) {
+    // final CFTablePanel tablePanel = this.m_pnlGame.getLobbyPanel().getTablePanel();
+    this.clientRoomManager.setRoomStatus(roomId, status, countdown);
+
+    // tablePanel.setTableStatus(n, b, n2);
+    switch (status) {
+      case ClientRoomManager.STATUS_DELETE: {
+        // remove the table if it should be deleted
+        this.clientRoomManager.removeRoom(roomId);
+        // final CFPrivateTableDialog privateTableDialog = this.findPrivateTableDialog();
+        // if (privateTableDialog != null) {
+        // privateTableDialog.setTableRemoved();
+        // }
+        // tablePanel.removeTable(n);
+      }
+      case ClientRoomManager.STATUS_PLAYING: {
+        if (this.roomId == roomId) {
+          // set the room in the countdown phase if it is the room we are in
+          // this.m_pnlGame.getPlayingPanel().setInCountdown(false, n2);
+          this.gamePanel.roomPanel.setInCountdown(false, countdown);
+          return;
+        }
+        break;
+      }
+      case ClientRoomManager.STATUS_COUNTDOWN: {
+        if (this.roomId == roomId) {
+          // play a "weapon firing" sound
+          // GameBoard.playSound("snd_fire");
+          // set in the RoomPanel
+          // this.m_pnlGame.getPlayingPanel().setInCountdown(true, n2);
+          this.gamePanel.roomPanel.setInCountdown(false, countdown);
+          return;
+        }
+        break;
+      }
+    }
+  }
+
+  setInRoom(roomId, slot) {
+    // get the room
+    const room = this.clientRoomManager.getRoomById(roomId);
+    // final CFTableElement table = this.m_pnlGame.getLobbyPanel().getTablePanel().findTable(tableID);
+    // final PlayingPanel playingPanel = this.m_pnlGame.getPlayingPanel();
+
+    // get the game object
+    // playingPanel.getGameBoard().getModel().reset();
+    this.gamePanel.roomPanel.game.reset();
+    // playingPanel.getGameBoard().getModel().setSlot(slot);
+    this.gamePanel.roomPanel.game.setSlot(slot);
+
+    // update the room panel with this information
+    // we already get the username from the currently logged in user
+    // playingPanel.setTableInfo(this.m_username, tablePassword);
+    // playingPanel.setTable(table);
+    this.gamePanel.roomPanel.game.setRoom(roomId);
+
+    this.roomId = roomId;
+    this.isInARoom = true;
+
+    // clear the chat panel lines
+    // playingPanel.getChatPanel().clearLines();
+    // CFSkin.getSkin().addTableInstructions(playingPanel.getChatPanel());
+    // this.m_pnlGame.showGame();
+  }
+
   processPackets(packet) {
     const packetJSON = JSON.parse(packet);
     console.log(`Received: ${packet}`);
@@ -163,15 +193,32 @@ export default class GameNetLogic {
         break;
       }
 
+      case "logout": {
+        // remove the user from the clientusermanager
+        this.clientUserManager.removeUser(packetJSON.userId);
+        // also remove the user from the rooms that the user is in
+        break;
+      }
+
       case "roomInfo": {
         // receive a list of rooms from the server
         // TODO - check if a user is contained in the room and update the user's room display on the user panel
-        this.clientRoomManager.addRoom(packetJSON.room);
+        const newRoom = this.clientRoomManager.addRoom(packetJSON.room);
+        // get the slot of the user
+        const slot = newRoom.getSlot(this.userId);
+        // TODO, set according to a team table
+        const teamId = newRoom.isTeamRoom ? 1 : 0;
+        // add the user to the room
+        this.clientRoomManager.addUserToRoom(
+          newRoom.roomId,
+          this.userId,
+          slot,
+          teamId
+        );
 
         // check if the current user's id is contained in that room
         // if so, then set that as the active room
         if (packetJSON.room.userIds.indexOf(this.userId) != -1) {
-          // current user is in the room
           this.gamePanel.showRoom();
         }
         break;
@@ -192,6 +239,8 @@ export default class GameNetLogic {
       //                 this.disconnect((utf == null) ? "Logged out" : utf);
       //                 break;
       //             }
+      // send a private message
+      // public void sendPrivateMessage(String fromUser, String toUser, String message) {
       //             case 6: {
       //                 final String utf2 = dataInputStream.readUTF();
       //                 final String utf3 = dataInputStream.readUTF();
@@ -219,6 +268,7 @@ export default class GameNetLogic {
       //                 this.pnlGame.getLobbyPanel().getChatPanel().addLine(s2, string, utf4, null);
       //                 break;
       //             }
+      // sendGlobalMessage
       //             case 5:
       //             case 18: {
       //                 final String username = dataInputStream.readUTF();
@@ -230,20 +280,7 @@ export default class GameNetLogic {
       //                 ((byte1 == 5) ? this.pnlGame.getLobbyPanel().getChatPanel() : this.pnlGame.getPlayingPanel().getChatPanel()).addLine(username, message);
       //                 break;
       //             }
-      //             case 13: {
-      //                 this.myAddUser(dataInputStream);
-      //                 break;
-      //             }
-      //             case 14: {
-      //                 final String username = dataInputStream.readUTF();
-      //                 this.pnlGame.getLobbyPanel().getUserPanel().removeUser(username);
-      //                 final CFUserDialog userDialog = this.findUserDialog(username);
-      //                 if (userDialog != null) {
-      //                     userDialog.setUserLoggedOff();
-      //                     return;
-      //                 }
-      //                 break;
-      //             }
+
       //             case 9: {
       //                 for (short short1 = dataInputStream.readShort(), n2 = 0; n2 < short1; ++n2) {
       //                     this.myAddUser(dataInputStream);
@@ -290,6 +327,9 @@ export default class GameNetLogic {
       //                 }
       //                 break;
       //             }
+      // causes a room reset
+      // TODO find where the server sends this packet
+      // this may not be sent by the ServerThread.java
       //             case 20: {
       //                 if (dataInputStream.readByte() == 1) {
       //                     final short short6 = dataInputStream.readShort();
@@ -380,6 +420,15 @@ export default class GameNetLogic {
       //                 }
       //                 break;
       //             }
+      case "leaveRoom": {
+        const userId = packetJSON.userId;
+        this.clientRoomManager.removeUserFromRoom(userId);
+        if (this.userId == userId) {
+          // show the lobby
+          this.gamePanel.showLobby();
+        }
+        break;
+      }
       //             case 65: {
       //                 final CFTablePanel tablePanel4 = this.pnlGame.getLobbyPanel().getTablePanel();
       //                 final short tableId = dataInputStream.readShort();
@@ -392,6 +441,18 @@ export default class GameNetLogic {
       //                 }
       //                 break;
       //             }
+      // receive a room status change message
+      case "roomStatusChange": {
+        //                 final short tableId = dataInputStream.readShort();
+        //                 final byte status = dataInputStream.readByte();
+        this.handleRoomStatusChange(
+          packetJSON.roomId,
+          packetJSON.status,
+          packetJSON.countdown
+        );
+        break;
+      }
+      // sendTableStatusChange
       //             case 66: {
       //                 final short tableId = dataInputStream.readShort();
       //                 final byte status = dataInputStream.readByte();
@@ -435,10 +496,55 @@ export default class GameNetLogic {
       //                 }
       //                 break;
       //             }
-      //             case 80: {
-      //                 this.pnlGame.getPlayingPanel().getGameBoard().getModel().handleGamePacket(dataInputStream);
-      //                 break;
-      //             }
+
+      // the 3 all have an opcode of 80 - they should go to the "handleGamePacket" routine
+      case "teamChange": {
+        this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
+        break;
+      }
+
+      case "startGame": {
+        //             case 80: {
+        // get the Game object from the RoomPanel
+        // this.pnlGame
+        // .getPlayingPanel()
+        // .getGameBoard()
+        // .getModel()
+        // .handleGamePacket(dataInputStream);
+        this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
+        break;
+      }
+
+      case "tableWins": {
+        this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
+        break;
+      }
+
+      case "powerup": {
+        this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
+        break;
+      }
+
+      case "userState": {
+        this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
+        break;
+      }
+
+      case "userEvent": {
+        this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
+        break;
+      }
+
+      case "gameOver": {
+        this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
+        break;
+      }
+
+      case "gameEnd": {
+        this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
+        break;
+      }
+
       //             case 101: {	// Receive full table
       //                 CFTablePanel tablePanel = this.pnlGame.getLobbyPanel().getTablePanel();
       //                 short tableId = dataInputStream.readShort();
@@ -509,12 +615,14 @@ export default class GameNetLogic {
         // set that the user is in the table
 
         // TODO - create an instance of a game for that room
-
         // show that the user is in the table
         // draw the room panel
-        // this.setInTable(tableId, slot, tablePassword);
+        // check if the userId is the current user's id, then set to join the room
+        if (userId == this.userId) {
+          this.gamePanel.showRoom();
+          this.setInRoom(roomId, slot);
+        }
 
-        this.gamePanel.showRoom();
         // clear the chat lines in the able
         // add the table instructions to the chat lines
         // calls the "showGame" method for the game panel
@@ -540,18 +648,7 @@ export default class GameNetLogic {
   }
 
   addRoom(packet) {
-    // TODO - add the room here
-    // contents of the packet
-    // {"type":"roomInfo",
-    // "roomId":"02f2e893-c287-4953-890b-8252350a3af4",
-    // "status":0,"isRanked":false,"isPrivate":false,
-    // "isBigRoom":false,"allShipsAllowed":true,
-    // "allPowerupsAllowed":true,"isTeamRoom":false,
-    // "boardSize":3,"isBalancedRoom":false,
-    // "roomUsers":[{"username":"asdfee"}],"options":0,
-    // "password":""}
     // create a new room
-
     const roomId = packet.roomId;
     const status = packet.status;
     const isRanked = packet.isRanked;
@@ -568,10 +665,8 @@ export default class GameNetLogic {
 
     // create a room
     // TODO - also create an instance of a game?
-
     // games should only be created when a user joins a room
-
-    this.gamePanel.lobbyPanel.roomPanel.addRoom(
+    this.gamePanel.lobbyPanel.roomListPanel.addRoom(
       roomId,
       status,
       isRanked,
@@ -591,5 +686,18 @@ export default class GameNetLogic {
   handleJoinRoom(roomId) {
     // add the user to the room
     this.network.joinRoom(roomId, "");
+  }
+
+  handleLeaveRoom() {
+    // send a network packet to leave the room
+    // wait for a server response to actually leave the room
+    // handled in GameNetLogic for the "leaveRoom" packet
+    this.network.leaveRoom();
+
+    // TODO - should this be set in the clientroommanager
+    // this.clientRoomManager.removeUserFromRoom(userId);
+
+    // show the lobby will be called from the game panel
+    // this.gamePanel.showLobby();
   }
 }

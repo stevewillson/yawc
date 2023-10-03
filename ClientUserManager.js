@@ -25,9 +25,9 @@ export default class ClientUserManager {
     this.users.set(user.userId, user);
   }
 
-  removeUser(user) {
+  removeUser(userId) {
     // remove the user by the user's id
-    this.users.delete(user.userId);
+    this.users.delete(userId);
   }
 
   // get username

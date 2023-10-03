@@ -27,6 +27,7 @@ export default class Game {
   goodGuys;
 
   isDebugMode;
+  currentFighterShade;
 
   constructor(gameNetLogic) {
     // set a debug mode for displaying shapeRects
@@ -66,12 +67,16 @@ export default class Game {
     // track the total number of bullets here
     this.nBullets = 0;
 
-    // temporary - later get the slot from the GameNetLogic.js file
-    // when jointing a table
-    this.slot = 0;
-    this.setSlot(this.slot);
-
     this.mode = 1;
+    this.slot = 0;
+
+    this.currentFighterShade = 0;
+
+    // only use key handlers when the game is in focus?
+    // key press handlers
+    // TODO - may need to modify to allow for chatting while in game
+    document.onkeydown = (e) => this.onkeydown(e);
+    document.onkeyup = (e) => this.onkeyup(e);
   }
 
   init() {
@@ -81,8 +86,11 @@ export default class Game {
     // use these to track playable board size
     // world (including outside areas)
     // board center
+    // set the board width to the canvas width
+    // this.board = { width: 430, height: 423 };
+    this.board = { width: this.canvas.width, height: this.canvas.height };
+
     this.viewport = { width: this.canvas.width, height: this.canvas.height };
-    this.board = { width: 430, height: 423 };
     // this is the entire size of the virtual world for rendering stars
     this.world = {
       width: this.board.width + this.viewport.width,
@@ -100,18 +108,26 @@ export default class Game {
       this.boardCenter.x - this.viewport.width / 2,
       this.boardCenter.y - this.viewport.height / 2,
       this.viewport.width,
-      this.viewport.height,
+      this.viewport.height
     );
 
     this.globalBoundingRect = new Rectangle(
       0,
       0,
       this.board.width,
-      this.board.height,
+      this.board.height
     );
 
+    // set position for the welcome screen elements
+
+    this.intro = { width: 410, height: 260 };
+    this.introX = (this.board.width - this.intro.width) / 2;
+    this.introY = this.board.height - this.intro.height - 10;
+    this.intro_shipX = this.introX + 5;
+    this.intro_shipY = this.introY + 40;
+
     // https://stackoverflow.com/questions/16919601/html5-canvas-camera-viewport-how-to-actually-do-it
-    // want to render the game using a
+    // want to render the game using a centered portal
 
     this.portalVisibility = (this.board.width / 2) * 1.45;
 
@@ -225,6 +241,7 @@ export default class Game {
 
   onkeyup(e) {
     console.log("key up " + e.code);
+    e.preventDefault();
 
     if (e.code === "ArrowRight") {
       this.input.right = false;
@@ -239,6 +256,7 @@ export default class Game {
 
   onkeydown(e) {
     console.log("key down " + e.code);
+    e.preventDefault();
 
     if (e.code === "ArrowRight") {
       this.input.right = true;
@@ -303,9 +321,20 @@ export default class Game {
       this.strDamagedByUser = null;
       this.damagingPowerup = -1;
     }
-    if (this.bRefreshUserBar) {
+    if (this.shouldRefreshUserBar) {
       // drawUserBar(this.pnlOtherUsers.g, this.bRefreshAll);
-      this.bRefreshAll = false;
+      this.shouldRefreshAll = false;
+    }
+  }
+
+  reset() {
+    this.init();
+    this.wins = 0;
+    super.slot = 0;
+    this.color = this.colors.colors[0][0];
+    this.shouldRefreshPlayerBar = true;
+    for (let i = 0; i < this.users.length; ++i) {
+      this.users[i].fullReset();
     }
   }
 
@@ -334,10 +363,11 @@ export default class Game {
 
     switch (this.mode) {
       case "playing": {
-        this.handleDefaultModelBehavior();
+        // behavior, collisions, checkSidebar
+        this.update();
+        // handles redrawing the screen
+        this.render();
         if (this.isGameOver) {
-          // GameNetLogic method
-          // this.logic.gameOver();
           this.gameOverCycle = 0;
           this.mode = "gameOver";
           if (this.winningUserString == null) {
@@ -368,9 +398,9 @@ export default class Game {
           //   drawUserBar(this.pnlOtherUsers.g, true);
         }
 
-        // this.draw(this.context);
+        this.draw(this.context);
         // ship selection area
-        // drawIntro(this.pnlPlaying.g);
+        this.drawIntro(this.context);
         // if (this.tableElement.getStatus() == 4) {
         //   drawStrings(this.pnlPlaying.g, "Waiting for", "Next Game");
         //   this.pnlPlaying.completeRepaint();
@@ -391,7 +421,11 @@ export default class Game {
       }
 
       case "gameOver": {
-        this.handleDefaultModelBehavior();
+        // behavior, collisions, checkSidebar
+        this.update();
+
+        // handles redrawing the screen
+        this.render();
         if (this.gameOverCycle++ > 120 || this.winningUserString != null) {
           this.mode = "resetGame";
           return;
@@ -409,36 +443,53 @@ export default class Game {
     bPlaySound = paramBoolean;
   }
 
+  // add users to the room when someone joins the room
   // readJoin(paramDataInput) {
   //   this.model.readJoin(paramDataInput);
   // }
 
-  // addUser(paramString, paramInt1, paramByte, paramArrayOfString, paramInt2) {
-  //   this.model.addUser(
-  //     paramString,
-  //     paramInt1,
-  //     paramByte,
-  //     paramArrayOfString,
-  //     paramInt2
-  //   );
-  // }
+  addUser(username, rank, teamId, icons, slot) {
+    // check if the userId is equal to the user's current user id
+    if (this.gameNetLogic.username != username) {
+      this.setUser(username, rank, teamId, icons, slot, true, true);
+    }
+    // check if it is a team table
+    const room = this.gameNetLogic.clientRoomManager.getRoomById(
+      this.user.roomId
+    );
+    if (room.isTeamRoom) {
+      this.bRefreshAll = true;
+    }
+  }
 
-  // removeUser(paramString) {
-  //   this.model.removeUser(paramString);
-  // }
+  getUser(slot) {
+    if (slot > this.users.length) {
+      return "COMPUTER";
+    }
+    if (slot == this.gameNetLogic.user.slot) {
+      return "YOU";
+    }
+    return this.users[this.translateSlot(slot)].username;
+  }
 
+  removeUser(username) {
+    for (let i = 0; i < this.users.length; i++) {
+      if (this.users[i].username == username) {
+        this.bRefreshPlayerBar = true;
+        this.users[i].fullReset();
+      }
+    }
+    // get the room by the roomId
+    const room = this.gameNetLogic.clientRoomManager.getRoomById(
+      this.user.roomId
+    );
+    if (room.isTeamRoom) {
+      this.bRefreshAll = true;
+    }
+  }
   setTable(paramCFTableElement) {
     // this.model.setTable(paramCFTableElement);
     this.tableElement = paramCFTableElement;
-  }
-
-  handleDefaultModelBehavior() {
-    // handles game logic and checking keyboard input
-    // behavior, collisions, checkSidebar
-    this.update();
-
-    // handles redrawing the screen
-    this.render();
   }
 
   doBehavior() {
@@ -705,7 +756,7 @@ export default class Game {
           context.moveTo(n5, n6);
           context.lineTo(
             n3 * 0.9 + this.viewportCenter.x,
-            n4 * 0.9 + this.viewportCenter.y,
+            n4 * 0.9 + this.viewportCenter.y
           );
 
           context.moveTo(n5, n6);
@@ -722,23 +773,6 @@ export default class Game {
     }
   }
 
-  // TODO based off of GameBoard.java
-  addPlayer() {}
-  //   public void addPlayer(final String s, final int n, final byte b, final String[] array, final int n2) {
-  //     if (!s.equals(super.m_logic.getUsername())) {
-  //         this.setPlayer(s, n, b, array, (byte)n2, true, true);
-  //     }
-  // causes the player bar to be redrawn
-  //     if (super.m_tableElement.isTeamTable()) {
-  //         this.m_bRefreshAll = true;
-  //     }
-  // }
-
-  removePlayer() {}
-  //   public void removePlayer(final String s) throws IOException {
-  //     this.m_model.removePlayer(s);
-  // }
-
   /**
    * drawRing
    * @param context a canvas context to draw the ring
@@ -750,7 +784,7 @@ export default class Game {
       this.worldCenter.x,
       this.worldCenter.y,
       this.orbitDistance,
-      "gray",
+      "gray"
     );
   }
 
@@ -762,7 +796,7 @@ export default class Game {
         -i,
         -i,
         this.world.width + i * 2,
-        this.world.height + i * 2,
+        this.world.height + i * 2
       );
     }
   }
@@ -815,6 +849,149 @@ export default class Game {
     }
   }
 
+  drawFighter(context, fighterNumber, x, y) {
+    context.translate(x, y);
+    // if (this.hasShipPermission((byte)PlayerSprite.g_fighterData[n][13])) {
+    // graphics.setColor(Sprite.g_colors[super.m_slot][2]);
+
+    context.fillStyle = this.colors.colors[this.slot][2];
+    // }
+    // else {
+    // graphics.setColor(Color.black);
+    // }
+    if (this.playerFighterType == fighterNumber) {
+      // graphics.setColor(this.colors.colors[super.m_slot][this.currentFighterShade++ / 2 % 20]);
+      context.fillStyle =
+        this.colors.colors[this.slot][(this.currentFighterShade++ / 2) % 20];
+      context.fillRect(-25, -24, 50, 50);
+      context.fillStyle = "gray";
+      context.fillRect(-20, -20, 40, 40);
+      context.fillStyle = this.color;
+    } else {
+      context.strokeRect(-24, -24, 48, 48);
+    }
+    // context.translate(0, PlayerSprite.fighterData[n][0]);
+    // WHUtil.drawScaledPoly(
+    //   graphics,
+    //   PlayerSprite.g_polyShip[n][0],
+    //   PlayerSprite.g_fighterData[n][1]
+    // );
+    // context.translate(0, -PlayerSprite.g_fighterData[n][0]);
+    // if (PlayerSprite.g_fighterData[n][9] >= 1.0) {
+    //     WHUtil.fillCenteredCircle(graphics, 0.0, 0.0, 5);
+    //     graphics.setColor(Color.black);
+    //     WHUtil.fillCenteredArc(graphics, 0.0, 0.0, 5, -20, 40);
+    // }
+    context.translate(-x, -y);
+  }
+
+  drawIntro(context) {
+    // graphics.setColor(Color.lightGray);
+    // light gray
+    context.fillStyle = "#C0C0C0";
+    // graphics.fill3DRect(this.introX, this.introY, 410, 260, true);
+    context.fillRect(
+      this.introX,
+      this.introY,
+      this.intro.width,
+      this.intro.height
+    );
+
+    // graphics.setColor(Color.white);
+    context.fillStyle = "white";
+
+    // graphics.setFont(WormholeModel.fontFourteen);
+    // graphics.drawString("Wormhole NG Ship Selection", this.introX + 100, this.introY + 16);
+
+    context.font = "14px Helvetica";
+    context.fillText(
+      "yawc Ship Selection",
+      this.introX + 100,
+      this.introY + 16
+    );
+
+    // graphics.setFont(WormholeModel.fontTwelve);
+    // graphics.drawString("Choose a ship by clicking on it.", this.introX + 100, this.introY + 28);
+    context.font = "12px Helvetica";
+    context.fillText(
+      "Choose a ship by clicking on it.",
+      this.introX + 100,
+      this.introY + 28
+    );
+
+    // graphics.setColor(Color.gray);
+    // graphics.fillRect(this.intro_shipX, this.intro_shipY, 400, 50);
+    context.fillStyle = "gray";
+    context.fillRect(this.intro_shipX, this.intro_shipY, 400, 50);
+
+    // graphics.setColor(this.color);
+    // graphics.drawRect(this.intro_shipX, this.intro_shipY, 400, 50);
+    context.strokeStyle = this.color;
+    context.strokeRect(this.intro_shipX, this.intro_shipY, 400, 50);
+    context.stroke();
+
+    // draw ships
+    // final boolean hasPermission = this.hasShipPermission((byte)PlayerSprite.g_fighterData[this.describedShip][13]);
+    for (let i = 0; i < 8; i++) {
+      //     graphics.setColor(this.color);
+      //     this.drawFighter(graphics, n, this.intro_shipX + n * 50 + 25, this.intro_shipY + n / 8 * 50 + 25);
+      context.strokeStyle = this.color;
+      this.drawFighter(
+        context,
+        i,
+        this.intro_shipX + i * 50 + 25,
+        // this.intro_shipY + (i / 8) * 50 + 25
+        this.intro_shipY + 25
+      );
+    }
+    // final int n2 = this.intro_shipX + this.describedShip % 8 * 50 + 25;
+    // final int n3 = this.intro_shipY + this.describedShip / 8 * 50 + 25;
+    // final int n4 = this.intro_shipY + 50 + 10;
+    // final int n5 = this.intro_shipX + 200;
+    // Color black = Color.black;
+    // if (hasPermission) {
+    //     black = Sprite.g_colors[super.slot][this.currentFighterShade / 2 % 20];
+    // }
+    // graphics.setColor(black);
+    // graphics.drawOval(n2 - 15, n3 - 15, 30, 30);
+    // graphics.drawLine(n2, n3 + 15, n2, n4);
+    // graphics.drawLine(n2, n4, n5, n4);
+    // graphics.drawLine(n5, n4, n5, n4 + 10);
+    // graphics.drawRect(n5 - 50, n4 + 10, this.introX + 410 - (n5 - 50) - 15, this.introY + 260 - n4 - 15);
+    // final String[] array = PlayerSprite.g_shipDescriptions[this.describedShip];
+    // final int n6 = n5 - 40;
+    // final int n7 = n4 + 10;
+    // graphics.setColor(Color.white);
+    // for (int i = 1; i < array.length; ++i) {
+    //     graphics.drawString(array[i], n6, n7 + i * 12);
+    // }
+    // double zoomInIntro = PlayerSprite.g_fighterData[this.describedShip][2];
+    // if (hasPermission) {
+    //     graphics.setColor(this.color);
+    // }
+    // else {
+    //     graphics.setColor(Color.black);
+    // }
+    // if (this.zoomInIntro < zoomInIntro) {
+    //     this.zoomInIntro += zoomInIntro / 50.0;
+    //     zoomInIntro = this.zoomInIntro;
+    //     if (hasPermission) {
+    //         graphics.setColor(Sprite.g_colors[super.slot][(int)((zoomInIntro - this.zoomInIntro) / zoomInIntro * 19.0)]);
+    //     }
+    // }
+    // graphics.translate(this.introX + 75, this.introY + 180);
+    // //WHUtil.drawScaledPoly(graphics, PlayerSprite.g_polyShip[this.describedShip][this.currentFighterShade / 2 % 24], zoomInIntro);
+    // WHUtil.drawScaledPoly(graphics, PlayerSprite.g_polyShip[this.describedShip][this.currentFighterShade * 10 / PlayerSprite.DROTATE % PlayerSprite.NROTATIONS], zoomInIntro);
+    // graphics.translate(-(this.introX + 75), -(this.introY + 180));
+    // graphics.setColor(Color.white);
+    // graphics.drawString(array[0], this.introX + 10, this.introY + 110);
+    // if (!hasPermission) {
+    //     graphics.setColor(Color.red);
+    //     graphics.drawString("Enable extra ships in", this.introX + 10, this.introY + 180);
+    //     graphics.drawString("create table options", this.introX + 10, this.introY + 192);
+    // }
+  }
+
   translateSlot(newSlot) {
     if (this.slot < newSlot) {
       return newSlot - 1;
@@ -822,23 +999,47 @@ export default class Game {
     return newSlot;
   }
 
-  setUsers(gamePacket, b) {
+  // previously called setTable in WormholeModel.java
+  setRoom(roomId) {
+    const room = this.gameNetLogic.clientRoomManager.getRoomById(roomId);
+
+    // set the teamId of the player for the room
+    if (room.isTeamRoom) {
+      this.teamId = 1;
+    } else {
+      this.teamId = 0;
+    }
+
+    this.init();
+    // check about the ship permissions
+    // for yawc, allow all ships to be played
+    // if (!this.hasShipPermission((byte)PlayerSprite.g_fighterData[this.playerFighterType][13])) {
+    this.playerFighterType = 1;
+    // }
+    // TODO draw the user bar
+    // this.drawUserBar(this.pnlOtherPlayers.g, true);
+    // resets the game mode
+    this.mode = "resetGame";
+  }
+
+  setUsers(gamePacket) {
     let totalUsers = gamePacket.totalUsers;
     for (let i = 0; i < totalUsers; i++) {
-      let userName = gamePacket.users[i].name;
+      // get the userId?
+      // TODO
+      let username = gamePacket.users[i].name;
       let userSlot = gamePacket.users[i].slot;
       let isGameOver = gamePacket.users[i].isGameOver;
       let teamId = gamePacket.users[i].teamId;
-      if (userName != this.gameNetLogic.getUsername()) {
+      if (username != this.gameNetLogic.username) {
         this.setUser(
-          userName,
-          this.gameNetLogic.getUserRank(userName),
+          username,
+          this.gameNetLogic.getUserRank(username),
           teamId,
           this.gameNetLogic.getIcons(),
           // this.logic.getUser(userName).getIcons(),
           userSlot,
-          isGameOver,
-          b,
+          isGameOver
         );
         if (isGameOver == false) {
         }
@@ -851,6 +1052,7 @@ export default class Game {
     this.bRefreshUserBar = true;
   }
 
+  // draw the user info block
   setUser(name, rank, teamId, icons, userSlot, isGameOver, b2) {
     let userInfo = this.users[this.translateSlot(userSlot)];
     userInfo.reset();
@@ -890,7 +1092,7 @@ export default class Game {
         this.gameId = gamePacket.gameId;
         this.gameSession = gamePacket.gameSession;
 
-        this.setUsers(gamePacket, false);
+        this.setUsers(gamePacket);
         this.totalOpposingUsers = 0;
         for (let i = 0; i < gamePacket.totalUsers; i++) {
           if (!this.users[i].isEmpty) {
@@ -903,7 +1105,8 @@ export default class Game {
             // }
           }
         }
-        this.init();
+        // TODO - move this to start the game for the 'waiting' mode
+        // this.init();
         this.mode = "playing";
         this.bRefreshUserBar = true;
         this.bRefreshAll = true;
@@ -924,7 +1127,7 @@ export default class Game {
               let portalSprite = new PortalSprite(
                 n * (360 / this.totalOpposingUsers),
                 this.users[i],
-                this,
+                this
               );
               n++;
               this.users[i].portalSprite = portalSprite;
@@ -1044,7 +1247,7 @@ export default class Game {
           this.users[translateSlot2].portalSprite,
           powerupType,
           fromSlot,
-          byte9,
+          byte9
         );
         break;
 

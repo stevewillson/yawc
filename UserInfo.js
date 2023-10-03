@@ -1,5 +1,7 @@
 import SpriteColors from "./SpriteColors.js";
 
+// block on the right side of the screen that show the information
+// about users and their associated health
 export default class UserInfo {
   static BLOCKSIZE = 5;
   static powerupPoints = [
@@ -21,7 +23,7 @@ export default class UserInfo {
   canvas;
   shipType;
   icons;
-  teamID;
+  teamId;
 
   myHeight;
   cx;
@@ -67,7 +69,7 @@ export default class UserInfo {
     this.nPowerups = 0;
     this.healthPercentage = 100;
     this.bRefresh = true;
-    this.username = "Empty";
+    this.username = null;
     this.bEmpty = true;
     this.color = "gray";
     this.gameOver = false;
@@ -75,7 +77,7 @@ export default class UserInfo {
       this.portalSprite.killSelf();
       this.portalSprite = null;
     }
-    this.teamID = 0;
+    this.teamId = 0;
   }
 
   // TODO - complete draw method
@@ -88,7 +90,7 @@ export default class UserInfo {
       n,
       n2,
       this.color,
-      this.gameOver ? "gray" : this.offsetCycle == 30 ? "orange" : "black",
+      this.gameOver ? "gray" : this.offsetCycle == 30 ? "orange" : "black"
     );
     graphics.setFont(WormholeModel.fontTwelve);
     graphics.drawString(
@@ -96,7 +98,7 @@ export default class UserInfo {
         ? this.username.substring(0, 11)
         : this.username,
       30,
-      11,
+      11
     );
     if (this.bEmpty) {
       return;
@@ -106,14 +108,14 @@ export default class UserInfo {
     graphics.drawString(
       "rank: " + (this.rank >= 0 ? "" + this.rank : "n/a"),
       30,
-      24,
+      24
     );
     for (let b = 0; b < this.nPowerups; b++) {
       graphics.drawImage(
         this.imgPowerups[PowerupSprite.convertToSmallImage(this.powerups[b])],
         34 + b * 21,
         29,
-        null,
+        null
       );
     }
     let n3 = n - 10;
@@ -135,17 +137,17 @@ export default class UserInfo {
     WHUtil.drawScaledPoly(
       graphics,
       UserSprite.g_polyShip[this.shipType][0],
-      n6,
+      n6
     );
     graphics.translate(-n4, -n5);
-    if (this.teamID != 0 && Sprite.model.tableElement.isTeamTable()) {
-      drawTeamShape(graphics, 1, 1, this.teamID);
+    if (this.teamId != 0 && Sprite.model.tableElement.isTeamTable()) {
+      drawTeamShape(graphics, 1, 1, this.teamId);
     }
   }
 
   fullReset() {
     this.wins = 0;
-    reset();
+    this.reset();
   }
 
   // TODO - drawTeamShape method
@@ -158,7 +160,7 @@ export default class UserInfo {
         8,
         8,
         CFSkin.TEACOLORS[n3],
-        CFSkin.TEABG_COLORS[n3],
+        CFSkin.TEABG_COLORS[n3]
       );
       return;
     }
@@ -168,7 +170,7 @@ export default class UserInfo {
       n2,
       10,
       CFSkin.TEABG_COLORS[n3],
-      CFSkin.TEACOLORS[n3],
+      CFSkin.TEACOLORS[n3]
     );
   }
 
