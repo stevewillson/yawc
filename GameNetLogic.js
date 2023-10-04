@@ -113,7 +113,7 @@ export default class GameNetLogic {
 
     // tablePanel.setTableStatus(n, b, n2);
     switch (status) {
-      case ClientRoomManager.STATUS_DELETE: {
+      case ClientRoomManager.ROOM_STATUS_DELETE: {
         // remove the table if it should be deleted
         this.clientRoomManager.removeRoom(roomId);
         // final CFPrivateTableDialog privateTableDialog = this.findPrivateTableDialog();
@@ -122,7 +122,7 @@ export default class GameNetLogic {
         // }
         // tablePanel.removeTable(n);
       }
-      case ClientRoomManager.STATUS_PLAYING: {
+      case ClientRoomManager.ROOM_STATUS_PLAYING: {
         if (this.roomId == roomId) {
           // set the room in the countdown phase if it is the room we are in
           // this.m_pnlGame.getPlayingPanel().setInCountdown(false, n2);
@@ -131,13 +131,13 @@ export default class GameNetLogic {
         }
         break;
       }
-      case ClientRoomManager.STATUS_COUNTDOWN: {
+      case ClientRoomManager.ROOM_STATUS_COUNTDOWN: {
         if (this.roomId == roomId) {
           // play a "weapon firing" sound
           // GameBoard.playSound("snd_fire");
           // set in the RoomPanel
           // this.m_pnlGame.getPlayingPanel().setInCountdown(true, n2);
-          this.gamePanel.roomPanel.setInCountdown(false, countdown);
+          this.gamePanel.roomPanel.setInCountdown(true, countdown);
           return;
         }
         break;
@@ -205,22 +205,22 @@ export default class GameNetLogic {
         // TODO - check if a user is contained in the room and update the user's room display on the user panel
         const newRoom = this.clientRoomManager.addRoom(packetJSON.room);
         // get the slot of the user
-        const slot = newRoom.getSlot(this.userId);
+        // const slot = newRoom.getSlot(this.userId);
         // TODO, set according to a team table
-        const teamId = newRoom.isTeamRoom ? 1 : 0;
+        // const teamId = newRoom.isTeamRoom ? 1 : 0;
         // add the user to the room
-        this.clientRoomManager.addUserToRoom(
-          newRoom.roomId,
-          this.userId,
-          slot,
-          teamId
-        );
+        // this.clientRoomManager.addUserToRoom(
+        //   newRoom.roomId,
+        //   this.userId,
+        //   slot,
+        //   teamId
+        // );
 
         // check if the current user's id is contained in that room
         // if so, then set that as the active room
-        if (packetJSON.room.userIds.indexOf(this.userId) != -1) {
-          this.gamePanel.showRoom();
-        }
+        // if (packetJSON.room.userIds.indexOf(this.userId) != -1) {
+        // this.gamePanel.showRoom();
+        // }
         break;
       }
 
@@ -497,53 +497,17 @@ export default class GameNetLogic {
       //                 break;
       //             }
 
-      // the 3 all have an opcode of 80 - they should go to the "handleGamePacket" routine
-      case "teamChange": {
+      // below have an opcode of 80 - they should go to the "handleGamePacket" routine
+      case "teamChange":
+      case "userEvent":
+      case "startGame":
+      case "tableWins":
+      case "powerup":
+      case "userState":
+      case "gameOver":
+      case "gameEnd":
         this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
         break;
-      }
-
-      case "startGame": {
-        //             case 80: {
-        // get the Game object from the RoomPanel
-        // this.pnlGame
-        // .getPlayingPanel()
-        // .getGameBoard()
-        // .getModel()
-        // .handleGamePacket(dataInputStream);
-        this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
-        break;
-      }
-
-      case "tableWins": {
-        this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
-        break;
-      }
-
-      case "powerup": {
-        this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
-        break;
-      }
-
-      case "userState": {
-        this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
-        break;
-      }
-
-      case "userEvent": {
-        this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
-        break;
-      }
-
-      case "gameOver": {
-        this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
-        break;
-      }
-
-      case "gameEnd": {
-        this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
-        break;
-      }
 
       //             case 101: {	// Receive full table
       //                 CFTablePanel tablePanel = this.pnlGame.getLobbyPanel().getTablePanel();

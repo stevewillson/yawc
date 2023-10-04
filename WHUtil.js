@@ -19,7 +19,7 @@ export default class WHUtil {
       rectangle.x,
       rectangle.y,
       rectangle.width,
-      rectangle.height,
+      rectangle.height
     );
     context.stroke();
   }
@@ -38,7 +38,7 @@ export default class WHUtil {
       paramRectangle.x,
       paramRectangle.y,
       paramRectangle.width,
-      paramRectangle.height,
+      paramRectangle.height
     );
   }
 
@@ -48,48 +48,35 @@ export default class WHUtil {
         paramInt1 + g_target[b][0],
         paramInt2 + g_target[b][1],
         paramInt1 + g_target[b][2],
-        paramInt2 + g_target[b][3],
+        paramInt2 + g_target[b][3]
       );
     }
-  }
-
-  static drawPoly(context, polygon) {
-    polygon.drawPolygon(context);
   }
 
   static scaleVector(n, n2) {
     return n / Math.hypot(n, n2);
   }
 
-  fillCenteredArc(
-    paramGraphics,
-    paramDouble1,
-    paramDouble2,
-    paramInt1,
-    paramInt2,
-    paramInt3,
-  ) {
-    paramGraphics.fillArc(
-      paramDouble1 - paramInt1,
-      paramDouble2 - paramInt1,
-      paramInt1 * 2,
-      paramInt1 * 2,
-      paramInt2,
-      paramInt3,
-    );
+  static fillCenteredArc(context, x, y, radius, startAngle, arcAngle) {
+    context.beginPath();
+    context.lineWidth = 1;
+    // context.strokeStyle = color;
+    context.arc(x, y, radius, startAngle, arcAngle, false);
+    // context.arc(x, y, radius * 2, 0, radius * 2, startAngle, arcAngle);
+    context.fill();
   }
 
   static findAngle(x1, y1, x2, y2) {
     return Math.atan2(y1 - y2, x1 - x2) * 57.29577951308232;
   }
 
-  drawBoundCircle(
+  static drawBoundCircle(
     paramGraphics,
     paramInt1,
     paramInt2,
     paramInt3,
     paramColor1,
-    paramColor2,
+    paramColor2
   ) {
     paramGraphics.setColor(paramColor2);
     paramGraphics.fillOval(paramInt1, paramInt2, paramInt3, paramInt3);
@@ -112,111 +99,102 @@ export default class WHUtil {
     context.fill();
   }
 
-  drawBoundRect(
-    paramGraphics,
-    paramInt1,
-    paramInt2,
-    paramInt3,
-    paramInt4,
-    paramColor1,
-    paramColor2,
-  ) {
-    paramGraphics.setColor(paramColor2);
-    paramGraphics.fillRect(paramInt1, paramInt2, paramInt3, paramInt4);
-    paramGraphics.setColor(paramColor1);
-    paramGraphics.drawRect(paramInt1, paramInt2, paramInt3, paramInt4);
+  static drawBoundRect(context, x, y, width, height, color1, color2) {
+    context.fillStyle = color2;
+    context.fillRect(x, y, width, height);
+    context.strokeStyle = color1;
+    context.strokeRect(x, y, width, height);
   }
 
-  drawScaledPoly(paramGraphics, paramPolygon, paramDouble) {
-    if (paramDouble == 1.0) {
-      drawPoly(paramGraphics, paramPolygon);
+  static drawScaledPoly(context, polygon, scale) {
+    if (scale == 1) {
+      polygon.drawPolygon(context);
       return;
     }
-    let i = paramPolygon.xpoints[0] * paramDouble;
-    let j = paramPolygon.ypoints[0] * paramDouble;
-    for (let b = 1; b < paramPolygon.npoints; b++) {
-      let k = int(paramPolygon.xpoints[b] * paramDouble);
-      let m = int(paramPolygon.ypoints[b] * paramDouble);
-      paramGraphics.drawLine(i, j, k, m);
+    context.beginPath();
+    let i = polygon.xpoints[0] * scale;
+    let j = polygon.ypoints[0] * scale;
+    for (let b = 1; b < polygon.npoints; b++) {
+      let k = polygon.xpoints[b] * scale;
+      let m = polygon.ypoints[b] * scale;
+      context.moveTo(i, j);
+      context.lineTo(k, m);
       i = k;
       j = m;
     }
-    paramGraphics.drawLine(
-      i,
-      j,
-      int(paramPolygon.xpoints[0] * paramDouble),
-      int(paramPolygon.ypoints[0] * paramDouble),
-    );
+    context.moveTo(i, j);
+    context.lineTo(polygon.xpoints[0] * scale, polygon.ypoints[0] * scale);
+    context.stroke();
   }
 
-  isPolygonIntersect(paramPolygon1, paramPolygon2) {
-    let b;
-    for (b = 0; b < paramPolygon1.npoints; b++) {
-      if (
-        paramPolygon2.contains(
-          paramPolygon1.xpoints[b],
-          paramPolygon1.ypoints[b],
-        )
-      ) {
-        return true;
-      }
-    }
-    for (b = 0; b < paramPolygon2.npoints; b++) {
-      if (
-        paramPolygon1.contains(
-          paramPolygon2.xpoints[b],
-          paramPolygon2.ypoints[b],
-        )
-      ) {
-        return true;
-      }
-    }
-    return false;
-  }
+  // isPolygonIntersect(paramPolygon1, paramPolygon2) {
+  //   let b;
+  //   for (b = 0; b < paramPolygon1.npoints; b++) {
+  //     if (
+  //       paramPolygon2.contains(
+  //         paramPolygon1.xpoints[b],
+  //         paramPolygon1.ypoints[b]
+  //       )
+  //     ) {
+  //       return true;
+  //     }
+  //   }
+  //   for (b = 0; b < paramPolygon2.npoints; b++) {
+  //     if (
+  //       paramPolygon1.contains(
+  //         paramPolygon2.xpoints[b],
+  //         paramPolygon2.ypoints[b]
+  //       )
+  //     ) {
+  //       return true;
+  //     }
+  //   }
+  //   return false;
+  // }
 
-  isPolygonIntersect(
-    paramPolygon1,
-    paramPolygon2,
-    paramInt1,
-    paramInt2,
-    paramInt3,
-    paramInt4,
-  ) {
-    let b;
-    for (b = 0; b < paramPolygon1.npoints; b++) {
-      System.out.println(
-        "test: " +
-          (paramPolygon1.xpoints[b] + paramInt1) +
-          "y: " +
-          (paramPolygon1.ypoints[b] + paramInt2),
-      );
-      if (
-        paramPolygon2.contains(
-          paramPolygon1.xpoints[b] + paramInt1,
-          paramPolygon1.ypoints[b] + paramInt2,
-        )
-      ) {
-        return true;
-      }
-    }
-    for (b = 0; b < paramPolygon2.npoints; b++) {
-      System.out.println(
-        "test: " +
-          (paramPolygon2.xpoints[b] + paramInt3) +
-          "Y: " +
-          (paramPolygon2.ypoints[b] + paramInt4),
-      );
-      if (
-        paramPolygon1.contains(
-          paramPolygon2.xpoints[b] + paramInt3,
-          paramPolygon2.ypoints[b] + paramInt4,
-        )
-      ) {
-        return true;
-      }
-    }
-    return false;
-  }
+  // isPolygonIntersect(
+  //   paramPolygon1,
+  //   paramPolygon2,
+  //   paramInt1,
+  //   paramInt2,
+  //   paramInt3,
+  //   paramInt4
+  // ) {
+  //   let b;
+  //   for (b = 0; b < paramPolygon1.npoints; b++) {
+  //     System.out.println(
+  //       "test: " +
+  //         (paramPolygon1.xpoints[b] + paramInt1) +
+  //         "y: " +
+  //         (paramPolygon1.ypoints[b] + paramInt2)
+  //     );
+  //     if (
+  //       paramPolygon2.contains(
+  //         paramPolygon1.xpoints[b] + paramInt1,
+  //         paramPolygon1.ypoints[b] + paramInt2
+  //       )
+  //     ) {
+  //       return true;
+  //     }
+  //   }
+  //   for (b = 0; b < paramPolygon2.npoints; b++) {
+  //     System.out.println(
+  //       "test: " +
+  //         (paramPolygon2.xpoints[b] + paramInt3) +
+  //         "Y: " +
+  //         (paramPolygon2.ypoints[b] + paramInt4)
+  //     );
+  //     if (
+  //       paramPolygon1.contains(
+  //         paramPolygon2.xpoints[b] + paramInt3,
+  //         paramPolygon2.ypoints[b] + paramInt4
+  //       )
+  //     ) {
+  //       return true;
+  //     }
+  //   }
+  //   return false;
+  // }
 
   // check if a rectangle is inside another rectangle
   inside(paramRectangle1, paramRectangle2) {
@@ -224,7 +202,7 @@ export default class WHUtil {
       !paramRectangle2.inside(paramRectangle1.x, paramRectangle1.y) ||
       !paramRectangle2.inside(
         paramRectangle1.x + paramRectangle1.width,
-        paramRectangle1.y + paramRectangle1.height,
+        paramRectangle1.y + paramRectangle1.height
       )
     );
   }
@@ -245,7 +223,7 @@ export default class WHUtil {
         var r = (Math.random() * 16) | 0,
           v = c == "x" ? r : (r & 0x3) | 0x8;
         return v.toString(16);
-      },
+      }
     );
   }
 

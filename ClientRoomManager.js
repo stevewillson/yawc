@@ -4,11 +4,11 @@ export default class ClientRoomManager {
   gameNetLogic;
   rooms;
 
-  static STATUS_IDLE = 0;
-  static STATUS_DELETE = 1;
-  static STATUS_COUNTDOWN = 3;
-  static STATUS_PLAYING = 4;
-  static STATUS_GAMEOVER = 5;
+  static ROOM_STATUS_IDLE = 0;
+  static ROOM_STATUS_DELETE = 1;
+  static ROOM_STATUS_COUNTDOWN = 3;
+  static ROOM_STATUS_PLAYING = 4;
+  static ROOM_STATUS_GAMEOVER = 5;
 
   constructor(gameNetLogic) {
     this.gameNetLogic = gameNetLogic;
@@ -103,6 +103,10 @@ export default class ClientRoomManager {
       user.roomId = roomId;
       user.slot = slot;
       user.teamId = teamId;
+
+      // also set the html of the room?
+      const roomSlotElement = document.getElementById(`${roomId}-slot${slot}`);
+      roomSlotElement.innerHTML = user.username;
     }
   }
 
@@ -112,6 +116,13 @@ export default class ClientRoomManager {
     const user = this.gameNetLogic.clientUserManager.users.get(userId);
     // the user's roomId is null at this time, why?
     const room = this.getRoomById(user.roomId);
+
+    // also set the html of the room?
+    const roomSlotElement = document.getElementById(
+      `${user.roomId}-slot${user.slot}`
+    );
+    roomSlotElement.innerHTML = "Open Slot";
+
     user.isInARoom = false;
     user.roomId = null;
     user.slot = null;

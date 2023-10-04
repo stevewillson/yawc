@@ -1,3 +1,5 @@
+import ClientRoomManager from "./ClientRoomManager.js";
+
 export default class ClientRoom {
   OPENSLOT = "Open Slot";
   clientRoomManager;
@@ -30,6 +32,8 @@ export default class ClientRoom {
     this.userIds = room.userIds;
     this.roomId = room.roomId;
     this.numSlots = room.numSlots;
+    // set start status in waiting
+    this.status = ClientRoomManager.ROOM_STATUS_IDLE;
   }
 
   toHtml() {
@@ -66,9 +70,11 @@ export default class ClientRoom {
     secondElement.innerHTML = this.clientUserManager.getUsername(
       this.userIds[0]
     );
+    secondElement.id = `${this.roomId}-slot0`;
     thirdElement.innerHTML = this.clientUserManager.getUsername(
       this.userIds[1]
     );
+    thirdElement.id = `${this.roomId}-slot1`;
 
     firstRow.appendChild(firstElement);
     firstRow.appendChild(secondElement);
@@ -84,9 +90,12 @@ export default class ClientRoom {
       fifthElement.innerHTML = this.clientUserManager.getUsername(
         this.userIds[2]
       );
+      fifthElement.id = `${this.roomId}-slot2`;
+
       sixthElement.innerHTML = this.clientUserManager.getUsername(
         this.userIds[3]
       );
+      sixthElement.id = `${this.roomId}-slot3`;
 
       secondRow.appendChild(fourthElement);
       secondRow.appendChild(fifthElement);
@@ -159,7 +168,7 @@ export default class ClientRoom {
   removeUser(userId) {
     for (let i = 0; i < this.userIds.length; i++) {
       if (this.userIds[i] == userId) {
-        this.userIds[i] = "Open Slot";
+        this.userIds[i] = null;
         return i;
       }
     }
@@ -178,7 +187,6 @@ export default class ClientRoom {
     return this.userIds[slot];
   }
 
-  // TODO - store userIds in slots
   getSlot(userId) {
     for (let i = 0; i < this.userIds.length; i++) {
       if (this.userIds[i] == userId) {
@@ -186,5 +194,16 @@ export default class ClientRoom {
       }
     }
     return null;
+  }
+
+  numUsers() {
+    let count = 0;
+    for (let i = 0; i < this.userIds.length; i++) {
+      // TODO use 'null' for an empty userId slot
+      if (this.userIds[i] != null) {
+        count++;
+      }
+    }
+    return count;
   }
 }

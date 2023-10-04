@@ -316,6 +316,101 @@ export default class UserSprite extends Sprite {
     },
   ];
 
+  static shipDescriptions = [
+    [
+      "The Tank",
+      "The Tank is the ultimate in",
+      "destructive capabilities. Meant to slug it",
+      "out with larger ships, the Tank's armor",
+      "& guns are fomidable right off the bat.",
+      "Item acquisition is much slower, but",
+      "with increased firepower, the board",
+      "should be littered with the items from",
+      "the carcasses of your enemies",
+    ],
+    [
+      "The Wing",
+      "The Wing is a balanced mix of speed",
+      "& armor.  The Wing is specially designed",
+      "to be a smaller target for the numerous",
+      "enemies you are to face.  The Wing",
+      "offers a good compromise for those",
+      "starting off in the New Grounds.",
+    ],
+    [
+      "The Squid",
+      "The Squid is a light ship designed",
+      "for quick item acquisition on the field",
+      "of battle.  The thrusters have been",
+      "maxed out and the speed and accel.",
+      "borders on reckless. The light armor is",
+      "balanced with an increase in evasion",
+      "abilities.",
+      "Only those of fast reflexes need apply.",
+    ],
+    [
+      "The Rabbit",
+      "The Rabbit is a light ship designed",
+      "for hit and run engagements. The Rabbit",
+      "sacrifices armor for a special tracking",
+      "cannon typical of corvettes and larger",
+      "ships.  Upgrade your weapon systems to",
+      "maximize the effectiveness of this ship.",
+    ],
+    [
+      "The Turtle",
+      "The Turtle is a modified Tank with",
+      "a built-in high powered weapon, the",
+      "Turtle Cannon.  The TC destroys all",
+      "visible targets, making it a formidable",
+      "ship.  The main drawback is that the",
+      "TC is so effective that the Turtle",
+      "often takes damage when using it.",
+      "Use the 'd' key to activate Turtle Cannon.",
+    ],
+    [
+      "The Flash",
+      "The Flash is an experimental 'hybrid'",
+      "ship.  It can tranform between two",
+      "states, the Squid and Tank states,",
+      "where it can mimic that particular ship.",
+      "The benefit of the Flash is the pilot can",
+      "stand and fight or hit and run when",
+      "necessary. The downside is that the",
+      "Flash cannot be upgraded...",
+      "Use the 'd' key to transform.",
+    ],
+    [
+      "The Hunter",
+      "The Hunter is a fast, but not very",
+      "agile missile corvette.  Its array of 17",
+      "Piranha missiles can function as both",
+      "an offensive and defensive weapon.",
+      "The Piranhas are designed as an area",
+      "effect weapon, and circle in close",
+      "proximity of the targetted area.",
+      "Hunter can generate new missiles over",
+      "time, or the pilot can refill his arsenal",
+      "by capturing HeatSeeker powerups.",
+      "Use the 'd' key to use missiles.",
+    ],
+    [
+      "The Flagship",
+      "The Flagship is a capitol ship, meant",
+      "to command a squadron of fighters.",
+      "Center Fleet has decided to include",
+      "testing the Flagship in battle scenarios.",
+      "The Flagship contains a large",
+      "attracter/repulser (A/R) unit that draws",
+      "powerups in, and pushes enemies out.",
+      "The drawback is that when the A/R unit",
+      "is on, there is not enough power to run",
+      "the tracking guns, thrusters, or main",
+      "cannon.",
+      "Use the 'd' key to activate A/R.",
+    ],
+  ];
+
   static shotData = [
     [10, 5, 1, 20, 8],
     [14, 5, 1, 14, 6],
@@ -430,7 +525,7 @@ export default class UserSprite extends Sprite {
       if (this.killedBy != null && !this.killedBy == "") {
         this.game.sendEvent(
           "killed by " + this.killedBy,
-          this.game.gameSession,
+          this.game.gameSession
         );
         this.game.killedBy = this.killedBySlot;
       }
@@ -438,7 +533,7 @@ export default class UserSprite extends Sprite {
       let explosion = new ExplosionSprite(
         { x: this.location.x, y: this.location.y },
         this.game,
-        this.slot,
+        this.slot
       );
       explosion.addSelf();
       // new ShrapnelSprite(super.intx, super.inty, 30, Sprite.model.color, 50).addSelf();
@@ -489,12 +584,12 @@ export default class UserSprite extends Sprite {
       this.bulletSize,
       UserSprite.bulletColors[this.bulletType],
       2,
-      this.game,
+      this.game
     );
     bulletSprite.setUser(this.slot);
     bulletSprite.setVelocity(
       Math.cos(angle) * 10.0 + this.velocity.x,
-      Math.sin(angle) * 10.0 + this.velocity.y,
+      Math.sin(angle) * 10.0 + this.velocity.y
     );
     bulletSprite.addSelf();
     this.lastShotCycle = this.spriteCycle + this.shotDelay;
@@ -652,7 +747,7 @@ export default class UserSprite extends Sprite {
         x: this.location.x - n3 * (Math.cos(n) * 12),
         y: this.location.y - n3 * (Math.sin(n) * 12),
       },
-      this.game,
+      this.game
     );
     thrustSprite.vectorx = -2 * super.vectorx;
     thrustSprite.vectory = -2 * super.vectory;
@@ -666,13 +761,13 @@ export default class UserSprite extends Sprite {
         (this.angle + i) * 0.017453292519943295,
         1 + (WHUtil.randInt() % 2),
         3.0,
-        0,
+        0
       );
       this.drawOneThrust(
         (this.angle - i) * 0.017453292519943295,
         1 + (WHUtil.randInt() % 2),
         3.0,
-        0,
+        0
       );
     }
     this.drawOneThrust(this.radAngle, Math.min(this.thrustCount, 5), 2.0, 0);
@@ -831,7 +926,7 @@ export default class UserSprite extends Sprite {
       this.location.x - this.game.viewport.width / 2,
       this.location.y - this.game.viewport.height / 2,
       this.game.viewport.width,
-      this.game.viewport.height,
+      this.game.viewport.height
     );
     return this.game.viewportRect;
   }
@@ -841,7 +936,7 @@ export default class UserSprite extends Sprite {
     let bounds = this.polygon.getBounds();
     bounds.setLocation(
       this.location.x - bounds.width / 2,
-      this.location.y - bounds.height / 2,
+      this.location.y - bounds.height / 2
     );
     return bounds;
   }

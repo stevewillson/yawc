@@ -6,11 +6,13 @@ export default class ClientUser {
   clan;
   bIgnored;
   userPanel;
+  userId;
 
   constructor(userPanel, username, clan, rank, icons) {
     this.userPanel = userPanel;
-    this.roomId = -1;
+    this.roomId = null;
     this.username = username;
+    this.userId = userId;
     this.clan = clan;
     this.rank = rank;
     this.icons = icons;
@@ -34,8 +36,8 @@ export default class ClientUser {
     usernameElement.innerText = this.username;
 
     // get the room index from the user manager
-    roomIndexElement.innerText = this.userPanel.gamePanel.lobbyPanel.roomPanel
-      .roomIndex(this.roomId);
+    roomIndexElement.innerText =
+      this.userPanel.gamePanel.lobbyPanel.roomPanel.roomIndex(this.roomId);
     // TODO - use graphic for rank rather than text
     rankElement.innerText = this.rank;
 

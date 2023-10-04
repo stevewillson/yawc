@@ -46,7 +46,7 @@ export class Server {
   broadcastUser(userId) {
     const user = this.userManager.users.get(userId);
     // send the user info to all connected clients
-    this.clients.values().forEach((client) => client.sendUser(user));
+    this.clients.values().forEach((client) => client.sendUserInfo(user));
   }
 
   broadcastUserLogout(userId) {
@@ -91,7 +91,7 @@ export class Server {
     const room = this.roomManager.rooms.get(roomId);
 
     room.userIds.forEach((userId) => {
-      if (userId != "Open Slot") {
+      if (userId != null) {
         const user = this.userManager.users.get(userId);
         const client = this.clients.get(user.clientId);
         client.sendGameStart(roomId);
@@ -102,7 +102,7 @@ export class Server {
   broadcastPowerup(roomId, powerupType, toSlot, b1, gameSession, b2) {
     const room = this.roomManager.rooms.get(roomId);
     room.userIds.forEach((userId) => {
-      if (userId != "Open Slot") {
+      if (userId != null) {
         const user = this.userManager.users.get(userId);
         const client = this.clients.get(user.clientId);
         client.sendPowerup(powerupType, toSlot, b1, gameSession, b2);
@@ -120,7 +120,7 @@ export class Server {
   ) {
     const room = this.roomManager.rooms.get(roomId);
     room.userIds.forEach((userId) => {
-      if (userId != "Open Slot") {
+      if (userId != null) {
         const user = this.userManager.users.get(userId);
         const client = this.clients.get(user.clientId);
         client.sendUserState(
@@ -137,7 +137,7 @@ export class Server {
   broadcastUserEvent(roomId, gameSession, eventString) {
     const room = this.roomManager.rooms.get(roomId);
     room.userIds.forEach((userId) => {
-      if (userId != "Open Slot") {
+      if (userId != null) {
         const user = this.userManager.users.get(userId);
         const client = this.clients.get(user.clientId);
         client.sendUserEvent(gameSession, eventString);
@@ -148,7 +148,7 @@ export class Server {
   broadcastGameOver(roomId, gameSession, deceasedSlot, killerSlot) {
     const room = this.roomManager.rooms.get(roomId);
     room.userIds.forEach((userId) => {
-      if (userId != "Open Slot") {
+      if (userId != null) {
         const user = this.userManager.users.get(userId);
         const client = this.clients.get(user.clientId);
         client.sendGameOver(gameSession, deceasedSlot, killerSlot);
@@ -159,7 +159,7 @@ export class Server {
   broadcastGameEnd(roomId) {
     const room = this.roomManager.rooms.get(roomId);
     room.userIds.forEach((userId) => {
-      if (userId != "Open Slot") {
+      if (userId != null) {
         const user = this.userManager.users.get(userId);
         const client = this.clients.get(user.clientId);
         client.sendGameEnd(room);
@@ -176,7 +176,7 @@ export class Server {
   broadcastRoomMessage(roomId, username, message) {
     const room = this.roomManager.rooms.get(roomId);
     room.userIds.forEach((userId) => {
-      if (userId != "Open Slot") {
+      if (userId != null) {
         const user = this.userManager.users.get(userId);
         const client = this.clients.get(user.clientId);
         client.sendRoomMessage(username, message);

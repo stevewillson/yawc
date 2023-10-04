@@ -16,6 +16,7 @@ export class ServerRoom {
   wins;
   userIds;
   numSlots;
+  isGameOver;
 
   constructor(
     isRanked,
@@ -38,6 +39,7 @@ export class ServerRoom {
     this.isPrivate = false;
     this.status = RoomStatus.IDLE;
     this.roomId = crypto.randomUUID();
+    this.isGameOver = false;
 
     this.numSlots = isBigRoom ? 8 : 4;
     // TODO - store users by userid
@@ -47,7 +49,7 @@ export class ServerRoom {
     // initialize the slot to be "Open Slot"
     // initialize wins to be all 0's
     for (let i = 0; i < this.numSlots; i++) {
-      this.userIds.push("Open Slot");
+      this.userIds.push(null);
       this.wins.push(0);
     }
 
@@ -58,7 +60,7 @@ export class ServerRoom {
 
   addUser(userId) {
     for (let i = 0; i < this.userIds.length; i++) {
-      if (this.userIds[i] == "Open Slot") {
+      if (this.userIds[i] == null) {
         this.userIds[i] = userId;
         this.wins[i] = 0;
         return i;
@@ -71,7 +73,7 @@ export class ServerRoom {
     // get the user by the userId
     for (let i = 0; i < this.numSlots; i++) {
       if (this.userIds[i] == userId) {
-        this.userIds[i] = "Open Slot";
+        this.userIds[i] = null;
         this.wins[i] = 0;
       }
     }
@@ -80,7 +82,7 @@ export class ServerRoom {
   isFull() {
     // check the table for an open slot
     for (let i = 0; i < this.userIds.length; i++) {
-      if (this.userIds[i] == "Open Slot") {
+      if (this.userIds[i] == null) {
         return false;
       }
     }
@@ -94,7 +96,7 @@ export class ServerRoom {
   numUsers() {
     let count = 0;
     for (let i = 0; i < this.numSlots; i++) {
-      if (this.userIds[i] != "Open Slot") {
+      if (this.userIds[i] != null) {
         count++;
       }
     }

@@ -7,7 +7,8 @@ import { RoomStatus } from "./RoomStatus.ts";
 // when a game starts or ends, the room transition thread object is created
 
 export class ServerRoomManager {
-  static TABLE_COUNTDOWN = 5;
+  // static TABLE_COUNTDOWN = 5;
+  static TABLE_COUNTDOWN = 1;
   server;
   rooms;
   userManager;
@@ -68,7 +69,7 @@ export class ServerRoomManager {
     // get the users for the room
     const userIds = this.rooms.get(roomId).userIds;
     userIds.forEach((userId) => {
-      if (userId != "Open Slot") {
+      if (userId != null) {
         // get the user object and set isAlive = true;
         this.userManager.users.get(userId).isAlive = true;
       }
@@ -79,7 +80,7 @@ export class ServerRoomManager {
     const userIds = this.rooms.get(roomId).userIds;
     let count = 0;
     userIds.forEach((userId) => {
-      if (userId != "Open Slot") {
+      if (userId != null) {
         // get the user object and set isAlive = true;
         if (this.userManager.users.get(userId).isAlive) {
           count++;
@@ -93,7 +94,7 @@ export class ServerRoomManager {
     const userIds = this.rooms.get(roomId).userIds;
     let count = 0;
     userIds.forEach((userId) => {
-      if (userId != "Open Slot") {
+      if (userId != null) {
         const user = this.userManager.users.get(userId);
         if (user.isAlive && user.teamId == teamId) {
           count++;
@@ -120,7 +121,7 @@ export class ServerRoomManager {
     const room = this.rooms.get(roomId);
     const userIds = room.userIds;
     userIds.forEach((userId) => {
-      if (userId != "Open Slot") {
+      if (userId != null) {
         const user = this.userManager.users.get(userId);
         if (user.isAlive) {
           room.wins[user.slot]++;
@@ -134,7 +135,7 @@ export class ServerRoomManager {
     const userIds = room.userIds;
     let count = 0;
     userIds.forEach((userId) => {
-      if (userId != "Open Slot") {
+      if (userId != null) {
         const user = this.userManager.users.get(userId);
         if (user.teamId == teamId) {
           count++;
@@ -152,7 +153,7 @@ export class ServerRoomManager {
         : Team.BLUETEAM;
     } else {
       for (let i = 0; i < userIds.length; i++) {
-        if (userIds[i] != "Open Slot") {
+        if (userIds[i] != null) {
           const user = this.userManager.users.get(userIds[i]);
           if (user.isAlive) {
             return user.slot;
@@ -164,10 +165,17 @@ export class ServerRoomManager {
   }
 
   // start status of 3 causes a countdowntransition to happen
-  startGameTransition(roomId) {
+  // this should be something that executes with successive 
+  // broadcasted messages that the room status is changing
+  // need to wait for a second in between the broadcastRoomStatusChange calls
+  // I could just send one message to the client to start the countdown
+  // we also need to check that nobody has left the room while the countdown is taking place
+
+  async startGameTransition(roomId) {
     const room = this.rooms.get(roomId);
     let countdown = ServerRoomManager.TABLE_COUNTDOWN;
     for (let i = 0; i < ServerRoomManager.TABLE_COUNTDOWN; i++) {
+      // want to send a broadcast message every second
       this.server.broadcastRoomStatusChange(
         room.roomId,
         room.status,
@@ -176,6 +184,8 @@ export class ServerRoomManager {
       countdown--;
       // what is the TS equivalent for sleep?
       // Thread.sleep(1000);
+      // call to utility function to sleep
+      await this.sleep(1000);
       if (
         room.numUsers() < 2 ||
         room.isTeamRoom &&
@@ -209,7 +219,9 @@ export class ServerRoomManager {
   // wait 3 seconds and then send a room status change packet
   // saying that the room is now idle
   // startStatus of 5 causes an end game transition
-  endGameTransition(roomId) {
+  async endGameTransition(roomId) {
+    // wait for 3 seconds before sending the end game message
+    await this.sleep(3000);
     const room = this.rooms.get(roomId);
     room.status = RoomStatus.IDLE;
     this.server.broadcastRoomStatusChange(
@@ -217,5 +229,10 @@ export class ServerRoomManager {
       room.status,
       null,
     );
+  }
+
+   // utility function to implement async sleep
+   sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }

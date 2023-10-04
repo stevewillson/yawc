@@ -77,13 +77,13 @@ export class ServerThread {
 
   handleUserDisconnect() {
     // check if the user was logged in
+    this.server.clients.delete(this.clientId); 
     if (this.user != null) {
       console.log(`User ${this.user.username} logged out`);
-      this.server.userManager.removeUser(this.user);
-      this.server.clients.delete(this.clientId);
-      if (this.user.room != null) {
+      if (this.user.roomId != null) {
         this.receiveLeaveRoom();
       }
+      this.server.userManager.removeUser(this.user);
       this.server.broadcastUserLogout(this.user.userId);
     }
   }
@@ -263,7 +263,7 @@ export class ServerThread {
       this.server.broadcastRoomStatusChange(room.roomId, RoomStatus.DELETE, -1);
       this.server.roomManager.removeRoom(room.roomId);
     }
-    if (room.status == RoomStatus.PLAYING && room.gameOver()) {
+    if (room.status == RoomStatus.PLAYING && room.isGameOver) {
       this.handleGameEnd(room);
     }
   }
@@ -393,7 +393,7 @@ export class ServerThread {
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendUser(user) {
+  sendUserInfo(user) {
     // byte opcode = 13;
     const packet = {
       type: "userInfo",
@@ -402,10 +402,10 @@ export class ServerThread {
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendUsers() {
+  sendUsersInfo() {
     // Send current user list to client
     this.server.userManager.users.forEach((user) => {
-      this.sendUser(user);
+      this.sendUserInfo(user);
     });
   }
 
@@ -443,19 +443,19 @@ export class ServerThread {
     // 	byte opcode = 80;
     // 	byte opcode2 = 100;
     let roomUsers: {
-      username: string;
+      userId: string;
       slot: number;
-      gameOver: boolean;
+      isGameOver: boolean;
       teamId: number;
     }[] = [];
     const room = this.server.roomManager.rooms.get(roomId)
     room.userIds.forEach((userId) => {
-      if (userId != "Open Slot") {
+      if (userId != null) {
         const user = this.server.userManager.users.get(userId);
         roomUsers.push({
-          username: user.username,
+          userId,
           slot: user.slot,
-          gameOver: false,
+          isGameOver: false,
           teamId: user.teamId,
         });
       }
@@ -569,7 +569,7 @@ export class ServerThread {
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendUserState(gameSession, slot, healthPercent, powerups, shipType) {
+  sendUserState(sessionId, slot, healthPercent, powerups, shipType) {
     let powerupArray: { powerup: string }[] = [];
     powerups.forEach((powerup) => {
       powerupArray.push(powerup);
@@ -577,8 +577,8 @@ export class ServerThread {
     // 	byte opcode1 = 80;
     // 	byte opcode2 = 106;
     const packet = {
-      type: "playerState",
-      gameSession,
+      type: "userState",
+      sessionId,
       slot,
       healthPercent,
       numPowerups: powerups.length,
@@ -646,7 +646,7 @@ export class ServerThread {
       }
 
       case "listUsers": {
-        this.sendUsers();
+        this.sendUsersInfo();
         break;
       }
 
@@ -712,4 +712,7 @@ export class ServerThread {
     }
     return operation;
   }
+
+
+ 
 }

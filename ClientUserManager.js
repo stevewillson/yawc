@@ -32,8 +32,8 @@ export default class ClientUserManager {
 
   // get username
   getUsername(userId) {
-    if (userId == "Open Slot") {
-      return "Open Slot";
+    if (userId == null) {
+      return null;
     }
     let user = this.users.get(userId);
     if (user != undefined) {
