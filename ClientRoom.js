@@ -1,7 +1,6 @@
 import ClientRoomManager from "./ClientRoomManager.js";
 
 export default class ClientRoom {
-  OPENSLOT = "Open Slot";
   clientRoomManager;
   clientUserManager;
 
@@ -33,7 +32,7 @@ export default class ClientRoom {
     this.roomId = room.roomId;
     this.numSlots = room.numSlots;
     // set start status in waiting
-    this.status = ClientRoomManager.ROOM_STATUS_IDLE;
+    this.status = "idle";
   }
 
   toHtml() {

@@ -4,42 +4,31 @@ import Network from "./Network.js";
 
 export default class GameNetLogic {
   userId;
-  tableId;
-  loginPort;
+  roomId;
+
   network;
+
   isInARoom;
   gamePanel;
-  threadNetwork;
+
   username;
-  subscriptionLevel;
   host;
-  nextTime;
   NOOP_DURATION;
-  mtIcons;
   htLoadedIcons;
   htUnloadedIcons;
-  commands;
   lastWhisperer;
-  isLoggedIn;
 
   // used to track the users and rooms clientside
   clientUserManager;
   clientRoomManager;
 
   constructor(gamePanel) {
-    // TODO - fallback to localhost when can't reach yetanotherwormholeclone.com
-    this.host = "localhost";
-    // this.host = "yetanotherwormholeclone.com";
-    this.loginPort = 6049;
-
     this.htLoadedIcons = new Map();
     this.htUnloadedIcons = new Map();
-    this.nextTime = Date.now() + 10000000;
 
     this.gamePanel = gamePanel;
 
     this.icons = ["icon1", "icon2"];
-    this.isLoggedIn = false;
 
     // create the client user and room managers
     this.clientUserManager = new ClientUserManager(this);
@@ -52,13 +41,6 @@ export default class GameNetLogic {
       // this.network.disconnect();
       this.network = null;
     }
-    // if (this.threadNetwork != null && this.threadNetwork.isAlive()) {
-    //     try {
-    //         this.threadNetwork.stop();
-    //     }
-    //     catch (Exception ex) {}
-    // }
-    // (this.threadNetwork = new Thread(this)).start();
     // this.pnlGame.getLobbyPanel().getTablePanel().clearTables();
     // this.pnlGame.getLobbyPanel().getUserPanel().clearUsers();
     // this.pnlGame.getLobbyPanel().getChatPanel().clearLines();
@@ -67,30 +49,19 @@ export default class GameNetLogic {
     // );
 
     this.network = new Network(this);
-    if (this.network != undefined) {
-      // set up the socket message handler
-    }
 
     const majorVersion = 0;
     const minorVersion = 1;
     const gameId = 1;
 
     // Login will return true if successful.
-    if (
-      this.network.login(
-        gameId,
-        majorVersion,
-        minorVersion,
-        username,
-        password,
-        this.host,
-        this.loginPort
-      ) == true
-    ) {
-      return true;
-    }
-
-    return false;
+    return this.network.login(
+      gameId,
+      majorVersion,
+      minorVersion,
+      username,
+      password
+    );
   }
 
   finishLogin(userId, username) {
@@ -99,77 +70,37 @@ export default class GameNetLogic {
     this.roomId = -1;
     this.gamePanel.lobbyPanel.updateUsername(this.username);
 
-    // setup a UserManager and RoomManager here to receive the new users and rooms
-
     // list users and rooms
     this.network.listUsers();
     this.network.listRooms();
-    this.nextTime = 0;
   }
 
   handleRoomStatusChange(roomId, status, countdown) {
-    // final CFTablePanel tablePanel = this.m_pnlGame.getLobbyPanel().getTablePanel();
     this.clientRoomManager.setRoomStatus(roomId, status, countdown);
 
-    // tablePanel.setTableStatus(n, b, n2);
     switch (status) {
-      case ClientRoomManager.ROOM_STATUS_DELETE: {
+      case "delete": {
         // remove the table if it should be deleted
         this.clientRoomManager.removeRoom(roomId);
-        // final CFPrivateTableDialog privateTableDialog = this.findPrivateTableDialog();
-        // if (privateTableDialog != null) {
-        // privateTableDialog.setTableRemoved();
-        // }
-        // tablePanel.removeTable(n);
       }
-      case ClientRoomManager.ROOM_STATUS_PLAYING: {
+      case "playing": {
         if (this.roomId == roomId) {
-          // set the room in the countdown phase if it is the room we are in
-          // this.m_pnlGame.getPlayingPanel().setInCountdown(false, n2);
           this.gamePanel.roomPanel.setInCountdown(false, countdown);
           return;
         }
         break;
       }
-      case ClientRoomManager.ROOM_STATUS_COUNTDOWN: {
+      case "countdown": {
         if (this.roomId == roomId) {
           // play a "weapon firing" sound
           // GameBoard.playSound("snd_fire");
-          // set in the RoomPanel
-          // this.m_pnlGame.getPlayingPanel().setInCountdown(true, n2);
+          // set the room in the countdown phase if it is the room we are in
           this.gamePanel.roomPanel.setInCountdown(true, countdown);
           return;
         }
         break;
       }
     }
-  }
-
-  setInRoom(roomId, slot) {
-    // get the room
-    const room = this.clientRoomManager.getRoomById(roomId);
-    // final CFTableElement table = this.m_pnlGame.getLobbyPanel().getTablePanel().findTable(tableID);
-    // final PlayingPanel playingPanel = this.m_pnlGame.getPlayingPanel();
-
-    // get the game object
-    // playingPanel.getGameBoard().getModel().reset();
-    this.gamePanel.roomPanel.game.reset();
-    // playingPanel.getGameBoard().getModel().setSlot(slot);
-    this.gamePanel.roomPanel.game.setSlot(slot);
-
-    // update the room panel with this information
-    // we already get the username from the currently logged in user
-    // playingPanel.setTableInfo(this.m_username, tablePassword);
-    // playingPanel.setTable(table);
-    this.gamePanel.roomPanel.game.setRoom(roomId);
-
-    this.roomId = roomId;
-    this.isInARoom = true;
-
-    // clear the chat panel lines
-    // playingPanel.getChatPanel().clearLines();
-    // CFSkin.getSkin().addTableInstructions(playingPanel.getChatPanel());
-    // this.m_pnlGame.showGame();
   }
 
   processPackets(packet) {
@@ -202,25 +133,7 @@ export default class GameNetLogic {
 
       case "roomInfo": {
         // receive a list of rooms from the server
-        // TODO - check if a user is contained in the room and update the user's room display on the user panel
-        const newRoom = this.clientRoomManager.addRoom(packetJSON.room);
-        // get the slot of the user
-        // const slot = newRoom.getSlot(this.userId);
-        // TODO, set according to a team table
-        // const teamId = newRoom.isTeamRoom ? 1 : 0;
-        // add the user to the room
-        // this.clientRoomManager.addUserToRoom(
-        //   newRoom.roomId,
-        //   this.userId,
-        //   slot,
-        //   teamId
-        // );
-
-        // check if the current user's id is contained in that room
-        // if so, then set that as the active room
-        // if (packetJSON.room.userIds.indexOf(this.userId) != -1) {
-        // this.gamePanel.showRoom();
-        // }
+        this.clientRoomManager.addRoom(packetJSON.room);
         break;
       }
 
@@ -554,45 +467,72 @@ export default class GameNetLogic {
 
       case "joinRoom": {
         // case 102: {	// User joined a table
-
-        // get the room id
-        // get the user id
-        // get the slot
         const roomId = packetJSON.roomId;
         const userId = packetJSON.userId;
         const slot = packetJSON.slot;
         const teamId = packetJSON.teamId;
-        // add the user to the table at the slot
-        this.clientRoomManager.addUserToRoom(roomId, userId, slot, teamId);
+        const shipType = packetJSON.shipType;
+        this.clientRoomManager.addUserToRoom(
+          roomId,
+          userId,
+          slot,
+          shipType,
+          teamId
+        );
 
         // if there is an issue with updating player teams, can request roomInfo upon entering the room
 
-        // do we need to do this for the game?
-        // or just display that the user is in a game on the lobby panel?
-        // add the user to the Game.js table
-        // for now, just add the user to the room display on the lobby
-        // gameBoard.addUser(username, user.getRank(), teamId, user.getIcons(), slot);
-
-        // if this is the user joining the room
-        // TODO - this should be handled by the server
+        // TODO - passwords should be handled by the server
         // String tablePassword = dataInputStream.readUTF();
-        // set that the user is in the table
 
-        // TODO - create an instance of a game for that room
-        // show that the user is in the table
         // draw the room panel
         // check if the userId is the current user's id, then set to join the room
         if (userId == this.userId) {
+          this.roomId = roomId;
+          this.isInARoom = true;
+
+          // calls the "showGame" method for the game panel
+          // a new Game instance is created
           this.gamePanel.showRoom();
-          this.setInRoom(roomId, slot);
+
+          // on the game set the user in the slot and assign colors
+          this.gamePanel.roomPanel.game.setSlot(slot);
+
+          // once a user joins a room, we do not need to reset the room
+          this.gamePanel.roomPanel.game.reset();
+
+          this.gamePanel.roomPanel.game.drawOtherBar(
+            this.gamePanel.roomPanel.game.otherStatusContext,
+            true
+          );
+
+          const room = this.clientRoomManager.getRoomById(this.roomId);
+
+          // set the teamId of the player for the room
+          if (room.isTeamRoom) {
+            this.teamId = 1;
+          } else {
+            this.teamId = 0;
+          }
+
+          // clear the chat panel lines
+          // playingPanel.getChatPanel().clearLines();
+          // CFSkin.getSkin().addTableInstructions(playingPanel.getChatPanel());
+          // this.m_pnlGame.showGame();
         }
 
-        // clear the chat lines in the able
-        // add the table instructions to the chat lines
-        // calls the "showGame" method for the game panel
+        // don't update the user state for others unless the
+        // user is in the room
+        if (roomId == this.roomId && userId != this.userId) {
+          // someone else joined the room
+          // getRoomState(roomId) this will request the server
+          // to send the state of the room?
+          // TODO add the user to the room from the client user manager
+        }
 
-        // TODO - here add the other users in the room to the game
-        // gameBoard.addUser(user.getName(), user.getRank(), teamId, user.getIcons(), i);
+        // clear the chat lines in the room
+        // add the table instructions to the chat lines
+
         // close the privateTableDialogs
         break;
       }

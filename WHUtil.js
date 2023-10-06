@@ -5,12 +5,29 @@ export default class WHUtil {
   static RTOD = 57.29577951308232;
   static DIST = 60;
   static IN = 40;
-
-  // implement later
-  // target indicator around objects
-  //    g_target = { { -60, -60, -40, -60 }, { -60, -60, -60, -40 }, { -60, 60, -40, 60 }, { -60, 60, -60, 40 }, { 60, -60, 40, -60 }, { 60, -60, 60, -40 }, { 60, 60, 40, 60 }, { 60, 60, 60, 40 } };
+  static target = [
+    [-60, -60, -40, -60],
+    [-60, -60, -60, -40],
+    [-60, 60, -40, 60],
+    [-60, 60, -60, 40],
+    [60, -60, 40, -60],
+    [60, -60, 60, -40],
+    [60, 60, 40, 60],
+    [60, 60, 60, 40],
+  ];
   static randInt(number = Number.MAX_SAFE_INTEGER) {
     return parseInt(Math.random() * Number.MAX_SAFE_INTEGER) % number;
+  }
+
+  static createPolygon(points) {
+    let x = [];
+    let y = [];
+    points.forEach((point) => {
+      x.push(point.x);
+      y.push(point.y);
+    });
+    let polygon = new Polygon(x, y, x.length);
+    return polygon;
   }
 
   static drawRect(context, rectangle) {
@@ -33,23 +50,19 @@ export default class WHUtil {
     return polygon;
   }
 
-  fillRect(paramGraphics, paramRectangle) {
-    paramGraphics.fillRect(
-      paramRectangle.x,
-      paramRectangle.y,
-      paramRectangle.width,
-      paramRectangle.height
-    );
-  }
+  // fillRect(context, rectangle) {
+  //   context.fillRect(
+  //     rectangle.x,
+  //     rectangle.y,
+  //     rectangle.width,
+  //     rectangle.height
+  //   );
+  // }
 
-  drawTarget(paramGraphics, paramInt1, paramInt2) {
-    for (let b = 0; b < g_target.length; b++) {
-      paramGraphics.drawLine(
-        paramInt1 + g_target[b][0],
-        paramInt2 + g_target[b][1],
-        paramInt1 + g_target[b][2],
-        paramInt2 + g_target[b][3]
-      );
+  drawTarget(context, n, n2) {
+    for (let i = 0; i < WHUtil.g_target.length; ++i) {
+      context.moveTo(n + WHUtil.target[i][0], n2 + WHUtil.target[i][1]);
+      context.lineTo(n + WHUtil.target[i][2], n2 + WHUtil.target[i][3]);
     }
   }
 
@@ -70,18 +83,19 @@ export default class WHUtil {
     return Math.atan2(y1 - y2, x1 - x2) * 57.29577951308232;
   }
 
-  static drawBoundCircle(
-    paramGraphics,
-    paramInt1,
-    paramInt2,
-    paramInt3,
-    paramColor1,
-    paramColor2
-  ) {
-    paramGraphics.setColor(paramColor2);
-    paramGraphics.fillOval(paramInt1, paramInt2, paramInt3, paramInt3);
-    paramGraphics.setColor(paramColor1);
-    paramGraphics.drawOval(paramInt1, paramInt2, paramInt3, paramInt3);
+  static drawBoundCircle(context, n, n2, n3, color, color2) {
+    context.beginPath();
+    context.fillStyle = color2;
+    context.strokeStyle = color2;
+    // graphics.fillOval(n, n2, n3, n3);
+    context.arc(n, n2, n3, 0, 2 * Math.PI);
+    context.fill();
+
+    context.fillStyle = color;
+    context.strokeStyle = color;
+    // graphics.drawOval(n, n2, n3, n3);
+    context.arc(n, n2, n3, 0, 2 * Math.PI);
+    context.stroke();
   }
 
   static drawCenteredCircle(context, x, y, radius, color) {

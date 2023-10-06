@@ -1,3 +1,5 @@
+import GameSettings from "./GameSettings.js";
+
 export default class Network {
   static LOGIN_TYPE_REGISTERED = 0;
   socket;
@@ -6,11 +8,14 @@ export default class Network {
 
   constructor(gameNetLogic) {
     this.gameNetLogic = gameNetLogic;
+    // this.gameSettings = new GameSettings();
   }
 
-  login(gameId, majorVersion, minorVersion, username, password, host, port) {
+  login(gameId, majorVersion, minorVersion, username, password) {
     // start a new websocket
-    this.socket = new WebSocket(`ws://${host}:${port}`);
+    this.socket = new WebSocket(
+      `${GameSettings.socketType}://${GameSettings.host}:${GameSettings.port}/${GameSettings.endpoint}/`,
+    );
 
     this.socket.onerror = (e) => {
       console.log(`Could not connect to server`);

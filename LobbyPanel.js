@@ -34,7 +34,7 @@ export default class LobbyPanel {
       this.gamePanel,
       this.gameNetLogic.clientRoomManager
     );
-    this.userPanel = new UserListPanel(
+    this.userListPanel = new UserListPanel(
       this.gamePanel,
       this.gameNetLogic.clientUserManager
     );
@@ -159,7 +159,7 @@ export default class LobbyPanel {
     leftDiv.appendChild(this.userAreaHtml());
 
     // add the user panel to the left side of the lobby
-    leftDiv.appendChild(this.userPanel.toHtml());
+    leftDiv.appendChild(this.userListPanel.toHtml());
 
     rightDiv.appendChild(this.createRoomButtonsDiv());
 

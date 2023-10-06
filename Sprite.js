@@ -24,7 +24,7 @@ export default class Sprite {
   collisionType;
   bIsBulthis;
   bIsHeatSeeker;
-  bSentByUser;
+  setByUser;
   shouldRemoveSelf;
 
   maxThrust;
@@ -134,7 +134,11 @@ export default class Sprite {
   handleCrash() {}
 
   reverseTrack() {
-    realTrack(this.game.user.location.x, this.game.user.location.y, true);
+    realTrack(
+      this.game.userSprite.location.x,
+      this.game.userSprite.location.y,
+      true
+    );
   }
 
   oob() {
@@ -259,7 +263,7 @@ export default class Sprite {
     this.slot = slot;
     if (color != null) {
       this.color = color;
-      this.bSentByUser = true;
+      this.setByUser = true;
     } else {
       this.color = this.game.colors.colors[slot][0];
     }
@@ -327,7 +331,7 @@ export default class Sprite {
     if (this.leadPoint == null || this.leadPoint === undefined) {
       this.leadPoint = { x: 0, y: 0 };
     }
-    let userSprite = this.game.user;
+    let userSprite = this.game.userSprite;
     this.leadPoint.x =
       userSprite.location.x + userSprite.velocity.x * 15 - this.location.x;
     this.leadPoint.y =
@@ -426,7 +430,7 @@ export default class Sprite {
   }
 
   realTrack(x, y, b) {
-    if (this.game.user.shouldRemoveSelf) {
+    if (this.game.userSprite.shouldRemoveSelf) {
       return;
     }
     let n3 =
@@ -541,10 +545,10 @@ export default class Sprite {
   }
 
   track() {
-    if (this.game.user != null) {
+    if (this.game.userSprite != null) {
       this.realTrack(
-        this.game.user.location.x,
-        this.game.user.location.y,
+        this.game.userSprite.location.x,
+        this.game.userSprite.location.y,
         false
       );
     }

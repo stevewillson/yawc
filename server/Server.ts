@@ -58,9 +58,9 @@ export class Server {
     this.clients.values().forEach((client) => client.sendRoom(room));
   }
 
-  broadcastJoinRoom(roomId, userId, slot, teamId) {
+  broadcastJoinRoom(roomId, userId, slot, shipType, teamId) {
     this.clients.values().forEach((client) =>
-      client.sendJoinRoom(roomId, userId, slot, teamId)
+      client.sendJoinRoom(roomId, userId, slot, shipType, teamId)
     );
   }
 
@@ -112,9 +112,9 @@ export class Server {
 
   broadcastUserState(
     roomId,
-    gameSession,
+    // gameSession,
     slot,
-    healthPerc,
+    healthPercent,
     powerups,
     shipType,
   ) {
@@ -124,9 +124,10 @@ export class Server {
         const user = this.userManager.users.get(userId);
         const client = this.clients.get(user.clientId);
         client.sendUserState(
-          gameSession,
+          user.userId,
+          // gameSession,
           slot,
-          healthPerc,
+          healthPercent,
           powerups,
           shipType,
         );

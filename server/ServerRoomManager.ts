@@ -41,6 +41,10 @@ export class ServerRoomManager {
     // default to GOLDTEAM
     user.teamId = room.isTeamRoom ? Team.GOLDTEAM : Team.NOTEAM;
 
+    // select the default ship type when joining a room,
+    // allow the user to change
+    user.shipType = 1;
+
     return slot;
   }
 
@@ -53,6 +57,7 @@ export class ServerRoomManager {
 
     user.roomId = null;
     user.slot = null;
+    user.shipType = null;
     user.teamId = null;
   }
 
@@ -165,7 +170,7 @@ export class ServerRoomManager {
   }
 
   // start status of 3 causes a countdowntransition to happen
-  // this should be something that executes with successive 
+  // this should be something that executes with successive
   // broadcasted messages that the room status is changing
   // need to wait for a second in between the broadcastRoomStatusChange calls
   // I could just send one message to the client to start the countdown
@@ -196,7 +201,7 @@ export class ServerRoomManager {
             room.teamSize(Team.BLUETEAM))
       ) {
         // People left, we need to stop counting down
-        room.status = RoomStatus.IDLE;
+        room.status = "idle";
         this.server.broadcastRoomStatusChange(
           room.roomId,
           room.status,
@@ -206,7 +211,7 @@ export class ServerRoomManager {
       }
     }
     // Game is ready to start
-    room.status = RoomStatus.PLAYING;
+    room.status = "playing";
     this.setUsersAlive(room.roomId);
     this.server.broadcastRoomStatusChange(
       room.roomId,
@@ -223,7 +228,7 @@ export class ServerRoomManager {
     // wait for 3 seconds before sending the end game message
     await this.sleep(3000);
     const room = this.rooms.get(roomId);
-    room.status = RoomStatus.IDLE;
+    room.status = "idle";
     this.server.broadcastRoomStatusChange(
       room.roomId,
       room.status,
@@ -231,8 +236,8 @@ export class ServerRoomManager {
     );
   }
 
-   // utility function to implement async sleep
-   sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+  // utility function to implement async sleep
+  sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

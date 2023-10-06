@@ -16,7 +16,7 @@ export class ServerRoom {
   wins;
   userIds;
   numSlots;
-  isGameOver;
+  gameOver;
 
   constructor(
     isRanked,
@@ -37,9 +37,9 @@ export class ServerRoom {
     this.boardSize = boardSize;
     this.isBalancedRoom = isBalancedRoom;
     this.isPrivate = false;
-    this.status = RoomStatus.IDLE;
+    this.status = "idle";
     this.roomId = crypto.randomUUID();
-    this.isGameOver = false;
+    this.gameOver = false;
 
     this.numSlots = isBigRoom ? 8 : 4;
     // TODO - store users by userid

@@ -7,6 +7,8 @@ export default class ClientUser {
   bIgnored;
   userPanel;
   userId;
+  teamId;
+  shipType;
 
   constructor(userPanel, username, clan, rank, icons) {
     this.userPanel = userPanel;
@@ -16,6 +18,8 @@ export default class ClientUser {
     this.clan = clan;
     this.rank = rank;
     this.icons = icons;
+    this.teamId = 0;
+    this.shipType = 1;
   }
 
   // implement a way to get an HTML representation of this element

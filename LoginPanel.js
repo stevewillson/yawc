@@ -20,41 +20,30 @@ export default class LoginPanel {
   }
 
   toHtml() {
-    // make background gray
-    // add username and password box
-    // add form with target for "login"
-    // add endpoint for websocket here too?
-    // host and port
-
     document.body.style.display = "grid";
-    document.body.style.background = "gray";
 
     const loginDiv = document.createElement("div");
+    loginDiv.className = "loginPanelDiv";
     loginDiv.id = "loginPanelDiv";
 
     const wormholeGraphic = document.createElement("img");
     wormholeGraphic.src = "./images/leftbanner.gif";
     loginDiv.appendChild(wormholeGraphic);
 
-    // const loginForm = document.createElement("form");
-
     const usernameLabel = document.createElement("label");
     usernameLabel.innerText = "Username:";
     loginDiv.appendChild(usernameLabel);
-    // loginForm.appendChild(usernameLabel);
 
     const usernameField = document.createElement("input");
     usernameField.name = "username";
     usernameField.id = "username";
     usernameField.type = "text";
     loginDiv.appendChild(usernameField);
-    // loginForm.appendChild(usernameField);
 
     usernameLabel.for = usernameField.id;
 
     const passwordLabel = document.createElement("label");
     passwordLabel.innerText = "Password:";
-    // loginForm.appendChild(passwordLabel);
     loginDiv.appendChild(passwordLabel);
 
     const passwordField = document.createElement("input");
@@ -62,20 +51,17 @@ export default class LoginPanel {
     passwordField.id = "password";
     passwordField.type = "password";
     loginDiv.appendChild(passwordField);
-    // loginForm.appendChild(passwordField);
 
     passwordLabel.for = passwordField.id;
 
     const loginButton = document.createElement("button");
+    loginButton.className = "loginButton";
     loginButton.innerText = "Login";
     loginButton.id = "submit";
     loginButton.type = "submit";
     loginButton.onclick = () => this.processLogin();
 
-    // loginForm.appendChild(loginButton);
     loginDiv.appendChild(loginButton);
-
-    // loginDiv.appendChild(loginForm);
 
     return loginDiv;
   }
@@ -93,8 +79,5 @@ export default class LoginPanel {
     if (loginSuccess) {
       this.gamePanel.showLobby();
     }
-
-    // return false so the page does not get reloaded by the form submission
-    return false;
   }
 }

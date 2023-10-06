@@ -6,7 +6,7 @@ import { Team } from "./Team.ts";
 
 export class ServerThread {
   // moving the TABLE_COUNTDOWN to the ServerRoomManager
-  // static TABLE_COUNTDOWN = 5;
+  static TABLE_COUNTDOWN = 5;
   server;
   user;
   clientVersion;
@@ -29,16 +29,11 @@ export class ServerThread {
   handleGameEnd(roomId) {
     const room = this.server.roomManager.rooms.get(roomId);
     room.increaseWinCounts();
-    room.status = RoomStatus.GAMEOVER;
+    room.status = "gameOver";
     this.server.broadcastGameEnd(roomId);
     this.server.broadcastRoomStatusChange(roomId, room.status, -1);
     this.server.roomManager.endGameTransition(roomId);
-
-    // use the serverroom manager to do this now
-    // let rtt = new RoomTransitionThread(this.server, room, room.status);
   }
-
- 
 
   receiveLogin(packet) {
     console.log("Login attempted...");
@@ -77,7 +72,7 @@ export class ServerThread {
 
   handleUserDisconnect() {
     // check if the user was logged in
-    this.server.clients.delete(this.clientId); 
+    this.server.clients.delete(this.clientId);
     if (this.user != null) {
       console.log(`User ${this.user.username} logged out`);
       if (this.user.roomId != null) {
@@ -88,29 +83,36 @@ export class ServerThread {
     }
   }
 
-  // receiveUserState() throws IOException {
-  // 	 stream = this.pr.getStream();
+  // receive a user state packet from a client
+  receiveUserState(packet) {
+    let userId = packet.userId;
+    // let sessionId = packet.sessionId;
+    let healthPercent = packet.healthPercent;
+    // let numPowerups = packet.numPowerups;
+    let powerups = [];
+    if (packet.powerups != undefined) {
+    powerups = packet.powerups;
+      
+    }
+    let shipType = packet.shipType;
+    // let damagingUser = packet.strDamagedByUser;
+    // let damagingPowerup = packet.damagingPowerup;
+    // let lostHealth = packet.lostHealth;
 
-  // 	short	gameSession		= stream.readShort();
-  // 	short	healthPerc		= stream.readShort();
-  // 	byte	numPowerups		= stream.readByte();
+    // if this is the user and the ship type has changed,
+    // update the server's shipType
+    this.user.shipType = shipType;
 
-  // 	Byte[] powerups = new Byte[numPowerups];
-  //     for (int i = 0; i < numPowerups; ++i) {
-  //     	powerups[i] = stream.readByte();
-  //     }
-
-  //     byte 		shipType 		= stream.readByte();
-  //     boolean		damagedByUser	= stream.readByte() == 1;
-  //     if (damagedByUser) {
-  //         String 	damagingUser 	= stream.readUTF();
-  //         byte	damagingPowerup = stream.readByte();
-  //         byte	lostHealth		= stream.readByte();
-  //     }
-
-  // TODO - use the roomId here
-  //     server.broadcastUserState(user().room(), gameSession, user().slot(), healthPerc, powerups, shipType);
-  // }
+    // TODO - see why the broadcastUserState is not working
+    this.server.broadcastUserState(
+      this.user.roomId,
+      // sessionId,
+      this.user.slot,
+      healthPercent,
+      powerups,
+      shipType,
+    );
+  }
 
   // public void receiveUserDeath() throws IOException {
   // 	final DataInputStream stream = this.pr.getStream();
@@ -220,7 +222,13 @@ export class ServerThread {
     this.server.broadcastRoom(room.roomId);
 
     this.server.roomManager.addUserToRoom(room.roomId, this.user.userId);
-    this.server.broadcastJoinRoom(room.roomId, this.user.userId, slot, teamId);
+    this.server.broadcastJoinRoom(
+      room.roomId,
+      this.user.userId,
+      slot,
+      this.user.shipType,
+      teamId,
+    );
   }
 
   receiveJoinRoom(packet) {
@@ -245,6 +253,7 @@ export class ServerThread {
         room.roomId,
         this.user.userId,
         slot,
+        this.user.shipType,
         teamId,
       );
       this.sendRoomWins(room);
@@ -263,7 +272,7 @@ export class ServerThread {
       this.server.broadcastRoomStatusChange(room.roomId, RoomStatus.DELETE, -1);
       this.server.roomManager.removeRoom(room.roomId);
     }
-    if (room.status == RoomStatus.PLAYING && room.isGameOver) {
+    if (room.status == "playing" && room.gameOver) {
       this.handleGameEnd(room);
     }
   }
@@ -303,19 +312,16 @@ export class ServerThread {
     // check some settings for the teams,
     // TODO - implement teams, for now we will just have single player
     // games
-    if (room.status == RoomStatus.IDLE && room.numUsers() > 1) {
+    if (room.status == "idle" && room.numUsers() > 1) {
       if (
         !room.isTeamRoom ||
         room.teamSize(Team.GOLDTEAM) == room.teamSize(Team.BLUETEAM) ||
         !room.isBalancedRoom() &&
           (room.teamSize(Team.GOLDTEAM) > 0 && room.teamSize(Team.BLUETEAM) > 0)
       ) {
-        room.status = RoomStatus.COUNTDOWN;
+        room.status = "countdown";
         // use the room manager to send out informatino about the room
         this.server.roomManager.startGameTransition(room.roomId);
-        // doing this in the roomManager now
-        // start a new RoomTransitionThread
-        // let rtt = new RoomTransitionThread(this.server, room, room.status);
       }
     }
   }
@@ -442,36 +448,41 @@ export class ServerThread {
   sendGameStart(roomId) {
     // 	byte opcode = 80;
     // 	byte opcode2 = 100;
-    let roomUsers: {
-      userId: string;
-      slot: number;
-      isGameOver: boolean;
-      teamId: number;
-    }[] = [];
-    const room = this.server.roomManager.rooms.get(roomId)
-    room.userIds.forEach((userId) => {
-      if (userId != null) {
-        const user = this.server.userManager.users.get(userId);
-        roomUsers.push({
-          userId,
-          slot: user.slot,
-          isGameOver: false,
-          teamId: user.teamId,
-        });
-      }
-    });
+    // let roomUsers: {
+    //   userId: string;
+    //   slot: number;
+    //   isGameOver: boolean;
+    //   teamId: number;
+    // }[] = [];
+    // const room = this.server.roomManager.rooms.get(roomId);
+    // room.userIds.forEach((userId) => {
+    //   if (userId != null) {
+    //     const user = this.server.userManager.users.get(userId);
+    //     roomUsers.push({
+    //       userId,
+    //       slot: user.slot,
+    //       isGameOver: false,
+    //       teamId: user.teamId,
+    //     });
+    //   }
+    // });
+
+    // const packet = {
+    //   type: "startGame",
+    //   gameId: 0,
+    //   sessionId: 0,
+    //   numUsers: room.numUsers,
+    //   roomUsers,
+    // };
 
     const packet = {
       type: "startGame",
-      gameId: 0,
-      sessionId: 0,
-      numUsers: room.numUsers,
-      roomUsers,
+      roomId,
     };
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendJoinRoom(roomId, userId, slot, teamId) {
+  sendJoinRoom(roomId, userId, slot, shipType, teamId) {
     const room = this.server.roomManager.rooms.get(roomId);
     const user = this.server.userManager.users.get(userId);
 
@@ -510,6 +521,7 @@ export class ServerThread {
       roomId,
       userId,
       slot,
+      shipType,
       teamId,
     };
     this.socket.send(JSON.stringify(packet));
@@ -569,20 +581,22 @@ export class ServerThread {
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendUserState(sessionId, slot, healthPercent, powerups, shipType) {
-    let powerupArray: { powerup: string }[] = [];
-    powerups.forEach((powerup) => {
-      powerupArray.push(powerup);
-    });
+  sendUserState(userId, slot, healthPercent, powerups, shipType) {
+    // sendUserState(userId, sessionId, slot, healthPercent, powerups, shipType) {
+    // let powerupArray: { powerup: string }[] = [];
+    // powerups.forEach((powerup) => {
+    //   powerupArray.push(powerup);
+    // });
     // 	byte opcode1 = 80;
     // 	byte opcode2 = 106;
     const packet = {
       type: "userState",
-      sessionId,
+      userId,
+      // sessionId,
       slot,
       healthPercent,
       numPowerups: powerups.length,
-      powerups: powerupArray,
+      powerups,
       shipType,
     };
     this.socket.send(JSON.stringify(packet));
@@ -688,9 +702,11 @@ export class ServerThread {
       // 	break;
 
       // TODO
-      // case 106:
-      // 	receiveUserState();
-      // 	break;
+      case "userState": {
+        // case 106:
+        this.receiveUserState(packet);
+        break;
+      }
       // case 107:
       // 	receivePowerup();
       // 	break;
@@ -712,7 +728,4 @@ export class ServerThread {
     }
     return operation;
   }
-
-
- 
 }

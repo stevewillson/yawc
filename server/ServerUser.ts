@@ -6,6 +6,7 @@ export class ServerUser {
   teamId;
   rank;
   clan;
+  shipType;
   roomId;
   icons;
   isAlive;
@@ -18,14 +19,16 @@ export class ServerUser {
     this.roomId = null;
     this.slot = null;
     this.userId = crypto.randomUUID();
-    this.teamId = null;
-    this.isAlive = null;
+    this.teamId = 0;
+    this.isAlive = true;
     this.clientId = clientId;
 
     // Set some placeholder values that we aren't really using yet.
     this.rank = 0;
     this.clan = "--";
     this.icons.push("small-platinumWeapons.gif");
+    this.shipType = 1;
+
   }
 
   numIcons() {

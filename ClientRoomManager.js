@@ -4,6 +4,10 @@ export default class ClientRoomManager {
   gameNetLogic;
   rooms;
 
+  static TEAM_COLORS = ["white", "rgb(232, 224, 0)", "rgb(87, 83, 255)"];
+  static TEAM_BG_COLORS = ["black", "black", "white"];
+  static TEAM_NAMES = ["", "Gold Team", "Blue Team"];
+
   static ROOM_STATUS_IDLE = 0;
   static ROOM_STATUS_DELETE = 1;
   static ROOM_STATUS_COUNTDOWN = 3;
@@ -47,6 +51,8 @@ export default class ClientRoomManager {
 
     // remove the room from the display
     document.getElementById(targetRoomId).remove();
+
+    // update the room display to reindex the rooms
   }
 
   getRoomById(roomId) {
@@ -87,13 +93,8 @@ export default class ClientRoomManager {
     return room;
   }
 
-  // need to get the 'addUser' packet back from the server
-  // to tell which slot to put the user in
-  addUserToRoom(roomId, userId, slot, teamId) {
-    // find the first empty slot in the room to add the user to
+  addUserToRoom(roomId, userId, slot, shipType, teamId) {
     // get the room by roomId
-
-    // need to iterate through the rooms to find the room Id
     const room = this.getRoomById(roomId);
     if (room != null) {
       room.addUser(userId, slot);
@@ -102,9 +103,10 @@ export default class ClientRoomManager {
       const user = this.gameNetLogic.clientUserManager.users.get(userId);
       user.roomId = roomId;
       user.slot = slot;
+      user.shipType = shipType;
       user.teamId = teamId;
 
-      // also set the html of the room?
+      // update the room slot element
       const roomSlotElement = document.getElementById(`${roomId}-slot${slot}`);
       roomSlotElement.innerHTML = user.username;
     }

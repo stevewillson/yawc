@@ -14,7 +14,7 @@ html,
     color:#C09760;
 }
 
-.lobbyButton, .roomButton
+.loginButton, .lobbyButton, .roomButton
 {
     color: #C09760;
     background-color: #735A49;
@@ -25,9 +25,14 @@ html,
     color: #FCD39C;
 }
 
-  .lobbyDiv {
+.lobbyDiv {
     background-color: #735A49;
 }
+
+.loginPanelDiv {
+    background: #8f888f;
+}
+
 
 .lobbyPanel {
     background-color: #3F1710;

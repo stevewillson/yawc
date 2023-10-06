@@ -525,7 +525,7 @@ export default class UserSprite extends Sprite {
       if (this.killedBy != null && !this.killedBy == "") {
         this.game.sendEvent(
           "killed by " + this.killedBy,
-          this.game.gameSession
+          this.game.gameSession,
         );
         this.game.killedBy = this.killedBySlot;
       }
@@ -533,7 +533,7 @@ export default class UserSprite extends Sprite {
       let explosion = new ExplosionSprite(
         { x: this.location.x, y: this.location.y },
         this.game,
-        this.slot
+        this.slot,
       );
       explosion.addSelf();
       // new ShrapnelSprite(super.intx, super.inty, 30, Sprite.model.color, 50).addSelf();
@@ -584,12 +584,12 @@ export default class UserSprite extends Sprite {
       this.bulletSize,
       UserSprite.bulletColors[this.bulletType],
       2,
-      this.game
+      this.game,
     );
     bulletSprite.setUser(this.slot);
     bulletSprite.setVelocity(
       Math.cos(angle) * 10.0 + this.velocity.x,
-      Math.sin(angle) * 10.0 + this.velocity.y
+      Math.sin(angle) * 10.0 + this.velocity.y,
     );
     bulletSprite.addSelf();
     this.lastShotCycle = this.spriteCycle + this.shotDelay;
@@ -645,8 +645,10 @@ export default class UserSprite extends Sprite {
     // rotate the model 90 degrees?
     this.polygon.rotate(90);
 
-    // draw the polygon
-    this.polygon.getPolygon().drawPolygon(context, "white");
+    // draw the user polygon
+    this.polygon
+      .getPolygon()
+      .drawPolygon(context, this.game.colors.colors[this.game.slot][0]);
 
     // undo the rotation
     this.polygon.rotate(-90);
@@ -721,12 +723,11 @@ export default class UserSprite extends Sprite {
       context.strokeStyle = "green";
     }
     let i = 20 * (this.health / this.MAX_HEALTH);
-    // let i = d * 20;
     context.beginPath();
     context.strokeRect(18, 18, 5, 20);
     context.fillRect(18, 38 - i, 5, i);
     context.stroke();
-    // Sprite.model.drawTeamShape(paramGraphics, 25, 15);
+    this.game.drawTeamShape(context, 25, 15);
     context.translate(-this.location.x, -this.location.y);
 
     // draw thrust trail
@@ -747,7 +748,7 @@ export default class UserSprite extends Sprite {
         x: this.location.x - n3 * (Math.cos(n) * 12),
         y: this.location.y - n3 * (Math.sin(n) * 12),
       },
-      this.game
+      this.game,
     );
     thrustSprite.vectorx = -2 * super.vectorx;
     thrustSprite.vectory = -2 * super.vectory;
@@ -761,13 +762,13 @@ export default class UserSprite extends Sprite {
         (this.angle + i) * 0.017453292519943295,
         1 + (WHUtil.randInt() % 2),
         3.0,
-        0
+        0,
       );
       this.drawOneThrust(
         (this.angle - i) * 0.017453292519943295,
         1 + (WHUtil.randInt() % 2),
         3.0,
-        0
+        0,
       );
     }
     this.drawOneThrust(this.radAngle, Math.min(this.thrustCount, 5), 2.0, 0);
@@ -926,7 +927,7 @@ export default class UserSprite extends Sprite {
       this.location.x - this.game.viewport.width / 2,
       this.location.y - this.game.viewport.height / 2,
       this.game.viewport.width,
-      this.game.viewport.height
+      this.game.viewport.height,
     );
     return this.game.viewportRect;
   }
@@ -936,7 +937,7 @@ export default class UserSprite extends Sprite {
     let bounds = this.polygon.getBounds();
     bounds.setLocation(
       this.location.x - bounds.width / 2,
-      this.location.y - bounds.height / 2
+      this.location.y - bounds.height / 2,
     );
     return bounds;
   }

@@ -22,29 +22,53 @@ export default class RoomPanel {
 
   toHtml() {
     const roomPanelDiv = document.createElement("div");
+
+    // make 3 divs (one for each column)
+    const leftDiv = document.createElement("div");
+    const centerDiv = document.createElement("div");
+    const rightDiv = document.createElement("div");
+
     roomPanelDiv.className = "roomDiv";
     roomPanelDiv.id = "roomPanelDiv";
 
     roomPanelDiv.style.display = "grid";
     roomPanelDiv.style["grid-template-columns"] = "1fr 2fr 1fr";
 
-    roomPanelDiv.appendChild(this.userAreaHtml());
+    leftDiv.appendChild(this.userAreaHtml());
+    // TODO add a roomChatPanel
 
     const gameCanvas = document.createElement("canvas");
     gameCanvas.id = "GameCanvas";
     gameCanvas.style.margin = 0;
     gameCanvas.style.padding = 0;
 
-    roomPanelDiv.appendChild(gameCanvas);
+    const userStatusBar = document.createElement("canvas");
+    userStatusBar.id = "UserStatusCanvas";
+    userStatusBar.style.margin = 0;
+    userStatusBar.style.padding = 0;
+    // set the width and the height here
+
+    centerDiv.appendChild(userStatusBar);
+    centerDiv.appendChild(gameCanvas);
+    centerDiv.style.display = "grid";
+    centerDiv.style.justifyItems = "center";
+
+    // left div will contain another canvas
+    const otherBar = document.createElement("canvas");
+    otherBar.id = "OtherStatusCanvas";
+    otherBar.style.margin = 0;
+    otherBar.style.padding = 0;
+
+    rightDiv.appendChild(otherBar);
+    rightDiv.style.display = "grid";
+    rightDiv.style.alignItems = "center";
+
+    roomPanelDiv.appendChild(leftDiv);
+    roomPanelDiv.appendChild(centerDiv);
+    roomPanelDiv.appendChild(rightDiv);
 
     // setup a new area for the game to populate
     this.game = new Game(this.gamePanel.gameNetLogic);
-
-    // TODO add a canvas for the user status
-
-    // TODO add a canvas for the other players' status
-
-    // TODO add a roomChatPanel
 
     return roomPanelDiv;
   }
