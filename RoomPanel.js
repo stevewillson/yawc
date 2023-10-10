@@ -99,7 +99,7 @@ export default class RoomPanel {
 
     // need to get the room id for the current user?
     const user = this.gamePanel.gameNetLogic.clientUserManager.users.get(
-      this.gamePanel.gameNetLogic.userId
+      this.gamePanel.gameNetLogic.userId,
     );
 
     startGameButton.onclick = () =>

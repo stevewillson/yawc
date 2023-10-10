@@ -36,7 +36,7 @@ export default class WHUtil {
       rectangle.x,
       rectangle.y,
       rectangle.width,
-      rectangle.height
+      rectangle.height,
     );
     context.stroke();
   }
@@ -216,7 +216,7 @@ export default class WHUtil {
       !paramRectangle2.inside(paramRectangle1.x, paramRectangle1.y) ||
       !paramRectangle2.inside(
         paramRectangle1.x + paramRectangle1.width,
-        paramRectangle1.y + paramRectangle1.height
+        paramRectangle1.y + paramRectangle1.height,
       )
     );
   }
@@ -237,7 +237,7 @@ export default class WHUtil {
         var r = (Math.random() * 16) | 0,
           v = c == "x" ? r : (r & 0x3) | 0x8;
         return v.toString(16);
-      }
+      },
     );
   }
 

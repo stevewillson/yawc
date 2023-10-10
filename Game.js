@@ -36,6 +36,10 @@ export default class Game {
   selectedShip;
   zoomInIntro;
 
+  powerups;
+
+  incomingCycle;
+
   constructor(gameNetLogic) {
     // set a debug mode for displaying shapeRects
     this.isDebugMode = false;
@@ -76,6 +80,9 @@ export default class Game {
     this.mode = "waiting";
     this.slot = null;
 
+    this.powerups = new Array(5);
+    this.numPowerups = 0;
+
     this.currentFighterShade = 0;
 
     // default to using the shipType of 1
@@ -84,7 +91,7 @@ export default class Game {
     this.selectedShip = 1;
     this.zoomInIntro = 0;
 
-    this.powerupSprite = new PowerupSprite();
+    this.incomingCycle = 0;
 
     // only use key handlers when the game is in focus?
     // key press handlers
@@ -120,6 +127,8 @@ export default class Game {
       this.input.up = true;
     } else if (e.code === "Space") {
       this.input.spacebar = true;
+    } else if (e.code === "KeyF") {
+      this.input.fKey = true;
     }
   }
 
@@ -167,6 +176,9 @@ export default class Game {
     if (this.input.spacebar) {
       this.userSprite.firePrimaryWeapon = true;
     }
+    if (this.input.fKey) {
+      this.userSprite.fireSecondaryWeapon = true;
+    }
 
     // methods from doPlayCycle
     this.cycle++;
@@ -185,6 +197,8 @@ export default class Game {
     this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     this.draw(this.context);
+
+    // refresh the user bar after getting a powerup
 
     if (this.refreshUserBar) {
       this.drawUserBar(this.userStatusContext);
@@ -268,9 +282,15 @@ export default class Game {
 
     this.portalVisibility = (this.board.width / 2) * 1.45;
 
-    this.incomingIconIndex = 0;
     this.incomingCycle = 0;
+    this.incomingIconCycle = 0;
+    this.incomingWhoStack = [];
+    this.fromSlot = 0;
+    this.currentShade = 0;
+    this.incomingTypeStack = [];
+    this.incomingIconIndex = 0;
     this.incomingNukeCycle = 0;
+
     this.numPowerups = 0;
     this.flashScreenColor = "black";
 
@@ -601,6 +621,21 @@ export default class Game {
     this.color = this.colors.colors[slot][0];
   }
 
+  // remove all the zappable sprites on the screen
+  clearScreen() {
+    this.flashScreenColor = "white";
+    for (let i = 0; i < this.badGuys.length; i++) {
+      let sprite = this.badGuys[i];
+      if (
+        sprite != null &&
+        sprite.isInDrawingRect &&
+        (!sprite.indestructible || sprite.isZappable)
+      ) {
+        sprite.killSelf();
+      }
+    }
+  }
+
   // draw the Game to the canvas
   draw(context) {
     if (this.userSprite != null) {
@@ -638,13 +673,11 @@ export default class Game {
         this.incomingCycle--;
         context.font = "40pt helvetica bold";
         context.strokeStyle =
-          SpriteColors.colors[this.incomingSlot][this.currentShade++ % 20];
+          SpriteColors.colors[this.fromSlot][this.currentShade++ % 20];
         context.strokeText("I N C O M I N G", this.boardWidth / 2 - 120, 200);
-        // context.stroke();
         if (this.incomingNukeCycle > 0) {
           this.incomingNukeCycle--;
           context.strokeText("N U K E", this.boardWidth / 2 - 90, 240);
-          // context.stroke();
         }
       }
 
@@ -678,6 +711,7 @@ export default class Game {
       }
 
       // for (let l = 0; l < this.incomingIconIndex; l++) {
+      // draw a powerup sprite
       //   graphics.drawImage(
       //     getImages("img_smallpowerups")[
       //       PowerupSprite.convertToSmallImage(this.incomingTypeStack[l])
@@ -865,15 +899,12 @@ export default class Game {
   }
 
   drawStrings(context, s, s2) {
-    // TODO - center the strings on the board
     let n = this.introY - 115;
     let n2 = n + 30;
     context.fillStyle = this.color;
     context.strokeStyle = this.color;
 
-    // how to
     context.beginPath();
-    // graphics.fillRoundRect(50, n, this.boardWidth - 100, 100, 30, 30);
     context.roundRect(50, n, this.board.width - 100, 100, 30);
     context.fill();
     context.stroke();
@@ -886,7 +917,6 @@ export default class Game {
   }
 
   drawCenteredText(context, text, y) {
-    // TODO need to add offset for the canvas
     let x = this.board.width / 2;
     context.font = "20pt Helvetica";
     context.textAlign = "center";
@@ -896,7 +926,7 @@ export default class Game {
   drawCenteredText2(context, text, y, xOffset, elementWidth) {
     // context.drawString(s,
     // (n3 - graphics.getFontMetrics(graphics.getFont()).stringWidth(s)) / 2 + n2, n);
-    // TODO make sure alignment is good
+    // TODO make sure alignment is centered
     context.textAlign = "center";
     context.fillText(
       text,
@@ -911,8 +941,8 @@ export default class Game {
     let s = ClientRoomManager.TEAM_NAMES[b];
     let color = ClientRoomManager.TEAM_COLORS[b];
     let color2 = ClientRoomManager.TEAM_BG_COLORS[b];
-    let boardCenterX = this.m_boardCenterX;
-    let boardCenterX2 = this.m_boardCenterX;
+    let boardCenterX = this.boardCenterX;
+    let boardCenterX2 = this.boardCenterX;
     context.strokeStyle = color;
     context.fillStyle = color;
 
@@ -945,49 +975,49 @@ export default class Game {
         }
       }
     }
-    if (this.m_player.getViewRect().intersects(this.m_rectCenterBox)) {
+    if (this.player.getViewRect().intersects(this.rectCenterBox)) {
       for (let n6 = 0; n6 < 60; n6++) {
-        if (this.m_novaInfo[n6][0] > 45.0) {
-          this.m_novaInfo[n6][0] = Math.abs(WHUtil.randInt(45));
-          this.m_novaInfo[n6][1] = boardCenterX - 5 + WHUtil.randInt(16);
-          this.m_novaInfo[n6][2] = boardCenterX2 - 5 + WHUtil.randInt(16);
-          this.m_novaInfo[n6][3] =
+        if (this.novaInfo[n6][0] > 45.0) {
+          this.novaInfo[n6][0] = Math.abs(WHUtil.randInt(45));
+          this.novaInfo[n6][1] = boardCenterX - 5 + WHUtil.randInt(16);
+          this.novaInfo[n6][2] = boardCenterX2 - 5 + WHUtil.randInt(16);
+          this.novaInfo[n6][3] =
             (WHUtil.randInt(2) < 1 ? -1 : 1) * Math.random() * 4;
-          this.m_novaInfo[n6][4] =
+          this.novaInfo[n6][4] =
             (WHUtil.randInt(2) < 1 ? -1 : 1) * Math.random() * 4;
         }
-        let array = this.m_novaInfo[n6];
+        let array = this.novaInfo[n6];
         let n7 = 1;
-        array[n7] += this.m_novaInfo[n6][3];
-        let array2 = this.m_novaInfo[n6];
+        array[n7] += this.novaInfo[n6][3];
+        let array2 = this.novaInfo[n6];
         let n8 = 2;
-        array2[n8] += this.m_novaInfo[n6][4];
+        array2[n8] += this.novaInfo[n6][4];
         context.fillStyle =
-          this.colors.colors[this.m_teamID == 1 ? 10 : 0][
-            this.m_novaInfo[n6][0] / 3
+          this.colors.colors[this.teamID == 1 ? 10 : 0][
+            this.novaInfo[n6][0] / 3
           ];
         context.strokeStyle =
-          this.colors.colors[this.m_teamID == 1 ? 10 : 0][
-            this.m_novaInfo[n6][0] / 3
+          this.colors.colors[this.teamID == 1 ? 10 : 0][
+            this.novaInfo[n6][0] / 3
           ];
         let n9 = 11 - this.novaInfo[n6][0] / 4;
         if (b == 1) {
           context.strokeRect(
-            this.m_novaInfo[n6][1],
-            this.m_novaInfo[n6][2],
+            this.novaInfo[n6][1],
+            this.novaInfo[n6][2],
             n9,
             n9
           );
         } else {
           context.arc(
-            this.m_novaInfo[n6][1],
-            this.m_novaInfo[n6][2],
+            this.novaInfo[n6][1],
+            this.novaInfo[n6][2],
             n9,
             0,
             2 * Math.PI
           );
         }
-        let array3 = this.m_novaInfo[n6];
+        let array3 = this.novaInfo[n6];
         let n10 = 0;
         array3[n10]++;
       }
@@ -1002,17 +1032,12 @@ export default class Game {
 
   drawFighter(context, fighterNumber, x, y) {
     context.translate(x, y);
-    // if (this.hasShipPermission((byte)PlayerSprite.g_fighterData[n][13])) {
-    // graphics.setColor(Sprite.g_colors[super.m_slot][2]);
 
+    // draw all of the fighters
+    // do not limit by permissions
     context.fillStyle = this.colors.colors[this.slot][2];
     context.strokeStyle = this.colors.colors[this.slot][2];
-    // }
-    // else {
-    // graphics.setColor(Color.black);
-    // }
     if (this.selectedShip == fighterNumber) {
-      // graphics.setColor(this.colors.colors[super.m_slot][this.currentFighterShade++ / 2 % 20]);
       context.fillStyle =
         this.colors.colors[this.slot][(this.currentFighterShade++ / 2) % 20];
       context.fillRect(-25, -24, 50, 50);
@@ -1040,7 +1065,6 @@ export default class Game {
     context.translate(0, -UserSprite.fighterData[fighterNumber][0]);
     if (UserSprite.fighterData[fighterNumber].trackingCannons >= 1) {
       WHUtil.fillCenteredCircle(context, 0, 0, 5);
-      // graphics.setColor(Color.black);
       context.fillStyle = "black";
       WHUtil.fillCenteredArc(context, 0, 0, 5, -20, 40);
     }
@@ -1062,7 +1086,7 @@ export default class Game {
           event.x <=
             this.canvas.offsetLeft + this.intro_shipX + this.intro.width - 10
         ) {
-          // now get the box that it is over
+          // get the box that it is over
           // subtract the introX from the eventx
           let xOffset = event.x - this.canvas.offsetLeft - this.intro_shipX;
           let xSelection = Math.floor((xOffset * 8) / this.intro.width);
@@ -1071,7 +1095,10 @@ export default class Game {
           this.zoomInIntro = 0;
 
           // TODO send over the network that the ship has changed
-          this.gameNetLogic.user.shipType = this.selectedShip;
+          const user = this.gameNetLogic.clientUserManager.users.get(
+            this.gameNetLogic.userId
+          );
+          user.shipType = this.selectedShip;
 
           // change the user to the selected ship
           this.userSprite.removeSelf();
@@ -1092,21 +1119,39 @@ export default class Game {
    * draw a powerup image from the powerup graphics
    */
   drawPowerups(context) {
+    // get the image
+    let img = document.getElementById("smallPowerupImages");
+    let imgWidth = 21;
+    let imgHeight = 17;
+    // the powerup array contains numbers,
+    // reference the PowerupSprite smallConversionTypes array
+    // get the offset of the
+
     for (let i = this.numPowerups - 1; i >= 0; i--) {
+      let powerupNumber = this.powerups[i];
+      // subtract 6 from the number, if the number is less than or equal to 0, set it to 0
+      let shiftedNumber = powerupNumber - 6;
+      if (shiftedNumber <= 0) {
+        powerupNumber = 0;
+      } else {
+        powerupNumber = shiftedNumber;
+      }
       context.drawImage(
-        getImages("img_smallpowerups")[
-          PowerupSprite.convertToSmallImage(this.m_powerups[i])
-        ],
+        img,
+        powerupNumber + powerupNumber * imgWidth + 1,
+        1,
+        imgWidth,
+        imgHeight - 2,
         i * 23,
         0,
-        null
+        imgWidth,
+        imgHeight - 2
       );
     }
   }
 
   drawIntro(context) {
     // add a mouse listener to the canvas
-    // graphics.setColor(Color.lightGray);
     // light gray
     context.fillStyle = "#C0C0C0";
     // graphics.fill3DRect(this.introX, this.introY, 410, 260, true);
@@ -1132,16 +1177,13 @@ export default class Game {
       this.introY + 28
     );
 
-    // graphics.setColor(Color.gray);
     // graphics.fillRect(this.intro_shipX, this.intro_shipY, 400, 50);
     context.fillStyle = "gray";
     context.fillRect(this.intro_shipX, this.intro_shipY, 400, 50);
 
-    // graphics.setColor(this.color);
     // graphics.drawRect(this.intro_shipX, this.intro_shipY, 400, 50);
     context.strokeStyle = this.color;
     context.strokeRect(this.intro_shipX, this.intro_shipY, 400, 50);
-    context.stroke();
 
     // draw ships
     // final boolean hasPermission = this.hasShipPermission((byte)PlayerSprite.g_fighterData[this.selectedShip][13]);
@@ -1167,7 +1209,6 @@ export default class Game {
 
     context.beginPath();
     context.strokeStyle = "black";
-    context.fillStyle = "black";
 
     context.arc(n2, n3, 15, 0, 2 * Math.PI);
     context.moveTo(n2, n3 + 15);
@@ -1187,7 +1228,6 @@ export default class Game {
     let n6 = n5 - 40;
     let n7 = n4 + 10;
     context.beginPath();
-    context.strokeStyle = "white";
     context.fillStyle = "white";
     context.textAlign = "left";
     for (let i = 1; i < array.length; i++) {
@@ -1225,7 +1265,6 @@ export default class Game {
       //     }
     }
 
-    // graphics.translate(this.introX + 75, this.introY + 180);
     context.translate(this.introX + 75, this.introY + 180);
     // //WHUtil.drawScaledPoly(graphics, PlayerSprite.g_polyShip[this.selectedShip][this.currentFighterShade / 2 % 24], zoomInIntro);
     // WHUtil.drawScaledPoly(graphics, PlayerSprite.g_polyShip[this.selectedShip][this.currentFighterShade * 10 / PlayerSprite.DROTATE % PlayerSprite.NROTATIONS], zoomInIntro);
@@ -1250,7 +1289,7 @@ export default class Game {
     // );
 
     context.translate(-(this.introX + 75), -(this.introY + 180));
-    context.strokeStyle = "white";
+    // context.strokeStyle = "white";
     context.fillStyle = "white";
 
     context.fillText(array[0], this.introX + 10, this.introY + 110);
@@ -1270,8 +1309,45 @@ export default class Game {
     return newSlot;
   }
 
-  static getImages(s) {
-    return WormholeModel.g_mediaTable.get(s);
+  // add the powerup to the user's powerups
+  // send a network message showing that the user got the powerup
+  addPowerup(powerupType) {
+    if (this.numPowerups >= 5) {
+      return;
+    }
+    this.powerups[this.numPowerups++] = powerupType;
+    this.refreshUserBar = true;
+    this.sendEvent(`got the ${PowerupSprite.names[powerupType]} powerup`);
+  }
+
+  addIncomingPowerup(portalSprite, powerupType, fromSlot, b2) {
+    if (portalSprite == null) {
+      return;
+    }
+    portalSprite.genBadPowerupEffect(powerupType, fromSlot, b2);
+    this.incomingCycle = 40;
+    this.incomingIconCycle = 160;
+    this.incomingWhoStack[this.incomingIconIndex] = fromSlot;
+    this.fromSlot = fromSlot;
+    this.currentShade = 0;
+    this.incomingTypeStack[this.incomingIconIndex] = powerupType;
+    this.incomingIconIndex = Math.min(29, this.incomingIconIndex + 1);
+    if (powerupType == 14) {
+      this.incomingNukeCycle = 40;
+    }
+  }
+
+  usePowerup(powerupType, upgradeLevel, toSlot, sessionId, gameId) {
+    // stream.writeByte(107);
+    const packet = {
+      type: "powerup",
+      sessionId,
+      powerupType,
+      toSlot,
+      upgradeLevel,
+    };
+    this.gameNetLogic.network.socket.send(JSON.stringify(packet));
+    // monitorexit(super.m_logic.getNetwork())
   }
 
   // TODO - want to use the ClientRoomManager / ClientUserManager for this now
@@ -1465,7 +1541,6 @@ export default class Game {
         }
         this.gameOver = true;
         this.refreshUserBar = true;
-        this.refreshUserBar = true;
         break;
 
       case "gameOverTeam":
@@ -1483,7 +1558,6 @@ export default class Game {
           }
         }
         this.gameOver = true;
-        this.refreshUserBar = true;
         this.refreshUserBar = true;
         break;
 
@@ -1518,12 +1592,12 @@ export default class Game {
         this.lastCycleForMessages = this.cycle + 200;
         break;
 
-      case "sendPowerup":
-        let powerupType = gamePacket.powerupType;
-        let fromSlot = gamePacket.fromSlot;
-        let toSlot = gamePacket.toSlot;
-        sessionId = gamePacket.sessionId;
-        let byte9 = gamePacket.byte9;
+      case "powerup":
+        const powerupType = gamePacket.powerupType;
+        const fromSlot = gamePacket.fromSlot;
+        const toSlot = gamePacket.toSlot;
+        const sessionId = gamePacket.sessionId;
+        const byte9 = gamePacket.byte9;
         if (sessionId != this.sessionId && !this.gameOver) {
           return;
         }
@@ -1594,11 +1668,12 @@ export default class Game {
   }
 
   // combination of writeEvent and updateEvent
-  sendEvent(eventString, sessionId) {
+  sendEvent(eventString) {
+    // sendEvent(eventString, sessionId) {
     // stream.writeByte(109);
     const packet = {
       type: "event",
-      sessionId,
+      // sessionId,
       eventString: `${this.gameNetLogic.username} ${eventString}`,
     };
     this.gameNetLogic.network.socket.send(JSON.stringify(packet));
@@ -1627,11 +1702,11 @@ export default class Game {
 
   // user bar on the right side of the screen
   drawOtherBar(context, b) {
-    this.refreshUserBar = false;
+    this.refreshOtherBar = false;
     if (b) {
       // get the other player's panels
       // TODO
-      // graphics.setColor(this.m_pnlOtherPlayers.getBackground());
+      // graphics.setColor(this.pnlOtherPlayers.getBackground());
       context.strokeStyle = "red";
       context.fillStyle = "red";
       context.fillRect(0, 0, 144, 474);
@@ -1726,7 +1801,7 @@ export default class Game {
         context.strokeStyle = this.color;
       }
       context.translate(110, 0);
-      // this.user.drawPermanentPowerups(context);
+      this.userSprite.drawPermanentPowerups(context);
       context.translate(-110, 0);
     }
     let n2 = 370;
@@ -1742,5 +1817,9 @@ export default class Game {
     context.fillText(`Wins: ${this.wins}`, n2, 28);
     context.fillText(`Kills: ${this.kills}`, n2, 42);
     this.refreshUserBar = false;
+  }
+
+  getTimeElapsed() {
+    return Date.now() - this.startTime;
   }
 }

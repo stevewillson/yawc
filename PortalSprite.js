@@ -3,6 +3,7 @@ import WHUtil from "./WHUtil.js";
 import Rectangle from "./Rectangle.js";
 import InflatorSprite from "./InflatorSprite.js";
 import UFOSprite from "./UFOSprite.js";
+import PowerupSprite from "./PowerupSprite.js";
 
 export default class PortalSprite extends Sprite {
   constructor(n, userState, game) {
@@ -38,17 +39,13 @@ export default class PortalSprite extends Sprite {
     this.genEnemy = false;
     this.BASE_W = 30;
     this.MAX_W = 60;
-    this.damageTaken;
+    this.damageTaken = 0;
     this.MAX_TAKEN = 150;
     this.vOutgoingPowerups;
     this.NMISSILES = 12;
     this.NMINES = 15;
     this.MINE_VEL = 6;
     this.NUMPOWERUPQ = 30;
-    this.powerupQ;
-    this.powerupUpgradeQ;
-    this.powerupCycleQ;
-    this.powerupSlotQ;
     this.POWERUP_DELAY = 30;
     this.viewingRect;
     this.warpDx;
@@ -65,8 +62,8 @@ export default class PortalSprite extends Sprite {
 
     for (let i = 0; i < 15; i++) {
       let mineSprite = new MineSprite(n, n2);
-      mineSprite.vectorx = Math.cos(n4) * 6;
-      mineSprite.vectory = Math.sin(n4) * 6;
+      mineSprite.velocity.x = Math.cos(n4) * 6;
+      mineSprite.velocity.y = Math.sin(n4) * 6;
       mineSprite.setUser(user);
       mineSprite.addSelf();
       n4 += n3;
@@ -132,7 +129,7 @@ export default class PortalSprite extends Sprite {
           sprite = new WallCrawlerSprite(
             spriteXLoc,
             spriteYLoc,
-            WHUtil.randInt() % 2 == 0
+            WHUtil.randInt(2) == 0
           );
           break;
         }
@@ -233,7 +230,12 @@ export default class PortalSprite extends Sprite {
       sprite.setCollided(this);
       this.damageTaken += sprite.damage;
       if (this.damageTaken > 150) {
-        PowerupSprite.genPowerup(this.location.x, this.location.y).addSelf();
+        let powerupSprite = PowerupSprite.genPowerup(
+          this.location.x,
+          this.location.y,
+          this.game
+        );
+        powerupSprite.addSelf();
         this.damageTaken = 0;
       }
       if (sprite.bIsHeatSeeker) {
@@ -258,7 +260,7 @@ export default class PortalSprite extends Sprite {
     }
   }
 
-  genBadPowerupEffect(n, b, b2) {
+  genBadPowerupEffect(powerupType, slot, b2) {
     let n2 = 0;
     while (this.powerupCycleQ[n2] != 0) {
       if (++n2 >= 30) {
@@ -267,12 +269,12 @@ export default class PortalSprite extends Sprite {
     }
     this.powerupCycleQ[n2] = this.spriteCycle + 30;
     this.powerupUpgradeQ[n2] = b2;
-    this.powerupQ[n2] = n;
-    this.powerupSlotQ[n2] = b;
+    this.powerupQ[n2] = powerupType;
+    this.powerupSlotQ[n2] = slot;
   }
 
   genNuke(n, n2, b) {
-    nukeSprite = new NukeSprite(n, n2, b);
+    const nukeSprite = new NukeSprite(n, n2, b);
     nukeSprite.setVelocity(
       (n - Sprite.g_centerX) / 125,
       (n2 - Sprite.g_centerY) / 125

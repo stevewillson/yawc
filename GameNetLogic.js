@@ -60,7 +60,7 @@ export default class GameNetLogic {
       majorVersion,
       minorVersion,
       username,
-      password
+      password,
     );
   }
 
@@ -361,7 +361,7 @@ export default class GameNetLogic {
         this.handleRoomStatusChange(
           packetJSON.roomId,
           packetJSON.status,
-          packetJSON.countdown
+          packetJSON.countdown,
         );
         break;
       }
@@ -477,7 +477,7 @@ export default class GameNetLogic {
           userId,
           slot,
           shipType,
-          teamId
+          teamId,
         );
 
         // if there is an issue with updating player teams, can request roomInfo upon entering the room
@@ -503,7 +503,7 @@ export default class GameNetLogic {
 
           this.gamePanel.roomPanel.game.drawOtherBar(
             this.gamePanel.roomPanel.game.otherStatusContext,
-            true
+            true,
           );
 
           const room = this.clientRoomManager.getRoomById(this.roomId);
@@ -537,17 +537,17 @@ export default class GameNetLogic {
         break;
       }
 
-      //             }
-      //             case 103: {
-      //                 final CFPrivateTableDialog privateTableDialog = this.findPrivateTableDialog();
-      //                 privateTableDialog.setStatus("Incorrect password.");
-      //             }
-      //         }
-      //     }
-      //     catch (Exception ex) {
-      //         ex.printStackTrace();
-      //     }
-      // }
+        //             }
+        //             case 103: {
+        //                 final CFPrivateTableDialog privateTableDialog = this.findPrivateTableDialog();
+        //                 privateTableDialog.setStatus("Incorrect password.");
+        //             }
+        //         }
+        //     }
+        //     catch (Exception ex) {
+        //         ex.printStackTrace();
+        //     }
+        // }
     }
   }
 
@@ -583,7 +583,7 @@ export default class GameNetLogic {
       isBalancedRoom,
       roomUsers,
       numSlots,
-      password
+      password,
     );
   }
 

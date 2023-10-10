@@ -3,9 +3,8 @@ import WHUtil from "./WHUtil.js";
 import Sprite from "./Sprite.js";
 
 export default class ExplosionSprite extends Sprite {
-  constructor(location, game, colorType = null) {
+  constructor(location, game, colorType = 0) {
     super(location, game);
-
     this.game = game;
     this.RINGS = 6;
     this.init("explosion", location.x, location.y, true);
@@ -13,7 +12,7 @@ export default class ExplosionSprite extends Sprite {
     this.shapeRect = new Rectangle(location.x - 50, location.y - 50, 100, 100);
     // TODO - explosion sound
     // GameBoard.playSound("snd_explosion");
-    this.colorscolorType = colorType;
+    this.colorType = colorType;
     this.MAX_CYCLE = 40;
   }
 
@@ -28,7 +27,7 @@ export default class ExplosionSprite extends Sprite {
       this.location.x - n,
       this.location.y - n,
       n * 2,
-      n * 2,
+      n * 2
     );
   }
 
@@ -36,7 +35,7 @@ export default class ExplosionSprite extends Sprite {
     for (let i = 0; i < this.RINGS; i++) {
       // max specifies the color of the explosion ring
       let max = Math.max(Math.min(19, i + this.spriteCycle - 10), 0);
-      context.strokeStyle = this.game.colors.colors[this.colorscolorType][max];
+      context.strokeStyle = this.game.colors.colors[this.colorType][max];
 
       let n = (this.spriteCycle - i) * 2;
       if (n < 0) {
@@ -49,7 +48,7 @@ export default class ExplosionSprite extends Sprite {
           this.location.x,
           this.location.y,
           n,
-          context.strokeStyle,
+          context.strokeStyle
         );
       }
     }
@@ -65,7 +64,7 @@ export default class ExplosionSprite extends Sprite {
         this.location.x - n,
         this.location.y - n,
         n * 2,
-        n * 2,
+        n * 2
       );
       super.behave();
     }

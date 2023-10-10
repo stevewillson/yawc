@@ -46,9 +46,11 @@ export default class ClientRoom {
     // table of either 2x3 or 2x5 to show the slots
     // get the room index
     const joinRoomButton = document.createElement("button");
-    joinRoomButton.innerText = `Join Room ${this.clientRoomManager.roomIndex(
-      this.roomId
-    )}`;
+    joinRoomButton.innerText = `Join Room ${
+      this.clientRoomManager.roomIndex(
+        this.roomId,
+      )
+    }`;
     joinRoomButton.className = "joinRoomButton";
     joinRoomButton.onclick = () =>
       this.clientRoomManager.gameNetLogic.handleJoinRoom(this.roomId);
@@ -67,11 +69,11 @@ export default class ClientRoom {
     firstElement.appendChild(joinRoomButton);
     // get the username from the userId
     secondElement.innerHTML = this.clientUserManager.getUsername(
-      this.userIds[0]
+      this.userIds[0],
     );
     secondElement.id = `${this.roomId}-slot0`;
     thirdElement.innerHTML = this.clientUserManager.getUsername(
-      this.userIds[1]
+      this.userIds[1],
     );
     thirdElement.id = `${this.roomId}-slot1`;
 
@@ -87,12 +89,12 @@ export default class ClientRoom {
     if (this.numSlots == 4) {
       fourthElement.innerHTML = "Large";
       fifthElement.innerHTML = this.clientUserManager.getUsername(
-        this.userIds[2]
+        this.userIds[2],
       );
       fifthElement.id = `${this.roomId}-slot2`;
 
       sixthElement.innerHTML = this.clientUserManager.getUsername(
-        this.userIds[3]
+        this.userIds[3],
       );
       sixthElement.id = `${this.roomId}-slot3`;
 
@@ -106,10 +108,10 @@ export default class ClientRoom {
       const fifthElement = document.createElement("td");
 
       fourthElement.innerHTML = this.clientUserManager.getUsername(
-        this.userIds[2]
+        this.userIds[2],
       );
       fifthElement.innerHTML = this.clientUserManager.getUsername(
-        this.userIds[3]
+        this.userIds[3],
       );
 
       firstRow.appendChild(fourthElement);
@@ -135,7 +137,7 @@ export default class ClientRoom {
     isTeamRoom,
     boardSize,
     bBalancedTeams,
-    options
+    options,
   ) {
     this.bRanked = bRanked;
     this.bPrivate = bPrivate;

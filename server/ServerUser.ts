@@ -28,7 +28,6 @@ export class ServerUser {
     this.clan = "--";
     this.icons.push("small-platinumWeapons.gif");
     this.shipType = 1;
-
   }
 
   numIcons() {

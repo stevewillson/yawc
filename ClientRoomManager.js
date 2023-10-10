@@ -121,7 +121,7 @@ export default class ClientRoomManager {
 
     // also set the html of the room?
     const roomSlotElement = document.getElementById(
-      `${user.roomId}-slot${user.slot}`
+      `${user.roomId}-slot${user.slot}`,
     );
     roomSlotElement.innerHTML = "Open Slot";
 

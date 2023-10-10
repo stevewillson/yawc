@@ -121,7 +121,7 @@ export default class UserState {
       n,
       n2,
       this.color,
-      this.gameOver ? "gray" : this.offsetCycle == 30 ? "orange" : "black"
+      this.gameOver ? "gray" : this.offsetCycle == 30 ? "orange" : "black",
     );
     context.font = "12px Helvetica";
 
@@ -131,7 +131,7 @@ export default class UserState {
           ? this.username.substring(0, 11)
           : this.username,
         30,
-        11
+        11,
       );
     }
     // TODO
@@ -166,12 +166,12 @@ export default class UserState {
     context.translate(n4, n5);
 
     const room = this.game.gameNetLogic.clientRoomManager.getRoomById(
-      this.game.gameNetLogic.roomId
+      this.game.gameNetLogic.roomId,
     );
 
     // make a new polygon for the fighterData
     const polygon = WHUtil.createPolygon(
-      UserSprite.shipShapes[this.clientUser.shipType]
+      UserSprite.shipShapes[this.clientUser.shipType],
     );
     WHUtil.drawScaledPoly(context, polygon, n6);
     context.translate(-n4, -n5);
@@ -195,7 +195,7 @@ export default class UserState {
         8,
         8,
         ClientRoomManager.TEAM_COLORS[n3],
-        ClientRoomManager.TEAM_BG_COLORS[n3]
+        ClientRoomManager.TEAM_BG_COLORS[n3],
       );
       return;
     }
@@ -205,7 +205,7 @@ export default class UserState {
       n2,
       10,
       ClientRoomManager.TEAM_COLORS[n3],
-      ClientRoomManager.TEAM_BG_COLORS[n3]
+      ClientRoomManager.TEAM_BG_COLORS[n3],
     );
   }
 

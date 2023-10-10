@@ -2,6 +2,7 @@ import Sprite from "./Sprite.js";
 import Rectangle from "./Rectangle.js";
 import ExplosionSprite from "./ExplosionSprite.js";
 import ParticleSprite from "./ParticleSprite.js";
+import WHUtil from "./WHUtil.js";
 
 export default class BulletSprite extends Sprite {
   // tracked in Game now
@@ -13,7 +14,7 @@ export default class BulletSprite extends Sprite {
   static CONCUSSIVE_RECOIL = 5;
   lifespan = 100;
   maxVelocity = 10;
-  bPowerup;
+  powerup;
   bCountTowardsQuota;
   upgradeLevel;
   internalColor;
@@ -28,7 +29,7 @@ export default class BulletSprite extends Sprite {
     bulletSize,
     internalColor,
     spriteType,
-    game,
+    game
   ) {
     super(location, game);
     this.location = location;
@@ -38,7 +39,7 @@ export default class BulletSprite extends Sprite {
       location.x - 5,
       location.y - 5,
       bulletSize,
-      bulletSize,
+      bulletSize
     );
     this.spriteType = spriteType;
     this.internalColor = internalColor;
@@ -71,7 +72,7 @@ export default class BulletSprite extends Sprite {
         0,
         0,
         7,
-        this.game.colors.colors[super.slot][super.spriteCycle % 20],
+        this.game.colors.colors[super.slot][super.spriteCycle % 20]
       );
 
       context.moveTo(0, 0);
@@ -96,21 +97,36 @@ export default class BulletSprite extends Sprite {
       context.moveTo(0, -this.shapeRect.width);
       context.lineTo(0, this.shapeRect.width);
 
-      if (this.bPowerup) {
+      if (this.powerup) {
         WHUtil.drawCenteredCircle(context, 0, 0, 20);
-        // graphics.drawImage(
-        //   Wormholegame.getImages("img_smallpowerups")[
-        //     PowerupSprite.convertToSmallImage(super.powerupType)
-        //   ],
-        //   -8,
-        //   -5,
-        //   null
-        // );
+
+        let shiftedNumber = this.powerupType - 6;
+        let powerupNumber;
+        if (shiftedNumber <= 0) {
+          powerupNumber = 0;
+        } else {
+          powerupNumber = shiftedNumber;
+        }
+
+        let img = document.getElementById("smallPowerupImages");
+        let imgWidth = 21;
+        let imgHeight = 17;
+
+        context.drawImage(
+          img,
+          powerupNumber + powerupNumber * imgWidth + 1,
+          1,
+          imgWidth,
+          imgHeight - 2,
+          -8,
+          -5,
+          imgWidth,
+          imgHeight - 2
+        );
       }
 
       context.moveTo(0, 0);
       context.lineTo(this.offx, this.offy);
-
       context.stroke();
     }
     context.translate(-this.location.x, -this.location.y);
@@ -120,16 +136,15 @@ export default class BulletSprite extends Sprite {
     super.setCollided(collided);
     if (this.bConcussive) {
       let angle = WHUtil.findAngle(collided.x, collided.y, this.x, this.y);
-      collided.velocity.x += 5.0 * Math.cos(angle * 0.017453292519943295);
-      collided.velocity.y += 5.0 * Math.sin(angle * 0.017453292519943295);
+      collided.velocity.x += 5 * Math.cos(angle * 0.017453292519943295);
+      collided.velocity.y += 5 * Math.sin(angle * 0.017453292519943295);
     }
     if (this.shouldRemoveSelf) {
-      if (this.bPowerup) {
+      if (this.powerup) {
         let explosionSprite = new ExplosionSprite(
           { x: this.location.x, y: this.location.y },
-          { x: this.location.x, y: this.location.y },
           this.game,
-          this.game.slot,
+          this.game.slot
         );
         explosionSprite.setPowerupExplosion();
         explosionSprite.addSelf();
@@ -137,14 +152,14 @@ export default class BulletSprite extends Sprite {
         let explosionSprite2 = new ExplosionSprite(
           { x: this.location.x, y: this.location.y },
           this.game,
-          9,
+          9
         );
         explosionSprite2.RINGS = 2;
         explosionSprite2.addSelf();
       }
       let particleSprite = new ParticleSprite(
         { x: this.location.x, y: this.location.y },
-        this.game,
+        this.game
       );
       particleSprite.particleInit(8, 5);
       particleSprite.addSelf();
@@ -171,7 +186,7 @@ export default class BulletSprite extends Sprite {
 
   setPowerup(powerupType) {
     this.powerupType = powerupType;
-    this.bPowerup = true;
+    this.powerup = true;
   }
 
   setConcussive() {

@@ -91,8 +91,7 @@ export class ServerThread {
     // let numPowerups = packet.numPowerups;
     let powerups = [];
     if (packet.powerups != undefined) {
-    powerups = packet.powerups;
-      
+      powerups = packet.powerups;
     }
     let shipType = packet.shipType;
     // let damagingUser = packet.strDamagedByUser;
@@ -155,20 +154,24 @@ export class ServerThread {
   receiveChangeTeam(packet) {
     const teamId = packet.teamId;
     this.user.setTeamId(teamId);
-    this.server.broadcastTeamChange(this.user.room(), this.user.slot, teamId);
+    this.server.broadcastTeamChange(this.user.roomId, this.user.slot, teamId);
   }
 
-  // public void receivePowerup() throws IOException {
-  // 	final DataInputStream stream = this.pr.getStream();
-
-  // 	short	gameSession		= stream.readShort();
-  // 	byte	powerupType		= stream.readByte();
-  // 	byte	toSlot			= stream.readByte();
-  // 	byte 	upgradeLevel	= stream.readByte();
-
-  // TODO - use the room Id here
-  // 	server.broadcastPowerup(user().room(), powerupType, user().slot(), toSlot, gameSession, (byte)0);
-  // }
+  receivePowerup(packet) {
+    const sessionId = packet.sessionId;
+    const powerupType = packet.powerupType;
+    const toSlot = packet.toSlot;
+    const upgradeLevel = packet.upgradeLevel;
+    // TODO - use the room Id here
+    this.server.broadcastPowerup(
+      this.user.roomId,
+      powerupType,
+      this.user.slot,
+      toSlot,
+      sessionId,
+      0,
+    );
+  }
 
   receiveCreateRoom(packet) {
     let password = "";
@@ -567,15 +570,15 @@ export class ServerThread {
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendPowerup(powerupType, toSlot, b1, gameSession, b2) {
+  sendPowerup(powerupType, fromSlot, toSlot, sessionId, b2) {
     // 	byte opcode1 = 80;
     // 	byte opcode2 = 107;
     const packet = {
       type: "powerup",
       powerupType: powerupType,
-      slot: toSlot,
-      b1: b1,
-      gameSession: gameSession,
+      fromSlot,
+      toSlot,
+      sessionId,
       b2: b2,
     };
     this.socket.send(JSON.stringify(packet));
@@ -707,9 +710,11 @@ export class ServerThread {
         this.receiveUserState(packet);
         break;
       }
-      // case 107:
-      // 	receivePowerup();
-      // 	break;
+      case "powerup": {
+        // case 107:
+        this.receivePowerup(packet);
+        break;
+      }
       // case 109:
       // 	receiveUserEvent();
       // 	break;

@@ -40,8 +40,8 @@ export default class ClientUser {
     usernameElement.innerText = this.username;
 
     // get the room index from the user manager
-    roomIndexElement.innerText =
-      this.userPanel.gamePanel.lobbyPanel.roomPanel.roomIndex(this.roomId);
+    roomIndexElement.innerText = this.userPanel.gamePanel.lobbyPanel.roomPanel
+      .roomIndex(this.roomId);
     // TODO - use graphic for rank rather than text
     rankElement.innerText = this.rank;
 
