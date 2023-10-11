@@ -491,41 +491,49 @@ export default class UserSprite extends Sprite {
 
   drawPermanentPowerups(context) {
     context.translate(110, 25);
-    // const polygon = PlayerSprite.g_polyShip[this.m_fighterType][0];
     // TODO - simplify getting the polygon from a rotational polygon
-    const polygon = this.game.userSprite.polygon.getPolygon();
+    const polygon = WHUtil.createPolygon(
+      UserSprite.shipShapes[this.shipSelect],
+    );
     context.strokeStyle = this.color;
     context.fillStyle = this.color;
-
     polygon.drawPolygon(context);
-    context.strokeStyle = "green";
+
+    context.strokeStyle = "#00FF00";
+    context.fillStyle = "#00FF00";
+
+    context.fillText(`GUN: x${this.bulletType}`, -85, -5);
+    context.fillText(`THR: x${this.thrustUpgradeStatus}`, -85, 10);
+
+    context.fillText("RAPID FIRE", 50, -5);
+    context.fillText(`${this.retros ? "RETROS" : "NO RETROS"}`, 50, 15);
+
     context.beginPath();
-    context.arc(0, -10, 16, 0, 2 * Math.PI);
+    context.arc(0, -10, 8, 0, 2 * Math.PI);
+    context.stroke();
+
+    context.beginPath();
     context.moveTo(-8, -10);
     context.lineTo(-40, -10);
     context.stroke();
 
-    context.fillText(`GUN: x${this.bulletType}`, -85, -5);
     context.beginPath();
     context.moveTo(8, -10);
     context.lineTo(40, -10);
     context.stroke();
-
-    context.fillText("RAPID FIRE", 50, -5);
-    context.fillText(`THR: x${this.thrustUpgradeStatus}`, -85, 10);
 
     context.beginPath();
     context.moveTo(-40, 10);
     context.lineTo(-20, 10);
     context.lineTo(0, 7);
     context.stroke();
-    context.fillText(`${this.retros ? "RETROS" : "NO RETROS"}`, 50, 15);
-    context.beginPath();
 
+    context.beginPath();
     context.moveTo(40, 10);
     context.lineTo(20, 10);
     context.lineTo(8, 0);
     context.stroke();
+
     context.translate(-110, -25);
   }
 
@@ -545,14 +553,14 @@ export default class UserSprite extends Sprite {
     this.numShots = UserSprite.shotData[this.bulletType][2];
     this.maxShots = UserSprite.shotData[this.bulletType][3];
     this.shotDelay = UserSprite.shotData[this.bulletType][4];
-    // Sprite.model.refreshStatus = true;
+    this.game.refreshUserBar = true;
   }
 
   upgradeThrust(n) {
     if (!this.maxThrustUpgrade) {
       this.thrustUpgradeStatus++;
       this.thrust += n;
-      // Sprite.model.refreshStatus = true;
+      this.game.refreshUserBar = true;
       if (this.thrustUpgradeStatus >= 3) {
         this.maxThrustUpgrade = true;
       }
@@ -570,7 +578,7 @@ export default class UserSprite extends Sprite {
       if (this.killedBy != null && !this.killedBy == "") {
         this.game.sendEvent(
           "killed by " + this.killedBy,
-          this.game.gameSession
+          this.game.gameSession,
         );
         this.game.killedBy = this.killedBySlot;
       }
@@ -578,7 +586,7 @@ export default class UserSprite extends Sprite {
       let explosion = new ExplosionSprite(
         { x: this.location.x, y: this.location.y },
         this.game,
-        this.slot
+        this.slot,
       );
       explosion.addSelf();
       // new ShrapnelSprite(super.intx, super.inty, 30, Sprite.model.color, 50).addSelf();
@@ -629,12 +637,12 @@ export default class UserSprite extends Sprite {
       this.bulletSize,
       UserSprite.bulletColors[this.bulletType],
       2,
-      this.game
+      this.game,
     );
     bulletSprite.setUser(this.slot);
     bulletSprite.setVelocity(
       Math.cos(angle) * 10 + this.velocity.x,
-      Math.sin(angle) * 10 + this.velocity.y
+      Math.sin(angle) * 10 + this.velocity.y,
     );
     bulletSprite.addSelf();
     this.lastShotCycle = this.spriteCycle + this.shotDelay;
@@ -793,7 +801,7 @@ export default class UserSprite extends Sprite {
         x: this.location.x - n3 * (Math.cos(n) * 12),
         y: this.location.y - n3 * (Math.sin(n) * 12),
       },
-      this.game
+      this.game,
     );
     thrustSprite.velocity.x = -2 * this.velocity.x;
     thrustSprite.velocity.y = -2 * this.velocity.y;
@@ -807,13 +815,13 @@ export default class UserSprite extends Sprite {
         (this.angle + i) * 0.017453292519943295,
         1 + (WHUtil.randInt() % 2),
         3,
-        0
+        0,
       );
       this.drawOneThrust(
         (this.angle - i) * 0.017453292519943295,
         1 + (WHUtil.randInt() % 2),
         3,
-        0
+        0,
       );
     }
     this.drawOneThrust(this.radAngle, Math.min(this.thrustCount, 5), 2, 0);
@@ -842,7 +850,7 @@ export default class UserSprite extends Sprite {
         20,
         "orange",
         2,
-        this.game
+        this.game,
       );
       bulletSprite.setPowerup(this.game.powerups[this.game.numPowerups]);
       if (bulletSprite.powerupType == 18) {
@@ -850,7 +858,7 @@ export default class UserSprite extends Sprite {
       }
       bulletSprite.setVelocity(
         Math.cos(this.radAngle) * 10 + this.velocity.x,
-        Math.sin(this.radAngle) * 10 + this.velocity.y
+        Math.sin(this.radAngle) * 10 + this.velocity.y,
       );
       bulletSprite.addSelf();
       this.lastShotCycle = this.spriteCycle + this.shotDelay;
@@ -998,7 +1006,7 @@ export default class UserSprite extends Sprite {
       this.location.x - this.game.viewport.width / 2,
       this.location.y - this.game.viewport.height / 2,
       this.game.viewport.width,
-      this.game.viewport.height
+      this.game.viewport.height,
     );
     return this.game.viewportRect;
   }
@@ -1008,7 +1016,7 @@ export default class UserSprite extends Sprite {
     let bounds = this.polygon.getBounds();
     bounds.setLocation(
       this.location.x - bounds.width / 2,
-      this.location.y - bounds.height / 2
+      this.location.y - bounds.height / 2,
     );
     return bounds;
   }

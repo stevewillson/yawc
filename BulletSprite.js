@@ -29,7 +29,7 @@ export default class BulletSprite extends Sprite {
     bulletSize,
     internalColor,
     spriteType,
-    game
+    game,
   ) {
     super(location, game);
     this.location = location;
@@ -39,7 +39,7 @@ export default class BulletSprite extends Sprite {
       location.x - 5,
       location.y - 5,
       bulletSize,
-      bulletSize
+      bulletSize,
     );
     this.spriteType = spriteType;
     this.internalColor = internalColor;
@@ -64,16 +64,13 @@ export default class BulletSprite extends Sprite {
     context.translate(this.location.x, this.location.y);
 
     if (this.bConcussive) {
-      WHUtil.drawCenteredCircle(context, 0, 0, 10, this.internalColor);
+      context.strokeStyle = this.internalColor;
+      WHUtil.drawCenteredCircle(context, 0, 0, 10);
       context.strokeStyle =
         this.game.colors.colors[super.slot][super.spriteCycle % 20];
-      WHUtil.fillCenteredCircle(
-        context,
-        0,
-        0,
-        7,
-        this.game.colors.colors[super.slot][super.spriteCycle % 20]
-      );
+      context.fillStyle =
+        this.game.colors.colors[super.slot][super.spriteCycle % 20];
+      WHUtil.fillCenteredCircle(context, 0, 0, 7);
 
       context.moveTo(0, 0);
       context.lineTo(this.offx, this.offy);
@@ -121,7 +118,7 @@ export default class BulletSprite extends Sprite {
           -8,
           -5,
           imgWidth,
-          imgHeight - 2
+          imgHeight - 2,
         );
       }
 
@@ -144,7 +141,7 @@ export default class BulletSprite extends Sprite {
         let explosionSprite = new ExplosionSprite(
           { x: this.location.x, y: this.location.y },
           this.game,
-          this.game.slot
+          this.game.slot,
         );
         explosionSprite.setPowerupExplosion();
         explosionSprite.addSelf();
@@ -152,14 +149,14 @@ export default class BulletSprite extends Sprite {
         let explosionSprite2 = new ExplosionSprite(
           { x: this.location.x, y: this.location.y },
           this.game,
-          9
+          9,
         );
         explosionSprite2.RINGS = 2;
         explosionSprite2.addSelf();
       }
       let particleSprite = new ParticleSprite(
         { x: this.location.x, y: this.location.y },
-        this.game
+        this.game,
       );
       particleSprite.particleInit(8, 5);
       particleSprite.addSelf();

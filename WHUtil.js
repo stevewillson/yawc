@@ -70,12 +70,17 @@ export default class WHUtil {
     return n / Math.hypot(n, n2);
   }
 
-  static fillCenteredArc(context, x, y, radius, startAngle, arcAngle) {
+  static fillCenteredArc(
+    context,
+    x,
+    y,
+    radius,
+    startAngle = 0,
+    arcAngle = 2 * Math.PI,
+  ) {
     context.beginPath();
     context.lineWidth = 1;
-    // context.strokeStyle = color;
-    context.arc(x, y, radius, startAngle, arcAngle, false);
-    // context.arc(x, y, radius * 2, 0, radius * 2, startAngle, arcAngle);
+    context.arc(x, y, radius, startAngle, arcAngle);
     context.fill();
   }
 
@@ -83,32 +88,26 @@ export default class WHUtil {
     return Math.atan2(y1 - y2, x1 - x2) * 57.29577951308232;
   }
 
-  static drawBoundCircle(context, n, n2, n3, color, color2) {
+  static drawBoundCircle(context, x, y, radius, color, color2) {
     context.beginPath();
     context.fillStyle = color2;
-    context.strokeStyle = color2;
-    // graphics.fillOval(n, n2, n3, n3);
-    context.arc(n, n2, n3, 0, 2 * Math.PI);
+    context.arc(x, y, radius, 0, 2 * Math.PI);
     context.fill();
 
-    context.fillStyle = color;
     context.strokeStyle = color;
-    // graphics.drawOval(n, n2, n3, n3);
-    context.arc(n, n2, n3, 0, 2 * Math.PI);
+    context.arc(x, y, radius, 0, 2 * Math.PI);
     context.stroke();
   }
 
-  static drawCenteredCircle(context, x, y, radius, color) {
+  static drawCenteredCircle(context, x, y, radius) {
     context.beginPath();
     context.lineWidth = 1;
-    context.strokeStyle = color;
-    context.arc(x, y, radius, 0, 2 * Math.PI, false);
+    context.arc(x, y, radius, 0, 2 * Math.PI);
     context.stroke();
   }
 
-  static fillCenteredCircle(context, x, y, radius, color) {
+  static fillCenteredCircle(context, x, y, radius) {
     context.beginPath();
-    context.strokeStyle = color;
     context.arc(x, y, radius, 0, 2 * Math.PI);
     context.fill();
   }
@@ -227,18 +226,6 @@ export default class WHUtil {
 
   distance(pt1x, pt1y, pt2x, pt2y) {
     return Math.hypot(pt1x - pt2x, pt1y - pt2y);
-  }
-
-  // reference https://hackernoon.com/using-javascript-to-create-and-generate-uuids
-  static uuid() {
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
-      /[xy]/g,
-      function (c) {
-        var r = (Math.random() * 16) | 0,
-          v = c == "x" ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-      },
-    );
   }
 
   // get an RGB value from a named color

@@ -125,11 +125,11 @@ export default class UserState {
     );
     context.font = "12px Helvetica";
 
-    if (this.username != null) {
+    if (this.clientUser.username != null) {
       context.fillText(
-        this.username.length > 12
-          ? this.username.substring(0, 11)
-          : this.username,
+        this.clientUser.username.length > 12
+          ? this.clientUser.username.substring(0, 11)
+          : this.clientUser.username,
         30,
         11,
       );
@@ -138,8 +138,36 @@ export default class UserState {
     // where to put the draw icons function?
     // CFSkin.getSkin().drawIcons(graphics, this.icons, 97, 2, 15, 3);
     context.fillText(`wins: ${this.wins}`, 85, 24);
-    context.fillText(`rank: ${this.rank != null ? this.rank : "n/a"}`, 30, 24);
+    context.fillText(
+      `rank: ${this.clientUser.rank != null ? this.clientUser.rank : "n/a"}`,
+      30,
+      24,
+    );
     for (let b = 0; b < this.numPowerups; b++) {
+      let shiftedNumber = this.powerups[b] - 6;
+      let powerupNumber;
+      if (shiftedNumber <= 0) {
+        powerupNumber = 0;
+      } else {
+        powerupNumber = shiftedNumber;
+      }
+
+      let img = document.getElementById("smallPowerupImages");
+      let imgWidth = 21;
+      let imgHeight = 17;
+
+      context.drawImage(
+        img,
+        powerupNumber + powerupNumber * imgWidth + 1,
+        1,
+        imgWidth,
+        imgHeight - 2,
+        34 + b * 21,
+        29,
+        imgWidth,
+        imgHeight - 2,
+      );
+
       // graphics.drawImage(
       //   this.imgPowerups[PowerupSprite.convertToSmallImage(this.powerups[b])],
       //   34 + b * 21,
@@ -157,8 +185,8 @@ export default class UserState {
     let n5 = n2 / 2;
     if (this.offsetCycle > 0) {
       this.offsetCycle--;
-      n4 += WHUtil.randInt() % 2;
-      n5 += WHUtil.randInt() % 2;
+      n4 += WHUtil.randInt(2);
+      n5 += WHUtil.randInt(2);
       this.refresh = true;
       this.game.refreshOtherBar = true;
     }

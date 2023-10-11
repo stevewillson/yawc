@@ -90,7 +90,7 @@ export default class UserInfo {
       n,
       n2,
       this.color,
-      this.gameOver ? "gray" : this.offsetCycle == 30 ? "orange" : "black"
+      this.gameOver ? "gray" : this.offsetCycle == 30 ? "orange" : "black",
     );
     graphics.setFont(WormholeModel.fontTwelve);
     graphics.drawString(
@@ -98,7 +98,7 @@ export default class UserInfo {
         ? this.username.substring(0, 11)
         : this.username,
       30,
-      11
+      11,
     );
     if (this.bEmpty) {
       return;
@@ -108,14 +108,14 @@ export default class UserInfo {
     graphics.drawString(
       "rank: " + (this.rank >= 0 ? "" + this.rank : "n/a"),
       30,
-      24
+      24,
     );
     for (let b = 0; b < this.nPowerups; b++) {
       graphics.drawImage(
         this.imgPowerups[PowerupSprite.convertToSmallImage(this.powerups[b])],
         34 + b * 21,
         29,
-        null
+        null,
       );
     }
     let n3 = n - 10;
@@ -137,7 +137,7 @@ export default class UserInfo {
     WHUtil.drawScaledPoly(
       graphics,
       UserSprite.g_polyShip[this.shipType][0],
-      n6
+      n6,
     );
     graphics.translate(-n4, -n5);
     if (this.teamId != 0 && Sprite.model.tableElement.isTeamTable()) {
@@ -160,7 +160,7 @@ export default class UserInfo {
         8,
         8,
         CFSkin.TEACOLORS[n3],
-        CFSkin.TEABG_COLORS[n3]
+        CFSkin.TEABG_COLORS[n3],
       );
       return;
     }
@@ -170,7 +170,7 @@ export default class UserInfo {
       n2,
       10,
       CFSkin.TEABG_COLORS[n3],
-      CFSkin.TEACOLORS[n3]
+      CFSkin.TEACOLORS[n3],
     );
   }
 

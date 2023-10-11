@@ -24,15 +24,12 @@ export default class ThrustSprite extends Sprite {
     // );
 
     // start a new path so that the previous path is not included in the thrust display color
-    context.beginPath();
     context.strokeStyle = this.color;
-    context.stroke();
     WHUtil.drawCenteredCircle(
       context,
       this.location.x,
       this.location.y,
       this.radius,
-      this.color,
     );
   }
 

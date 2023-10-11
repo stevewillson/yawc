@@ -9,6 +9,7 @@ import Polygon from "./Polygon.js";
 import ClientRoomManager from "./ClientRoomManager.js";
 import ClientRoom from "./ClientRoom.js";
 import PowerupSprite from "./PowerupSprite.js";
+import ThrustSprite from "./ThrustSprite.js";
 
 /**
  * Game Class
@@ -93,6 +94,9 @@ export default class Game {
 
     this.incomingCycle = 0;
 
+    // array to store the user messages in
+    this.userMessages = [];
+
     // only use key handlers when the game is in focus?
     // key press handlers
     // TODO - may need to modify to allow for chatting while in game
@@ -101,7 +105,7 @@ export default class Game {
   }
 
   onkeyup(e) {
-    console.log("key up " + e.code);
+    // console.log("key up " + e.code);
     e.preventDefault();
 
     if (e.code === "ArrowRight") {
@@ -112,11 +116,15 @@ export default class Game {
       this.input.up = false;
     } else if (e.code === "Space") {
       this.input.spacebar = false;
+    } else if (e.code === "KeyF") {
+      this.input.fKey = false;
+      // attempt to only allow a single press for the f key
+      this.singlePress = true;
     }
   }
 
   onkeydown(e) {
-    console.log("key down " + e.code);
+    // console.log("key down " + e.code);
     e.preventDefault();
 
     if (e.code === "ArrowRight") {
@@ -127,8 +135,9 @@ export default class Game {
       this.input.up = true;
     } else if (e.code === "Space") {
       this.input.spacebar = true;
-    } else if (e.code === "KeyF") {
+    } else if (e.code === "KeyF" && this.singlePress) {
       this.input.fKey = true;
+      this.singlePress = false;
     }
   }
 
@@ -137,7 +146,7 @@ export default class Game {
     this.canvas.addEventListener(
       "mousedown",
       this.processClick.bind(this),
-      false
+      false,
     );
 
     this.userStatusCanvas = document.getElementById("UserStatusCanvas");
@@ -219,6 +228,7 @@ export default class Game {
   reset() {
     this.init();
     this.wins = 0;
+    this.kills = 0;
     super.slot = 0;
     this.color = this.colors.colors[0][0];
     this.refreshOtherBar = true;
@@ -259,14 +269,14 @@ export default class Game {
       this.boardCenter.x - this.viewport.width / 2,
       this.boardCenter.y - this.viewport.height / 2,
       this.viewport.width,
-      this.viewport.height
+      this.viewport.height,
     );
 
     this.globalBoundingRect = new Rectangle(
       0,
       0,
       this.board.width,
-      this.board.height
+      this.board.height,
     );
 
     // set position for the welcome screen elements
@@ -318,7 +328,7 @@ export default class Game {
     // set the orbitDistance based on the number of users
     if (this.gameNetLogic.roomId != null) {
       const room = this.gameNetLogic.clientRoomManager.getRoomById(
-        this.gameNetLogic.roomId
+        this.gameNetLogic.roomId,
       );
       switch (room.boardSize) {
         // setting local totalOpposingPlayingUsers to change the board size
@@ -350,7 +360,8 @@ export default class Game {
 
     this.nBullets = 0;
 
-    // this.vMessages.removeAllElements();
+    // set user messages to an empty array
+    this.userMessages = [];
 
     this.initBorderShade();
 
@@ -443,7 +454,7 @@ export default class Game {
         // get the status of the game
 
         const room = this.gameNetLogic.clientRoomManager.getRoomById(
-          this.gameNetLogic.roomId
+          this.gameNetLogic.roomId,
         );
 
         if (room != null) {
@@ -522,7 +533,7 @@ export default class Game {
 
     // get the room by the roomId
     const room = this.gameNetLogic.clientRoomManager.getRoomById(
-      this.gameNetLogic.roomId
+      this.gameNetLogic.roomId,
     );
     if (room.isTeamRoom) {
       this.refreshAll = true;
@@ -541,8 +552,12 @@ export default class Game {
         }
       }
     }
-    if (this.lastCycleForMessages < this.cycle && this.vMessages.size() > 0) {
-      this.vMessages.removeElementAt(0);
+
+    if (
+      this.lastCycleForMessages < this.cycle &&
+      this.userMessages.length > 0
+    ) {
+      this.userMessages.shift();
     }
 
     let gameTimeSeconds = (Date.now() - this.startTime) / 1000;
@@ -654,7 +669,7 @@ export default class Game {
       this.drawRing(context);
 
       const room = this.gameNetLogic.clientRoomManager.getRoomById(
-        this.gameNetLogic.roomId
+        this.gameNetLogic.roomId,
       );
       if (this.teamID != 0 && room.isTeamTable && !this.isGameOver) {
         this.drawTeamStuff(context);
@@ -736,11 +751,14 @@ export default class Game {
       //     120
       //   );
       // }
-      // graphics.setColor(Color.white);
-      // graphics.setFont(WormholeModel.fontTwelve);
-      // for (let n = 0; n < this.vMessages.size(); n++) {
-      //   graphics.drawString(this.vMessages.elementAt(n), 10, 10 * (n + 1));
-      // }
+
+      // draw the userMessages
+      context.fillStyle = "white";
+      context.font = "12pt helvetica";
+      context.textAlign = "left";
+      for (let n = 0; n < this.userMessages.length; n++) {
+        context.fillText(this.userMessages[n], 10, 20 * (n + 1));
+      }
     }
     //   if (this.teamID != 0) {
     //     graphics.setFont(WormholeModel.fontTwelve);
@@ -774,11 +792,9 @@ export default class Game {
   drawPointers(context) {
     for (let i = 0; i < this.userStates.length; i++) {
       if (this.userStates[i].isPlaying() && this.userSprite != null) {
-        let n =
-          this.userStates[i].portalSprite.location.x -
+        let n = this.userStates[i].portalSprite.location.x -
           this.userSprite.location.x;
-        let n2 =
-          this.userStates[i].portalSprite.location.y -
+        let n2 = this.userStates[i].portalSprite.location.y -
           this.userSprite.location.y;
         let hyp = Math.hypot(n, n2);
         if (hyp >= this.portalVisibility) {
@@ -805,7 +821,7 @@ export default class Game {
           context.moveTo(n5, n6);
           context.lineTo(
             n3 * 0.9 + this.viewportCenter.x,
-            n4 * 0.9 + this.viewportCenter.y
+            n4 * 0.9 + this.viewportCenter.y,
           );
 
           context.moveTo(n5, n6);
@@ -828,12 +844,12 @@ export default class Game {
    * @description draws a gray ring to place the portals on
    */
   drawRing(context) {
+    context.strokeStyle = "gray";
     WHUtil.drawCenteredCircle(
       context,
       this.worldCenter.x,
       this.worldCenter.y,
       this.orbitDistance,
-      "gray"
     );
   }
 
@@ -845,7 +861,7 @@ export default class Game {
         -i,
         -i,
         this.world.width + i * 2,
-        this.world.height + i * 2
+        this.world.height + i * 2,
       );
     }
   }
@@ -863,7 +879,6 @@ export default class Game {
   initStars(numStars) {
     // fill out stars for the board
     // randomly space them
-
     this.star = [];
     this.narrowStar = [];
     this.starSize = [];
@@ -931,7 +946,7 @@ export default class Game {
     context.fillText(
       text,
       (elementWidth - context.measureTest(text).width) / 2 + xOffset,
-      y
+      y,
     );
   }
 
@@ -981,10 +996,10 @@ export default class Game {
           this.novaInfo[n6][0] = Math.abs(WHUtil.randInt(45));
           this.novaInfo[n6][1] = boardCenterX - 5 + WHUtil.randInt(16);
           this.novaInfo[n6][2] = boardCenterX2 - 5 + WHUtil.randInt(16);
-          this.novaInfo[n6][3] =
-            (WHUtil.randInt(2) < 1 ? -1 : 1) * Math.random() * 4;
-          this.novaInfo[n6][4] =
-            (WHUtil.randInt(2) < 1 ? -1 : 1) * Math.random() * 4;
+          this.novaInfo[n6][3] = (WHUtil.randInt(2) < 1 ? -1 : 1) *
+            Math.random() * 4;
+          this.novaInfo[n6][4] = (WHUtil.randInt(2) < 1 ? -1 : 1) *
+            Math.random() * 4;
         }
         let array = this.novaInfo[n6];
         let n7 = 1;
@@ -992,21 +1007,19 @@ export default class Game {
         let array2 = this.novaInfo[n6];
         let n8 = 2;
         array2[n8] += this.novaInfo[n6][4];
-        context.fillStyle =
-          this.colors.colors[this.teamID == 1 ? 10 : 0][
-            this.novaInfo[n6][0] / 3
-          ];
-        context.strokeStyle =
-          this.colors.colors[this.teamID == 1 ? 10 : 0][
-            this.novaInfo[n6][0] / 3
-          ];
+        context.fillStyle = this.colors.colors[this.teamID == 1 ? 10 : 0][
+          this.novaInfo[n6][0] / 3
+        ];
+        context.strokeStyle = this.colors.colors[this.teamID == 1 ? 10 : 0][
+          this.novaInfo[n6][0] / 3
+        ];
         let n9 = 11 - this.novaInfo[n6][0] / 4;
         if (b == 1) {
           context.strokeRect(
             this.novaInfo[n6][1],
             this.novaInfo[n6][2],
             n9,
-            n9
+            n9,
           );
         } else {
           context.arc(
@@ -1014,7 +1027,7 @@ export default class Game {
             this.novaInfo[n6][2],
             n9,
             0,
-            2 * Math.PI
+            2 * Math.PI,
           );
         }
         let array3 = this.novaInfo[n6];
@@ -1060,7 +1073,7 @@ export default class Game {
     WHUtil.drawScaledPoly(
       context,
       fighterPolygon,
-      UserSprite.fighterData[fighterNumber].shipScale
+      UserSprite.fighterData[fighterNumber].shipScale,
     );
     context.translate(0, -UserSprite.fighterData[fighterNumber][0]);
     if (UserSprite.fighterData[fighterNumber].trackingCannons >= 1) {
@@ -1096,7 +1109,7 @@ export default class Game {
 
           // TODO send over the network that the ship has changed
           const user = this.gameNetLogic.clientUserManager.users.get(
-            this.gameNetLogic.userId
+            this.gameNetLogic.userId,
           );
           user.shipType = this.selectedShip;
 
@@ -1106,7 +1119,7 @@ export default class Game {
           this.userSprite = new UserSprite(
             this.boardCenter,
             this.userShipType,
-            this
+            this,
           );
           this.userSprite.addSelf();
           this.userSprite.setUser(this.slot);
@@ -1145,7 +1158,7 @@ export default class Game {
         i * 23,
         0,
         imgWidth,
-        imgHeight - 2
+        imgHeight - 2,
       );
     }
   }
@@ -1159,7 +1172,7 @@ export default class Game {
       this.introX,
       this.introY,
       this.intro.width,
-      this.intro.height
+      this.intro.height,
     );
 
     context.fillStyle = "white";
@@ -1167,14 +1180,14 @@ export default class Game {
     context.fillText(
       "yawc Ship Selection",
       this.introX + 100,
-      this.introY + 16
+      this.introY + 16,
     );
 
     context.font = "12px Helvetica";
     context.fillText(
       "Choose a ship by clicking on it.",
       this.introX + 100,
-      this.introY + 28
+      this.introY + 28,
     );
 
     // graphics.fillRect(this.intro_shipX, this.intro_shipY, 400, 50);
@@ -1197,7 +1210,7 @@ export default class Game {
         i,
         this.intro_shipX + i * 50 + 25,
         // this.intro_shipY + (i / 8) * 50 + 25
-        this.intro_shipY + 25
+        this.intro_shipY + 25,
       );
     }
 
@@ -1221,7 +1234,7 @@ export default class Game {
       n5 - 50,
       n4 + 10,
       this.introX + 410 - (n5 - 50) - 15,
-      this.introY + 260 - n4 - 15
+      this.introY + 260 - n4 - 15,
     );
 
     let array = UserSprite.shipDescriptions[this.selectedShip];
@@ -1254,14 +1267,12 @@ export default class Game {
       //     int(((zoomInIntro - this.zoomInIntro) / zoomInIntro) * 19.0)
       //   ]
       // );
-      context.strokeStyle =
-        this.colors.colors[this.slot][
-          ((zoomInIntro - this.zoomInIntro) / zoomInIntro) * 19
-        ];
-      context.fillStyle =
-        this.colors.colors[this.slot][
-          ((zoomInIntro - this.zoomInIntro) / zoomInIntro) * 19
-        ];
+      context.strokeStyle = this.colors.colors[this.slot][
+        ((zoomInIntro - this.zoomInIntro) / zoomInIntro) * 19
+      ];
+      context.fillStyle = this.colors.colors[this.slot][
+        ((zoomInIntro - this.zoomInIntro) / zoomInIntro) * 19
+      ];
       //     }
     }
 
@@ -1269,12 +1280,12 @@ export default class Game {
     // //WHUtil.drawScaledPoly(graphics, PlayerSprite.g_polyShip[this.selectedShip][this.currentFighterShade / 2 % 24], zoomInIntro);
     // WHUtil.drawScaledPoly(graphics, PlayerSprite.g_polyShip[this.selectedShip][this.currentFighterShade * 10 / PlayerSprite.DROTATE % PlayerSprite.NROTATIONS], zoomInIntro);
     const polygon = WHUtil.createPolygon(
-      UserSprite.shipShapes[this.selectedShip]
+      UserSprite.shipShapes[this.selectedShip],
     );
     WHUtil.drawScaledPoly(
       context,
       polygon,
-      zoomInIntro
+      zoomInIntro,
       // UserSprite.fighterData[this.selectedShip].shipScale
     );
 
@@ -1337,7 +1348,7 @@ export default class Game {
     }
   }
 
-  usePowerup(powerupType, upgradeLevel, toSlot, sessionId, gameId) {
+  usePowerup(powerupType, upgradeLevel, toSlot, sessionId = 0, gameId = 0) {
     // stream.writeByte(107);
     const packet = {
       type: "powerup",
@@ -1356,7 +1367,7 @@ export default class Game {
 
     // have the roomId from the game packet
     const room = this.gameNetLogic.clientRoomManager.getRoomById(
-      gamePacket.roomId
+      gamePacket.roomId,
     );
 
     for (let i = 0; i < room.numUsers(); i++) {
@@ -1373,7 +1384,7 @@ export default class Game {
           // user.icons,
           // this.logic.getUser(userName).getIcons(),
           slot,
-          gameOver
+          gameOver,
         );
         if (gameOver == false) {
         }
@@ -1402,7 +1413,7 @@ export default class Game {
     // userState.icons = icons;
 
     userState.teamId = teamId;
-    userState.nPowerups = 0;
+    userState.numPowerups = 0;
     userState.gameOver = gameOver;
     this.refreshUserBar = true;
     this.setSlot(slot);
@@ -1412,7 +1423,7 @@ export default class Game {
     // send a packet showing that the game is over
     // stream.writeByte(110);
     const packet = {
-      type: "gameOver",
+      type: "userDeath",
       sessionId,
       killedBy,
     };
@@ -1439,7 +1450,7 @@ export default class Game {
         }
 
         const room = this.gameNetLogic.clientRoomManager.getRoomById(
-          this.gameNetLogic.roomId
+          this.gameNetLogic.roomId,
         );
 
         // TODO - move to when a user joins a room
@@ -1472,7 +1483,7 @@ export default class Game {
             let portalSprite = new PortalSprite(
               n * (360 / this.totalOpposingUsers),
               this.userStates[i],
-              this
+              this,
             );
             n++;
             this.userStates[i].portalSprite = portalSprite;
@@ -1523,6 +1534,17 @@ export default class Game {
         }
         userState.readState(gamePacket);
         this.refreshUserBar = true;
+        this.refreshOtherBar = true;
+        break;
+      }
+
+      case "userEvent": {
+        const userMessage = gamePacket.eventString;
+        while (this.userMessages.length >= 2) {
+          this.userMessages.shift();
+        }
+        this.userMessages.push(userMessage);
+        this.lastCycleForMessages = this.cycle + 200;
         break;
       }
 
@@ -1583,15 +1605,6 @@ export default class Game {
         this.refreshUserBar = true;
         break;
 
-      case "message":
-        let message = gamePacket.content;
-        while (this.vMessages.size() >= 2) {
-          this.vMessages.removeElementAt(0);
-        }
-        this.vMessages.addElement(message);
-        this.lastCycleForMessages = this.cycle + 200;
-        break;
-
       case "powerup":
         const powerupType = gamePacket.powerupType;
         const fromSlot = gamePacket.fromSlot;
@@ -1616,7 +1629,7 @@ export default class Game {
           this.userStates[translateSlot2].portalSprite,
           powerupType,
           fromSlot,
-          byte9
+          byte9,
         );
         break;
 
@@ -1657,8 +1670,8 @@ export default class Game {
       userId: this.gameNetLogic.userId,
       healthPercent,
       sessionId,
-      numPowerups: this.userSprite.numPowerups,
-      powerups: this.userSprite.powerups,
+      numPowerups: this.numPowerups,
+      powerups: this.powerups,
       shipType: this.userShipType,
       strDamagedByUser: this.strDamagedByUser,
       damagingPowerup: this.damagingPowerup,
@@ -1672,7 +1685,7 @@ export default class Game {
     // sendEvent(eventString, sessionId) {
     // stream.writeByte(109);
     const packet = {
-      type: "event",
+      type: "userEvent",
       // sessionId,
       eventString: `${this.gameNetLogic.username} ${eventString}`,
     };
@@ -1707,14 +1720,14 @@ export default class Game {
       // get the other player's panels
       // TODO
       // graphics.setColor(this.pnlOtherPlayers.getBackground());
-      context.strokeStyle = "red";
-      context.fillStyle = "red";
+      context.strokeStyle = "black";
+      context.fillStyle = "black";
       context.fillRect(0, 0, 144, 474);
     }
 
     // get the room
     const room = this.gameNetLogic.clientRoomManager.getRoomById(
-      this.gameNetLogic.roomId
+      this.gameNetLogic.roomId,
     );
     // check if it is a team room
     if (room != null && !room.isTeamRoom) {
@@ -1741,7 +1754,7 @@ export default class Game {
         0,
         1,
         3,
-        144
+        144,
       );
       this.drawMyTeamPlaceholder(context, 18);
     }
@@ -1756,7 +1769,7 @@ export default class Game {
         0,
         drawTeam,
         3,
-        144
+        144,
       );
     }
     this.drawTeam(context, drawTeam + 18, b2, b);

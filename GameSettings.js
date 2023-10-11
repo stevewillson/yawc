@@ -1,6 +1,6 @@
 export default class GameSettings {
-  static port = 443;
-  static host = "yetanotherwormholeclone.com";
-  static socketType = "wss";
-  static endpoint = "client";
+  static port = 6049;
+  static host = "localhost";
+  static socketType = "ws";
+  static endpoint = "";
 }

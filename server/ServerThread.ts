@@ -113,32 +113,30 @@ export class ServerThread {
     );
   }
 
-  // public void receiveUserDeath() throws IOException {
-  // 	final DataInputStream stream = this.pr.getStream();
+  receiveUserDeath(packet) {
+    let sessionId = packet.sessionId;
+    let killedBy = packet.killedBy;
 
-  // 	short	gameSession		= stream.readShort();
-  // 	byte	killedBy		= stream.readByte();
+    const room = this.server.roomManager.rooms.get(this.user.roomId);
 
-  // 	ServerRoom room = user().room();
+    // user the room ID here
+    this.server.broadcastGameOver(room, sessionId, this.user.slot, killedBy);
 
-  // user the room ID here
-  // 	server.broadcastGameOver(room, gameSession, user().slot(), killedBy);
+    this.user.isAlive = false;
+    if (room.gameOver) {
+      this.handleGameEnd(room.roomId);
+    }
+  }
 
-  // 	user().setAlive(false);
-  // 	if (room.gameOver()) {
-  // 		handleGameEnd(room);
-  // 	}
-  // }
+  receiveUserEvent(packet) {
+    const eventString = packet.eventString;
+    const sessionId = packet.sessionId;
 
-  // public void receiveUserEvent() throws IOException {
-  // 	final DataInputStream stream = this.pr.getStream();
+    // may want to track some facts about the user here before sending
+    // the packet out
 
-  // 	short	gameSession		= stream.readShort();
-  // 	String	eventString		= stream.readUTF();
-
-  // TODO - use the roomId here
-  // 	server.broadcastUserEvent(user().room(), gameSession, eventString);
-  // }
+    this.server.broadcastUserEvent(this.user.roomId, sessionId, eventString);
+  }
 
   // /*
   //  * Do nothing here, not sure what receiveCredits is for. We will probably never use.
@@ -276,7 +274,7 @@ export class ServerThread {
       this.server.roomManager.removeRoom(room.roomId);
     }
     if (room.status == "playing" && room.gameOver) {
-      this.handleGameEnd(room);
+      this.handleGameEnd(room.roomId);
     }
   }
 
@@ -592,13 +590,21 @@ export class ServerThread {
     // });
     // 	byte opcode1 = 80;
     // 	byte opcode2 = 106;
+
+    // count the entries in the powerups that are not null
+    let numPowerups = 0;
+    for (let i = 0; i < powerups.length; i++) {
+      if (powerups[i] != null) {
+        numPowerups++;
+      }
+    }
     const packet = {
       type: "userState",
       userId,
       // sessionId,
       slot,
       healthPercent,
-      numPowerups: powerups.length,
+      numPowerups,
       powerups,
       shipType,
     };
@@ -609,7 +615,7 @@ export class ServerThread {
     // 	byte opcode1 = 80;
     // 	byte opcode2 = 109;
     const packet = {
-      type: "playerEvent",
+      type: "userEvent",
       eventString,
     };
     this.socket.send(JSON.stringify(packet));
@@ -707,20 +713,24 @@ export class ServerThread {
       // TODO
       case "userState": {
         // case 106:
-        this.receiveUserState(packet);
+        this.receiveUserState(packetJSON);
         break;
       }
       case "powerup": {
         // case 107:
-        this.receivePowerup(packet);
+        this.receivePowerup(packetJSON);
         break;
       }
-      // case 109:
-      // 	receiveUserEvent();
-      // 	break;
-      // case 110:
-      // 	receiveUserDeath();
-      // 	break;
+      case "userEvent": {
+        // case 109:
+        this.receiveUserEvent(packetJSON);
+        break;
+      }
+      case "userDeath": {
+        // case 110:
+        this.receiveUserDeath(packetJSON);
+        break;
+      }
 
       case "startGame": {
         // case 30:

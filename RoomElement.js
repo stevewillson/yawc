@@ -33,7 +33,7 @@ export default class RoomElement {
     isBalancedRoom,
     roomUsers,
     numSlots,
-    password
+    password,
   ) {
     this.roomPanel = roomPanel;
     this.users = [];
@@ -56,9 +56,11 @@ export default class RoomElement {
     // get the room index
 
     const joinRoomButton = document.createElement("button");
-    joinRoomButton.innerText = `Join Room ${this.roomPanel.roomIndex(
-      this.roomId
-    )}`;
+    joinRoomButton.innerText = `Join Room ${
+      this.roomPanel.roomIndex(
+        this.roomId,
+      )
+    }`;
     joinRoomButton.className = "joinRoomButton";
     // TODO
     // joinRoomButton.onclick =
@@ -136,7 +138,7 @@ export default class RoomElement {
     bTeamRoom,
     boardSize,
     bBalancedTeams,
-    options
+    options,
   ) {
     this.bRanked = bRanked;
     this.bPrivate = bPrivate;

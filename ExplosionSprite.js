@@ -27,7 +27,7 @@ export default class ExplosionSprite extends Sprite {
       this.location.x - n,
       this.location.y - n,
       n * 2,
-      n * 2
+      n * 2,
     );
   }
 
@@ -43,13 +43,7 @@ export default class ExplosionSprite extends Sprite {
       }
 
       if (max != 19) {
-        WHUtil.drawCenteredCircle(
-          context,
-          this.location.x,
-          this.location.y,
-          n,
-          context.strokeStyle
-        );
+        WHUtil.drawCenteredCircle(context, this.location.x, this.location.y, n);
       }
     }
   }
@@ -64,7 +58,7 @@ export default class ExplosionSprite extends Sprite {
         this.location.x - n,
         this.location.y - n,
         n * 2,
-        n * 2
+        n * 2,
       );
       super.behave();
     }

@@ -32,8 +32,8 @@ export default class UserElement {
     const rankElement = document.createElement("td");
     clanElement.innerText = this.clan;
     usernameElement.innerText = this.username;
-    roomIndexElement.innerText =
-      this.userPanel.gamePanel.lobbyPanel.roomPanel.roomIndex(this.roomId);
+    roomIndexElement.innerText = this.userPanel.gamePanel.lobbyPanel.roomPanel
+      .roomIndex(this.roomId);
     // TODO - use graphic for rank rather than text
     rankElement.innerText = this.rank;
 

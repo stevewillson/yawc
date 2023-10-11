@@ -9,13 +9,70 @@ import ParticleSprite from "./ParticleSprite.js";
 export default class PowerupSprite extends Sprite {
   //g_enemyRatios = new int[] { 0, 0, 0, 0, 0, 0, 0, 1, 0, 3, 4, 2, 1, 2, 1, 1, 1, 1, 0, 2 };
   static enemyRatios = [
-    0, 0, 0, 0, 0, 0, 0, 1, 0, 3, 4, 2, 1, 2, 1, 1, 1, 1, 1, 2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    3,
+    4,
+    2,
+    1,
+    2,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
   ];
   static largeConversionTypes = [
-    0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+    0,
+    0,
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
   ];
   static smallConversionTypes = [
-    0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
   ];
   static names = [
     "GUN UPGRADE",
@@ -94,6 +151,13 @@ export default class PowerupSprite extends Sprite {
     context.strokeStyle = this.colors.colors[this.ctype][this.spriteCycle % 20];
     context.fillStyle = this.colors.colors[this.ctype][this.spriteCycle % 20];
 
+    // TODO - draw a flashing circle around the sprite
+    // Is this a PNG issue?
+    // set background color
+    // draw a flashing outline around the powerup
+    // context.arc(this.location.x, this.location.y, 16, 0, 2 * Math.PI);
+    WHUtil.fillCenteredCircle(context, this.location.x, this.location.y, 18);
+
     // TODO - set the image background color to black
     let shiftedNumber = this.powerupType - 2;
     let powerupNumber;
@@ -116,15 +180,8 @@ export default class PowerupSprite extends Sprite {
       this.location.x - 14,
       this.location.y - 14,
       imgWidth,
-      imgHeight - 2
+      imgHeight - 2,
     );
-
-    // TODO - draw a flashing circle around the sprite
-    // Is this a PNG issue?
-    // set background color
-    // draw a flashing outline around the powerup
-    context.arc(this.location.x, this.location.y, 16, 0, 2 * Math.PI);
-    // WHUtil.fillCenteredCircle(context, this.location.x, this.location.y, 16);
   }
 
   givePowerupTo(userSprite) {
@@ -145,7 +202,7 @@ export default class PowerupSprite extends Sprite {
       case 3: {
         userSprite.shieldCyclesLeft = Math.max(
           450,
-          userSprite.shieldCyclesLeft + 200
+          userSprite.shieldCyclesLeft + 200,
         );
         break;
       }
@@ -175,7 +232,7 @@ export default class PowerupSprite extends Sprite {
         const stringSprite = new StringSprite(
           this.location,
           PowerupSprite.names[this.powerupType],
-          this.game
+          this.game,
         );
         stringSprite.addSelf();
         return;
@@ -245,7 +302,7 @@ export default class PowerupSprite extends Sprite {
     } else {
       // check in the room if all powerups are allowed
       const room = game.gameNetLogic.clientRoomManager.getRoomById(
-        game.gameNetLogic.roomId
+        game.gameNetLogic.roomId,
       );
 
       let powerupRandNum = room.allPowerupsAllowed ? 14 : 11;
