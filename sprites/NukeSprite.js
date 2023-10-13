@@ -132,21 +132,20 @@ export default class NukeSprite extends Sprite {
         return;
       }
       if (this.bShotAlready) {
-        for (let i = 0; i < this.game.userStates.length; i++) {
-          let userState = this.game.userStates[i];
-          if (
-            userState.isPlaying() &&
-            userState.portalSprite != null &&
-            WHUtil.distanceFrom(userState.portalSprite, this) < 60
-          ) {
-            this.game.usePowerup(
-              14,
-              0,
-              userState.slot,
-              this.game.gameSession
-              //   WormholeModel.gameID
+        // implement shooting a nuke into another player's portal
+        for (let i = 0; i < this.game.room.userIds.length; i++) {
+          if (this.game.room.userIds[i] != null) {
+            const user = this.game.gameNetLogic.clientUserManager.users.get(
+              this.game.room.userIds[i]
             );
-            this.killSelf();
+            if (
+              user.isPlaying() &&
+              user.portalSprite != null &&
+              WHUtil.distanceFrom(user.portalSprite, this) < 60
+            ) {
+              this.game.usePowerup(14, 0, user.userId, this.game.gameSession);
+              this.killSelf();
+            }
           }
         }
       }

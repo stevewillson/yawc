@@ -36,7 +36,7 @@ export default class WHUtil {
       rectangle.x,
       rectangle.y,
       rectangle.width,
-      rectangle.height,
+      rectangle.height
     );
     context.stroke();
   }
@@ -76,7 +76,7 @@ export default class WHUtil {
     y,
     radius,
     startAngle = 0,
-    arcAngle = 2 * Math.PI,
+    arcAngle = 2 * Math.PI
   ) {
     context.beginPath();
     context.lineWidth = 1;
@@ -215,13 +215,13 @@ export default class WHUtil {
       !paramRectangle2.inside(paramRectangle1.x, paramRectangle1.y) ||
       !paramRectangle2.inside(
         paramRectangle1.x + paramRectangle1.width,
-        paramRectangle1.y + paramRectangle1.height,
+        paramRectangle1.y + paramRectangle1.height
       )
     );
   }
 
-  distanceFrom(location1, location2) {
-    return distance(location1.x, location1.y, location2.x, location2.y);
+  static distanceFrom(location1, location2) {
+    return Math.hypot(location1.x - location2.x, location1.y - location2.y);
   }
 
   distance(pt1x, pt1y, pt2x, pt2y) {
