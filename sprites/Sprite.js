@@ -1,7 +1,7 @@
-import Rectangle from "./Rectangle.js";
-import WHUtil from "./WHUtil.js";
+import Rectangle from "../Rectangle.js";
+import WHUtil from "../WHUtil.js";
 // import ExplosionSprite from "./ExplosionSprite.js";
-import Polygon from "./Polygon.js";
+import Polygon from "../Polygon.js";
 
 export default class Sprite {
   static REBOUND_COEFF = -0.5;
@@ -131,11 +131,10 @@ export default class Sprite {
   handleCrash() {}
 
   reverseTrack() {
-    realTrack(
-      this.game.userSprite.location.x,
-      this.game.userSprite.location.y,
-      true
+    const user = this.game.gameNetLogic.clientUserManager.users.get(
+      this.game.gameNetLogic.userId
     );
+    realTrack(user.userSprite.location.x, user.userSprite.location.y, true);
   }
 
   oob() {
@@ -258,12 +257,7 @@ export default class Sprite {
 
   setUser(slot) {
     this.slot = slot;
-    // if (color != null) {
-    // this.color = color;
-    // this.setByUser = true;
-    // } else {
     this.color = this.game.colors.colors[slot][0];
-    // }
   }
 
   isRectPolyCollision(sprite, sprite2) {
@@ -325,10 +319,13 @@ export default class Sprite {
   }
 
   calcLead() {
+    const user = this.game.gameNetLogic.clientUserManager.users.get(
+      this.game.gameNetLogic.userId
+    );
     if (this.leadPoint == null || this.leadPoint === undefined) {
       this.leadPoint = { x: 0, y: 0 };
     }
-    let userSprite = this.game.userSprite;
+    let userSprite = user.userSprite;
     this.leadPoint.x =
       userSprite.location.x + userSprite.velocity.x * 15 - this.location.x;
     this.leadPoint.y =
@@ -427,7 +424,10 @@ export default class Sprite {
   }
 
   realTrack(x, y, b) {
-    if (this.game.userSprite.shouldRemoveSelf) {
+    const user = this.game.gameNetLogic.clientUserManager.users.get(
+      this.game.gameNetLogic.userId
+    );
+    if (user.userSprite.shouldRemoveSelf) {
       return;
     }
     let n3 =
@@ -455,6 +455,9 @@ export default class Sprite {
       this.collidedObject = collidedObject;
       if (this.bUseHealth) {
         this.changeHealth(-collidedObject.damage);
+        // send the userState with the updated health
+        this.game.sendState();
+
         if (this.health < 1) {
           this.shouldRemoveSelf = true;
         } else {
@@ -542,10 +545,13 @@ export default class Sprite {
   }
 
   track() {
-    if (this.game.userSprite != null) {
+    const user = this.game.gameNetLogic.clientUserManager.users.get(
+      this.game.gameNetLogic.userId
+    );
+    if (user.userSprite != null) {
       this.realTrack(
-        this.game.userSprite.location.x,
-        this.game.userSprite.location.y,
+        user.userSprite.location.x,
+        user.userSprite.location.y,
         false
       );
     }

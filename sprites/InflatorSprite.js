@@ -1,4 +1,4 @@
-import WHUtil from "./WHUtil.js";
+import WHUtil from "../WHUtil.js";
 import Sprite from "./Sprite.js";
 import PowerupSprite from "./PowerupSprite.js";
 

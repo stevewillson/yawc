@@ -1,8 +1,8 @@
-import RotationalPolygon from "./RotationalPolygon.js";
+import RotationalPolygon from "../RotationalPolygon.js";
 import ThrustSprite from "./ThrustSprite.js";
 import Sprite from "./Sprite.js";
-import WHUtil from "./WHUtil.js";
-import Rectangle from "./Rectangle.js";
+import WHUtil from "../WHUtil.js";
+import Rectangle from "../Rectangle.js";
 import BulletSprite from "./BulletSprite.js";
 import ExplosionSprite from "./ExplosionSprite.js";
 
@@ -424,6 +424,9 @@ export default class UserSprite extends Sprite {
     super(location, game);
     this.location = location;
     this.game = game;
+    this.user = this.game.gameNetLogic.clientUserManager.users.get(
+      this.game.gameNetLogic.userId
+    );
     this.init("user", location.x, location.y, true);
     this.shipSelect = shipSelect;
     this.polygon = new RotationalPolygon(UserSprite.shipShapes[shipSelect]);
@@ -573,7 +576,11 @@ export default class UserSprite extends Sprite {
     if (this.shouldRemoveSelf) {
       if (collided.color != null) {
         // TODO - update to use userId
-        this.killedBy = this.game.getUser(collided.slot);
+        // this function is now in the ClientRoom
+        this.killedBy = this.game.getUser(
+          collided.slot,
+          this.game.gameNetLogic.userId
+        );
         this.killedBySlot = collided.slot;
       }
       if (this.killedBy != null && !this.killedBy == "") {
@@ -587,7 +594,7 @@ export default class UserSprite extends Sprite {
       let explosion = new ExplosionSprite(
         { x: this.location.x, y: this.location.y },
         this.game,
-        this.slot
+        this.user.slot
       );
       explosion.addSelf();
       // new ShrapnelSprite(super.intx, super.inty, 30, Sprite.model.color, 50).addSelf();
@@ -595,7 +602,11 @@ export default class UserSprite extends Sprite {
       for (let n = 0; n < 3; n++) {
         let n2 = this.location.x + WHUtil.randInt(10);
         let n3 = this.location.y + WHUtil.randInt(10);
-        new ExplosionSprite({ x: n2, y: n3 }, this.game, this.slot).addSelf();
+        new ExplosionSprite(
+          { x: n2, y: n3 },
+          this.game,
+          this.user.slot
+        ).addSelf();
         // new ShrapnelSprite(n2, n3, 30, Sprite.model.color, 50).addSelf();
       }
       return;
@@ -640,7 +651,7 @@ export default class UserSprite extends Sprite {
       2,
       this.game
     );
-    bulletSprite.setUser(this.slot);
+    bulletSprite.setUser(this.user.slot);
     bulletSprite.setVelocity(
       Math.cos(angle) * 10 + this.velocity.x,
       Math.sin(angle) * 10 + this.velocity.y
@@ -702,7 +713,7 @@ export default class UserSprite extends Sprite {
     // draw the user polygon
     this.polygon
       .getPolygon()
-      .drawPolygon(context, this.game.colors.colors[this.game.slot][0]);
+      .drawPolygon(context, this.game.colors.colors[this.user.slot][0]);
 
     // undo the rotation
     this.polygon.rotate(-90);
@@ -839,12 +850,12 @@ export default class UserSprite extends Sprite {
   }
 
   firePowerup() {
-    if (this.game.numPowerups > 0) {
+    if (this.user.numPowerups > 0) {
       let x = Math.cos(this.radAngle) * 12 + this.location.x;
       let y = Math.sin(this.radAngle) * 12 + this.location.y;
       // GameBoard.playSound("snd_fire");
       this.game.refreshUserBar = true;
-      this.game.numPowerups--;
+      this.user.numPowerups--;
       const bulletSprite = new BulletSprite(
         { x, y },
         100,
@@ -853,7 +864,8 @@ export default class UserSprite extends Sprite {
         2,
         this.game
       );
-      bulletSprite.setPowerup(this.game.powerups[this.game.numPowerups]);
+      bulletSprite.setPowerup(this.user.powerups[this.user.numPowerups]);
+      this.user.powerups[this.user.numPowerups] = null;
       if (bulletSprite.powerupType == 18) {
         bulletSprite.upgradeLevel = 2;
       }
@@ -988,6 +1000,7 @@ export default class UserSprite extends Sprite {
       if (this.fireSecondaryWeapon && this.lastShotCycle < this.spriteCycle) {
         this.firePowerup();
         this.fireSecondaryWeapon = false;
+        this.game.sendState();
       }
       if (
         this.firePrimaryWeapon &&

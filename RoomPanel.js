@@ -54,14 +54,14 @@ export default class RoomPanel {
     centerDiv.style.justifyItems = "center";
 
     // left div will contain another canvas
-    const otherBar = document.createElement("canvas");
-    otherBar.id = "OtherStatusCanvas";
-    otherBar.style.margin = 0;
-    otherBar.style.padding = 0;
+    const otherStatusBar = document.createElement("canvas");
+    otherStatusBar.id = "OtherStatusCanvas";
+    otherStatusBar.style.margin = 0;
+    otherStatusBar.style.padding = 0;
 
-    rightDiv.appendChild(otherBar);
+    rightDiv.appendChild(otherStatusBar);
     rightDiv.style.display = "grid";
-    rightDiv.style.alignItems = "center";
+    rightDiv.style.alignItems = "top";
 
     roomPanelDiv.appendChild(leftDiv);
     roomPanelDiv.appendChild(centerDiv);

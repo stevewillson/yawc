@@ -21,13 +21,13 @@ export default class ClientRoomManager {
     this.rooms = [];
   }
 
-  addRoom(room) {
+  addRoom(roomPacket) {
     // create a new room
     // check if the room already exists by roomId
-    if (this.roomIndex(room.roomId) == -1) {
+    if (this.roomIndex(roomPacket.roomId) == -1) {
       // the room is not found
       // just use a room object to create a new room, we received one from the server
-      let clientRoom = new ClientRoom(this, room);
+      let clientRoom = new ClientRoom(this, roomPacket);
 
       // add the room to the sorted order,
       // how should rooms be sorted?
@@ -121,7 +121,7 @@ export default class ClientRoomManager {
 
     // also set the html of the room?
     const roomSlotElement = document.getElementById(
-      `${user.roomId}-slot${user.slot}`,
+      `${user.roomId}-slot${user.slot}`
     );
     roomSlotElement.innerHTML = "Open Slot";
 

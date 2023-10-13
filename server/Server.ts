@@ -112,6 +112,7 @@ export class Server {
 
   broadcastUserState(
     roomId,
+    userStateId,
     // gameSession,
     slot,
     healthPercent,
@@ -124,7 +125,7 @@ export class Server {
         const user = this.userManager.users.get(userId);
         const client = this.clients.get(user.clientId);
         client.sendUserState(
-          user.userId,
+          userStateId,
           // gameSession,
           slot,
           healthPercent,

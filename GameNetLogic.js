@@ -60,7 +60,7 @@ export default class GameNetLogic {
       majorVersion,
       minorVersion,
       username,
-      password,
+      password
     );
   }
 
@@ -140,6 +140,98 @@ export default class GameNetLogic {
       case "userInfo": {
         // add the user now with the client user manager
         this.clientUserManager.addUser(packetJSON.user);
+        break;
+      }
+
+      case "leaveRoom": {
+        const userId = packetJSON.userId;
+        this.clientRoomManager.removeUserFromRoom(userId);
+        if (this.userId == userId) {
+          // show the lobby
+          this.gamePanel.showLobby();
+        }
+        break;
+      }
+
+      // receive a room status change message
+      case "roomStatusChange": {
+        //                 final short tableId = dataInputStream.readShort();
+        //                 final byte status = dataInputStream.readByte();
+        this.handleRoomStatusChange(
+          packetJSON.roomId,
+          packetJSON.status,
+          packetJSON.countdown
+        );
+        break;
+      }
+
+      // below have an opcode of 80 - they should go to the "handleGamePacket" routine
+      case "teamChange":
+      case "userEvent":
+      case "startGame":
+      case "tableWins":
+      case "powerup":
+      case "userState":
+      case "gameOver":
+      case "gameEnd":
+        this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
+        break;
+
+      case "joinRoom": {
+        // case 102: {	// User joined a table
+        const roomId = packetJSON.roomId;
+        const userId = packetJSON.userId;
+        const slot = packetJSON.slot;
+        const teamId = packetJSON.teamId;
+        const shipType = packetJSON.shipType;
+
+        this.clientRoomManager.addUserToRoom(
+          roomId,
+          userId,
+          slot,
+          shipType,
+          teamId
+        );
+
+        // if there is an issue with updating player teams, can request roomInfo upon entering the room
+
+        // TODO - passwords should be handled by the server
+        // String tablePassword = dataInputStream.readUTF();
+
+        // draw the room panel
+        // check if the userId is the current user's id, then set to join the room
+        if (userId == this.userId) {
+          this.roomId = roomId;
+          this.isInARoom = true;
+
+          // calls the "showGame" method for the game panel
+          // a new Game instance is created
+          this.gamePanel.showRoom();
+
+          // once a user joins a room, we do not need to reset the room
+          this.gamePanel.roomPanel.game.reset();
+
+          // clear the chat panel lines
+          // playingPanel.getChatPanel().clearLines();
+          // CFSkin.getSkin().addTableInstructions(playingPanel.getChatPanel());
+          // this.m_pnlGame.showGame();
+        }
+
+        // don't update the user state for others unless the
+        // user is in the room
+        if (roomId == this.roomId && userId != this.userId) {
+          this.gamePanel.roomPanel.game.refreshOtherBar = true;
+          // someone else joined the room
+          // getRoomState(roomId) this will request the server
+          // to send the state of the room?
+          // TODO add the user to the room from the client user manager
+          //this.gamePanel.roomPanel.game.clientRoomManager.addUserToRoom(roomId, userId, )
+        }
+
+        // clear the chat lines in the room
+        // add the table instructions to the chat lines
+
+        // close the privateTableDialogs
         break;
       }
 
@@ -333,15 +425,7 @@ export default class GameNetLogic {
       //                 }
       //                 break;
       //             }
-      case "leaveRoom": {
-        const userId = packetJSON.userId;
-        this.clientRoomManager.removeUserFromRoom(userId);
-        if (this.userId == userId) {
-          // show the lobby
-          this.gamePanel.showLobby();
-        }
-        break;
-      }
+
       //             case 65: {
       //                 final CFTablePanel tablePanel4 = this.pnlGame.getLobbyPanel().getTablePanel();
       //                 final short tableId = dataInputStream.readShort();
@@ -354,17 +438,7 @@ export default class GameNetLogic {
       //                 }
       //                 break;
       //             }
-      // receive a room status change message
-      case "roomStatusChange": {
-        //                 final short tableId = dataInputStream.readShort();
-        //                 final byte status = dataInputStream.readByte();
-        this.handleRoomStatusChange(
-          packetJSON.roomId,
-          packetJSON.status,
-          packetJSON.countdown,
-        );
-        break;
-      }
+
       // sendTableStatusChange
       //             case 66: {
       //                 final short tableId = dataInputStream.readShort();
@@ -410,18 +484,6 @@ export default class GameNetLogic {
       //                 break;
       //             }
 
-      // below have an opcode of 80 - they should go to the "handleGamePacket" routine
-      case "teamChange":
-      case "userEvent":
-      case "startGame":
-      case "tableWins":
-      case "powerup":
-      case "userState":
-      case "gameOver":
-      case "gameEnd":
-        this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
-        break;
-
       //             case 101: {	// Receive full table
       //                 CFTablePanel tablePanel = this.pnlGame.getLobbyPanel().getTablePanel();
       //                 short tableId = dataInputStream.readShort();
@@ -465,89 +527,17 @@ export default class GameNetLogic {
       //                 break;
       //             }
 
-      case "joinRoom": {
-        // case 102: {	// User joined a table
-        const roomId = packetJSON.roomId;
-        const userId = packetJSON.userId;
-        const slot = packetJSON.slot;
-        const teamId = packetJSON.teamId;
-        const shipType = packetJSON.shipType;
-        this.clientRoomManager.addUserToRoom(
-          roomId,
-          userId,
-          slot,
-          shipType,
-          teamId,
-        );
-
-        // if there is an issue with updating player teams, can request roomInfo upon entering the room
-
-        // TODO - passwords should be handled by the server
-        // String tablePassword = dataInputStream.readUTF();
-
-        // draw the room panel
-        // check if the userId is the current user's id, then set to join the room
-        if (userId == this.userId) {
-          this.roomId = roomId;
-          this.isInARoom = true;
-
-          // calls the "showGame" method for the game panel
-          // a new Game instance is created
-          this.gamePanel.showRoom();
-
-          // on the game set the user in the slot and assign colors
-          this.gamePanel.roomPanel.game.setSlot(slot);
-
-          // once a user joins a room, we do not need to reset the room
-          this.gamePanel.roomPanel.game.reset();
-
-          this.gamePanel.roomPanel.game.drawOtherBar(
-            this.gamePanel.roomPanel.game.otherStatusContext,
-            true,
-          );
-
-          const room = this.clientRoomManager.getRoomById(this.roomId);
-
-          // set the teamId of the player for the room
-          if (room.isTeamRoom) {
-            this.teamId = 1;
-          } else {
-            this.teamId = 0;
-          }
-
-          // clear the chat panel lines
-          // playingPanel.getChatPanel().clearLines();
-          // CFSkin.getSkin().addTableInstructions(playingPanel.getChatPanel());
-          // this.m_pnlGame.showGame();
-        }
-
-        // don't update the user state for others unless the
-        // user is in the room
-        if (roomId == this.roomId && userId != this.userId) {
-          // someone else joined the room
-          // getRoomState(roomId) this will request the server
-          // to send the state of the room?
-          // TODO add the user to the room from the client user manager
-        }
-
-        // clear the chat lines in the room
-        // add the table instructions to the chat lines
-
-        // close the privateTableDialogs
-        break;
-      }
-
-        //             }
-        //             case 103: {
-        //                 final CFPrivateTableDialog privateTableDialog = this.findPrivateTableDialog();
-        //                 privateTableDialog.setStatus("Incorrect password.");
-        //             }
-        //         }
-        //     }
-        //     catch (Exception ex) {
-        //         ex.printStackTrace();
-        //     }
-        // }
+      //             }
+      //             case 103: {
+      //                 final CFPrivateTableDialog privateTableDialog = this.findPrivateTableDialog();
+      //                 privateTableDialog.setStatus("Incorrect password.");
+      //             }
+      //         }
+      //     }
+      //     catch (Exception ex) {
+      //         ex.printStackTrace();
+      //     }
+      // }
     }
   }
 
@@ -583,7 +573,7 @@ export default class GameNetLogic {
       isBalancedRoom,
       roomUsers,
       numSlots,
-      password,
+      password
     );
   }
 

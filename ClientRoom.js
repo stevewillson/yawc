@@ -1,4 +1,5 @@
 import ClientRoomManager from "./ClientRoomManager.js";
+import ClientUser from "./ClientUser.js";
 
 export default class ClientRoom {
   clientRoomManager;
@@ -6,7 +7,6 @@ export default class ClientRoom {
 
   roomId;
   status;
-  userIds;
   numSlots;
 
   isPrivate;
@@ -25,12 +25,21 @@ export default class ClientRoom {
   password;
   wins;
 
-  constructor(clientRoomManager, room) {
+  users;
+
+  constructor(clientRoomManager, roomPacket) {
     this.clientRoomManager = clientRoomManager;
     this.clientUserManager = clientRoomManager.gameNetLogic.clientUserManager;
-    this.userIds = room.userIds;
-    this.roomId = room.roomId;
-    this.numSlots = room.numSlots;
+    this.userIds = roomPacket.userIds;
+    this.roomId = roomPacket.roomId;
+    this.numSlots = roomPacket.numSlots;
+
+    // copy the values from userIds into the this.userIds
+    // this.userIds = [];
+    // for (let i = 0; i < roomPacket.userIds.length; i++) {
+    //   this.userIds.push(roomPacket.userIds[i]);
+    // }
+
     // set start status in waiting
     this.status = "idle";
   }
@@ -46,11 +55,9 @@ export default class ClientRoom {
     // table of either 2x3 or 2x5 to show the slots
     // get the room index
     const joinRoomButton = document.createElement("button");
-    joinRoomButton.innerText = `Join Room ${
-      this.clientRoomManager.roomIndex(
-        this.roomId,
-      )
-    }`;
+    joinRoomButton.innerText = `Join Room ${this.clientRoomManager.roomIndex(
+      this.roomId
+    )}`;
     joinRoomButton.className = "joinRoomButton";
     joinRoomButton.onclick = () =>
       this.clientRoomManager.gameNetLogic.handleJoinRoom(this.roomId);
@@ -69,11 +76,11 @@ export default class ClientRoom {
     firstElement.appendChild(joinRoomButton);
     // get the username from the userId
     secondElement.innerHTML = this.clientUserManager.getUsername(
-      this.userIds[0],
+      this.userIds[0]
     );
     secondElement.id = `${this.roomId}-slot0`;
     thirdElement.innerHTML = this.clientUserManager.getUsername(
-      this.userIds[1],
+      this.userIds[1]
     );
     thirdElement.id = `${this.roomId}-slot1`;
 
@@ -89,12 +96,12 @@ export default class ClientRoom {
     if (this.numSlots == 4) {
       fourthElement.innerHTML = "Large";
       fifthElement.innerHTML = this.clientUserManager.getUsername(
-        this.userIds[2],
+        this.userIds[2]
       );
       fifthElement.id = `${this.roomId}-slot2`;
 
       sixthElement.innerHTML = this.clientUserManager.getUsername(
-        this.userIds[3],
+        this.userIds[3]
       );
       sixthElement.id = `${this.roomId}-slot3`;
 
@@ -108,10 +115,10 @@ export default class ClientRoom {
       const fifthElement = document.createElement("td");
 
       fourthElement.innerHTML = this.clientUserManager.getUsername(
-        this.userIds[2],
+        this.userIds[2]
       );
       fifthElement.innerHTML = this.clientUserManager.getUsername(
-        this.userIds[3],
+        this.userIds[3]
       );
 
       firstRow.appendChild(fourthElement);
@@ -137,7 +144,7 @@ export default class ClientRoom {
     isTeamRoom,
     boardSize,
     bBalancedTeams,
-    options,
+    options
   ) {
     this.bRanked = bRanked;
     this.bPrivate = bPrivate;
@@ -175,6 +182,21 @@ export default class ClientRoom {
     }
   }
 
+  getUserId(slot) {
+    return this.userIds[slot];
+  }
+
+  getUser(slot, userId) {
+    if (slot > this.userIds.length) {
+      return "COMPUTER";
+    }
+
+    if (slot == this.getSlot(userId)) {
+      return "YOU";
+    }
+    return this.clientUserManager.users.get(userId).username;
+  }
+
   setStatus(status, countdown = this.countdown) {
     if (this.countdown != countdown) {
       this.countdown = countdown;
@@ -182,10 +204,6 @@ export default class ClientRoom {
     if (this.status != status) {
       this.status = status;
     }
-  }
-
-  getUserId(slot) {
-    return this.userIds[slot];
   }
 
   getSlot(userId) {
@@ -200,11 +218,81 @@ export default class ClientRoom {
   numUsers() {
     let count = 0;
     for (let i = 0; i < this.userIds.length; i++) {
-      // TODO use 'null' for an empty userId slot
+      // use 'null' for an empty userId slot
       if (this.userIds[i] != null) {
         count++;
       }
     }
     return count;
+  }
+
+  resetPowerups() {
+    for (let i = 0; i < this.userIds.length; i++) {
+      if (this.userIds[i] != null) {
+        const user = this.clientUserManager.users.get(this.userIds[i]);
+        user.resetPowerups();
+      }
+    }
+  }
+
+  // TODO - want to use the ClientRoomManager / ClientUserManager for this now
+  setUsers(gamePacket) {
+    // do this when a user joins a room, don't wait until game start
+
+    // have the roomId from the game packet
+    const room = this.gameNetLogic.clientRoomManager.getRoomById(
+      gamePacket.roomId
+    );
+
+    for (let i = 0; i < room.numUsers(); i++) {
+      const userId = room.userIds[i];
+      const user = this.gameNetLogic.clientUserManager.users.get(userId);
+
+      const slot = room.getSlot(userId);
+
+      const gameOver = false;
+
+      if (userId != this.gameNetLogic.userId) {
+        // use ClientUserManager settings for this info
+        this.setUser(
+          user,
+          user.teamId,
+          // user.icons,
+          // this.logic.getUser(userName).getIcons(),
+          slot,
+          gameOver
+        );
+        if (gameOver == false) {
+        }
+      } else {
+        this.slot = slot;
+        this.color = this.colors.colors[slot][0];
+        this.teamId = user.teamId;
+      }
+    }
+    this.refreshUserBar = true;
+  }
+
+  // draw the user info block
+  // TODO - see about setting the clientUser of the userState
+  // to a ClientUser object
+  setUser(clientUser, teamId, slot, gameOver) {
+    // let userState = this.userStates[this.translateSlot(slot)];
+    let userState = this.userStates[slot];
+    userState.reset();
+    userState.resetPowerups();
+    // sets the username and the slot/colors
+    userState.setState(clientUser, slot);
+    // done in the setState function
+    // userState.clientUser = clientUser;
+    // userState.rank = rank;
+    // userState.icons = icons;
+
+    userState.teamId = teamId;
+    userState.numPowerups = 0;
+    userState.gameOver = gameOver;
+    userState.isEmpty = false;
+    this.refreshUserBar = true;
+    this.setSlot(slot);
   }
 }

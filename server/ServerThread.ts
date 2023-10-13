@@ -105,6 +105,7 @@ export class ServerThread {
     // TODO - see why the broadcastUserState is not working
     this.server.broadcastUserState(
       this.user.roomId,
+      this.user.userId,
       // sessionId,
       this.user.slot,
       healthPercent,

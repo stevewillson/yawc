@@ -1,5 +1,7 @@
 // client side user manager
 
+import ClientUser from "./ClientUser.js";
+
 // accepts network packets that tell about the users connected
 
 // queried by the user panel to get a list of users that the client knows about
@@ -22,7 +24,16 @@ export default class ClientUserManager {
   }
 
   addUser(user) {
-    this.users.set(user.userId, user);
+    const newUser = new ClientUser(this.gameNetLogic);
+    newUser.setClientUser(
+      user.userId,
+      user.username,
+      user.clan,
+      user.rank,
+      user.icons,
+    );
+
+    this.users.set(newUser.userId, newUser);
   }
 
   removeUser(userId) {
