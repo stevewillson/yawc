@@ -18,11 +18,11 @@ export default class NukeSprite extends Sprite {
   addSelf() {
     super.addSelf();
     this.dropTime = Date.now();
-    this.game.flashScreenColor = this.game.colors.colors[super.slot][0];
+    this.game.flashScreenColor = this.game.colors.colors[this.slot][0];
   }
 
   isCollision(sprite) {
-    let distance = WHUtil.distanceFrom(this, sprite);
+    let distance = WHUtil.distanceFrom(this.location, sprite.location);
     return distance <= this.radius && distance > this.radius - 50;
   }
 
@@ -31,7 +31,7 @@ export default class NukeSprite extends Sprite {
     this.radius = 10;
     this.mode = 0;
     this.init("nuke", location.x, location.y, true);
-    this.shapeRect = new Rectangle(n - 20, n2 - 20, 40, 40);
+    this.shapeRect = new Rectangle(location.x - 20, location.y - 20, 40, 40);
     this.spriteType = 1;
     this.slot = slot;
     this.color = this.game.colors.colors[this.slot][0];
@@ -78,8 +78,8 @@ export default class NukeSprite extends Sprite {
       }
     } else {
       for (let n3 = 0; n3 < 10; n3++) {
-        context.fillStyle = this.game.colors.colors[super.slot][n3];
-        context.strokeStyle = this.game.colors.colors[super.slot][n3];
+        context.fillStyle = this.game.colors.colors[this.slot][n3];
+        context.strokeStyle = this.game.colors.colors[this.slot][n3];
         if (this.radius - n3 * 5 > 0) {
           WHUtil.drawCenteredCircle(
             context,
@@ -95,7 +95,7 @@ export default class NukeSprite extends Sprite {
   setCollided(collided) {
     super.setCollided(collided);
     if (collided == this.game.userSprite) {
-      this.game.flashScreenColor = this.game.colors.colors[super.slot][0];
+      this.game.flashScreenColor = this.game.colors.colors[this.slot][0];
       this.shouldRemoveSelf = false;
       this.mode = 1;
       let angle = WHUtil.findAngle(
@@ -108,7 +108,7 @@ export default class NukeSprite extends Sprite {
       collided.velocity.y += 2 * Math.sin(angle * 0.017453292519943295);
       return;
     }
-    if (!super.shouldRemoveSelf) {
+    if (!this.shouldRemoveSelf) {
       this.bShotAlready = true;
       this.velocity.x += collided.velocity.x / 4;
       this.velocity.y += collided.velocity.y / 4;
@@ -156,7 +156,7 @@ export default class NukeSprite extends Sprite {
       this.radius += 30;
       this.shapeRect.reshape(
         this.location.x - this.radius - 10,
-        this.locatino.y - this.radius - 10,
+        this.location.y - this.radius - 10,
         this.radius * 2 + 20,
         this.radius * 2 + 20
       );

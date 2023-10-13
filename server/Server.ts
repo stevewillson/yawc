@@ -99,13 +99,14 @@ export class Server {
     });
   }
 
-  broadcastPowerup(roomId, powerupType, fromSlot, toSlot, gameSession, b2) {
+  // b2 is set to 0
+  broadcastPowerup(roomId, powerupType, fromUserId, toUserId, sessionId, b2) {
     const room = this.roomManager.rooms.get(roomId);
     room.userIds.forEach((userId) => {
       if (userId != null) {
         const user = this.userManager.users.get(userId);
         const client = this.clients.get(user.clientId);
-        client.sendPowerup(powerupType, fromSlot, toSlot, gameSession, b2);
+        client.sendPowerup(powerupType, fromUserId, toUserId, sessionId, b2);
       }
     });
   }

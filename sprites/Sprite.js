@@ -43,6 +43,8 @@ export default class Sprite {
     this.location = location;
     this.game = game;
 
+    // used as the default slot if no user is set
+    //
     this.slot = 8;
 
     // handle rotation
@@ -255,9 +257,10 @@ export default class Sprite {
     }
   }
 
-  setUser(slot) {
-    this.slot = slot;
-    this.color = this.game.colors.colors[slot][0];
+  setUser(userId) {
+    const user = this.game.gameNetLogic.clientUserManager.users.get(userId);
+    this.slot = user.slot;
+    this.color = this.game.colors.colors[user.slot][0];
   }
 
   isRectPolyCollision(sprite, sprite2) {

@@ -34,11 +34,22 @@ export default class ClientRoom {
     this.roomId = roomPacket.roomId;
     this.numSlots = roomPacket.numSlots;
 
-    // copy the values from userIds into the this.userIds
-    // this.userIds = [];
-    // for (let i = 0; i < roomPacket.userIds.length; i++) {
-    //   this.userIds.push(roomPacket.userIds[i]);
-    // }
+    // set that each of the users listed in the userIds array is in the room
+    // I expect that we receive userInfo packets before creating the user for the room
+    // if there is no user, we may need to make a 'partial user' set the slot, and then update
+    // the user's info when we receive a userInfo
+
+    for (let i = 0; i < this.userIds.length; i++) {
+      if (this.userIds[i] != null) {
+        const user = this.clientUserManager.users.get(roomPacket.userIds[i]);
+        // can't do this yet because the room instance is not created
+        // this.clientRoomManager.addUserToRoom(this.roomId, user.userId, i, 1, 0);
+        user.roomId = this.roomId;
+        user.slot = i;
+        user.shipType = 1;
+        user.teamId = 0;
+      }
+    }
 
     // set start status in waiting
     this.status = "idle";

@@ -577,7 +577,7 @@ export default class UserSprite extends Sprite {
       if (collided.color != null) {
         // TODO - update to use userId
         // this function is now in the ClientRoom
-        this.killedBy = this.game.getUser(
+        this.killedBy = this.game.room.getUser(
           collided.slot,
           this.game.gameNetLogic.userId
         );
@@ -612,10 +612,14 @@ export default class UserSprite extends Sprite {
       return;
     }
     if (health != this.health) {
-      // Sprite.model.refreshStatus = true;
       this.game.strDamagedByUser = null;
       if (collided.color != null && collided.bSentByUser) {
-        this.game.strDamagedByUser = this.game.getUser(collided.slot);
+        // set the username for the damaging user
+        let damagingUserId = this.game.room.getUserId(collided.slot);
+        this.game.strDamagedByUser = this.game.room.getUser(
+          collided.slot,
+          damagingUserId
+        ).username;
         this.game.damagingPowerup = collided.powerupType;
         this.lostHealth = health - this.health;
       }
@@ -651,7 +655,7 @@ export default class UserSprite extends Sprite {
       2,
       this.game
     );
-    bulletSprite.setUser(this.user.slot);
+    bulletSprite.setUser(this.user.userId);
     bulletSprite.setVelocity(
       Math.cos(angle) * 10 + this.velocity.x,
       Math.sin(angle) * 10 + this.velocity.y

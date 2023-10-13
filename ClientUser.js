@@ -80,6 +80,10 @@ export default class ClientUser {
     this.portalSprite = null;
 
     this.powerups = new Array(5);
+
+    // TEMPORARY used to test powerups
+    this.powerups = [14, 14, 14, 14, 14];
+
     // this.titleBarH = 40;
     this.powerupTimeouts = new Array(6);
     this.colors = new SpriteColors();
@@ -149,7 +153,11 @@ export default class ClientUser {
   }
 
   reset() {
-    this.numPowerups = 0;
+    // this.numPowerups = 0;
+    // this.powerups = [null, null, null, null, null];
+    this.numPowerups = 5;
+    this.powerups = [14, 14, 14, 14, 14];
+
     this.healthPercent = 100;
     this.refresh = true;
     this.color = "gray";

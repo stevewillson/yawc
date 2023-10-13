@@ -9,11 +9,26 @@ import NukeSprite from "./NukeSprite.js";
 export default class PortalSprite extends Sprite {
   constructor(n, user, game) {
     super({ x: 0, y: 0 }, game);
-    this.vOutgoingPowerups = [];
-    this.powerupQ = new Array(30);
-    this.powerupUpgradeQ = new Array(30);
-    this.powerupCycleQ = new Array(30);
-    this.powerupSlotQ = new Array(30);
+    this.outgoingPowerups = [];
+    // arrays with 30 elements
+    // this.powerupQ = new Array(30);
+    // this.powerupUpgradeQ = new Array(30);
+    // this.powerupCycleQ = new Array(30);
+    // this.powerupUserIdQ = new Array(30);
+
+    this.powerupQ = [];
+    this.powerupUpgradeQ = [];
+    this.powerupCycleQ = [];
+    this.powerupUserIdQ = [];
+
+    // initialize arrays
+    for (let i = 0; i < 30; i++) {
+      this.powerupQ.push(0);
+      this.powerupUpgradeQ.push(0);
+      this.powerupCycleQ.push(0);
+      this.powerupUserIdQ.push("");
+    }
+
     this.currentDegrees = n;
     this.currentArcs = this.currentDegrees * 0.017453292519943295;
     this.setOrbit();
@@ -42,7 +57,7 @@ export default class PortalSprite extends Sprite {
     this.MAX_W = 60;
     this.damageTaken = 0;
     this.MAX_TAKEN = 150;
-    this.vOutgoingPowerups;
+    this.outgoingPowerups;
     this.NMISSILES = 12;
     this.NMINES = 15;
     this.MINE_VEL = 6;
@@ -57,7 +72,7 @@ export default class PortalSprite extends Sprite {
   /**
    * genMines
    */
-  genMines(n, n2, user) {
+  genMines(n, n2, userId) {
     let n3 = 0.4188790204786391;
     let n4 = 0;
 
@@ -65,7 +80,7 @@ export default class PortalSprite extends Sprite {
       let mineSprite = new MineSprite(n, n2);
       mineSprite.velocity.x = Math.cos(n4) * 6;
       mineSprite.velocity.y = Math.sin(n4) * 6;
-      mineSprite.setUser(user);
+      mineSprite.setUser(userId);
       mineSprite.addSelf();
       n4 += n3;
     }
@@ -100,7 +115,7 @@ export default class PortalSprite extends Sprite {
    * use random numbers to generate new enemies
    * add the enemy to the sprite array
    */
-  genEnemy(location, n3, user, b) {
+  genEnemy(location, n3, userId, b) {
     let enemyRatio = PowerupSprite.g_enemyRatios[n3];
     if (n3 == 18) {
       enemyRatio += b;
@@ -163,8 +178,8 @@ export default class PortalSprite extends Sprite {
           break;
         }
       }
-      sprite.setUser(user);
-      sprite.setDegreeAngle(WHUtil.randInt() % 360);
+      sprite.setUser(userId);
+      sprite.setDegreeAngle(WHUtil.randInt(360));
       sprite.addSelf();
     }
   }
@@ -204,6 +219,7 @@ export default class PortalSprite extends Sprite {
     //   this.location.y + 70
     // );
 
+    // TODO - where does this draw the bulletSprite?
     // vOutgoingPowerups is a vector of BulletSprites
     // for (let i = this.vOutgoingPowerups.size() - 1; i >= 0; --i) {
     //   let bulletSprite = this.vOutgoingPowerups.elementAt(i);
@@ -228,6 +244,7 @@ export default class PortalSprite extends Sprite {
       sprite.setCollided(this);
       this.damageTaken += sprite.damage;
       if (this.damageTaken > 150) {
+        // the portal is shot enough, generate a powerup
         let powerupSprite = PowerupSprite.genPowerup(
           this.location.x,
           this.location.y,
@@ -240,8 +257,8 @@ export default class PortalSprite extends Sprite {
         return;
       }
       let bulletSprite = sprite;
-      if (bulletSprite.bPowerup) {
-        this.vOutgoingPowerups.addElement(bulletSprite);
+      if (bulletSprite.isPowerup) {
+        this.outgoingPowerups.push(bulletSprite);
         bulletSprite.setLocation(
           bulletSprite.x - this.x,
           bulletSprite.y - this.y
@@ -250,7 +267,7 @@ export default class PortalSprite extends Sprite {
         this.game.usePowerup(
           bulletSprite.powerupType,
           bulletSprite.upgradeLevel,
-          this.slot,
+          this.user.userId,
           this.game.sessionId,
           this.game.gameId
         );
@@ -258,7 +275,7 @@ export default class PortalSprite extends Sprite {
     }
   }
 
-  genBadPowerupEffect(powerupType, slot, b2) {
+  genBadPowerupEffect(powerupType, fromUserId, b2) {
     let n2 = 0;
     while (this.powerupCycleQ[n2] != 0) {
       if (++n2 >= 30) {
@@ -266,16 +283,19 @@ export default class PortalSprite extends Sprite {
       }
     }
     this.powerupCycleQ[n2] = this.spriteCycle + 30;
+    // b2 is used to set the powerupUpgradeQ
     this.powerupUpgradeQ[n2] = b2;
     this.powerupQ[n2] = powerupType;
-    this.powerupSlotQ[n2] = slot;
+    this.powerupUserIdQ[n2] = fromUserId;
   }
 
-  genNuke(location, slot) {
-    const nukeSprite = new NukeSprite(location, slot, this.game);
+  genNuke(location, userId) {
+    // get the user's slot from the userId
+    const user = this.game.gameNetLogic.clientUserManager.users.get(userId);
+    const nukeSprite = new NukeSprite({ ...location }, user.slot, this.game);
     nukeSprite.setVelocity(
-      (location.x - Sprite.g_centerX) / 125,
-      (location.y - Sprite.g_centerY) / 125
+      (location.x - this.game.boardCenter.x) / 125,
+      (location.y - this.game.boardCenter.y) / 125
     );
     nukeSprite.addSelf();
   }
@@ -289,7 +309,7 @@ export default class PortalSprite extends Sprite {
     super.behave();
     this.setOrbit();
     if (this.genEnemy) {
-      switch (WHUtil.randInt() % 5) {
+      switch (WHUtil.randInt(5)) {
         case 0:
         case 1: {
           let inf = new InflatorSprite({ ...this.location }, this.game);
@@ -310,6 +330,9 @@ export default class PortalSprite extends Sprite {
       this.genEnemy = false;
     }
 
+    // use the powerupCycleQ
+    // iterate i from 0 to 29
+    // check that the
     for (let i = 0; i < 30; i++) {
       if (
         this.powerupCycleQ[i] != 0 &&
@@ -323,13 +346,13 @@ export default class PortalSprite extends Sprite {
           case 6: {
             for (n2 = 0; n2 < 12; n2++) {
               let heatSeekerMissile = new HeatSeekerMissile(
-                this.location.x + (WHUtil.randInt() % 50),
-                this.location.y + (WHUtil.randInt() % 50)
+                this.location.x + WHUtil.randInt(50),
+                this.location.y + WHUtil.randInt(50)
               );
-              heatSeekerMissile.rotate(WHUtil.randABSInt() % 360);
+              heatSeekerMissile.rotate(WHUtil.randABSInt(360));
               heatSeekerMissile.doMaxThrust(heatSeekerMissile.maxThrust);
               heatSeekerMissile.addSelf();
-              heatSeekerMissile.setUser(this.powerupSlotQ[i]);
+              heatSeekerMissile.setUser(this.powerupUserIdQ[i]);
             }
             continue;
           }
@@ -337,7 +360,7 @@ export default class PortalSprite extends Sprite {
             this.genMines(
               this.location.x,
               this.location.y,
-              this.powerupSlotQ[i]
+              this.powerupUserIdQ[i]
             );
             continue;
           }
@@ -355,13 +378,13 @@ export default class PortalSprite extends Sprite {
             this.genEnemy(
               this.location,
               this.powerupQ[i],
-              this.powerupSlotQ[i],
+              this.powerupUserIdQ[i],
               this.powerupUpgradeQ[i]
             );
             continue;
           }
           case 14: {
-            this.genNuke(this.location, this.powerupSlotQ[i]);
+            this.genNuke(this.location, this.powerupUserIdQ[i]);
             continue;
           }
         }

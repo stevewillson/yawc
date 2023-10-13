@@ -123,6 +123,12 @@ export default class WallCrawlerSprite extends Sprite {
         1,
         this.game
       );
+
+      // TODO - find a way to use an computer
+      // userId or a slot number
+      // const user = this.game.gameNetLogic.clientUserManager.users.get(
+      //   room.userIds[i]
+      // );
       bulletSprite.setSentByEnemy(this.slot, 15);
       let calcLead = this.calcLead();
       bulletSprite.setVelocity(

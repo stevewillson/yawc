@@ -170,7 +170,8 @@ export default class GameNetLogic {
       case "userEvent":
       case "startGame":
       case "tableWins":
-      case "powerup":
+      // user has received a powerup
+      case "receivePowerup":
       case "userState":
       case "gameOver":
       case "gameEnd":

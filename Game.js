@@ -72,6 +72,14 @@ export default class Game {
     this.powerups = new Array(5);
     this.numPowerups = 0;
 
+    // shortcuts for the game's room and user
+    this.room = this.gameNetLogic.clientRoomManager.getRoomById(
+      this.gameNetLogic.roomId
+    );
+    this.user = this.gameNetLogic.clientUserManager.users.get(
+      this.gameNetLogic.userId
+    );
+
     this.currentFighterShade = 0;
 
     // default to using the shipType of 1
@@ -381,7 +389,7 @@ export default class Game {
 
     user.userSprite.addSelf();
     // get the slot from the user object
-    user.userSprite.setUser(user.slot);
+    user.userSprite.setUser(user.userId);
 
     let wc1 = new WallCrawlerSprite({ x: 0, y: 0 }, this, true);
     let wc2 = new WallCrawlerSprite({ x: 0, y: 0 }, this, false);
@@ -676,17 +684,18 @@ export default class Game {
 
       if (this.incomingCycle > 0) {
         this.incomingCycle--;
-        context.font = "40px helvetica bold";
+        context.font = "40px helvetica";
 
         // TODO - use the room object
         // const fromSlot = this.getUserSlot(this.fromUserId);
         const fromSlot = room.getSlot(this.fromUserId);
+        context.textAlign = "center";
         context.strokeStyle =
-          SpriteColors.colors[fromSlot][this.currentShade++ % 20];
-        context.strokeText("I N C O M I N G", this.boardWidth / 2 - 120, 200);
+          this.colors.colors[fromSlot][this.currentShade++ % 20];
+        context.strokeText("I N C O M I N G", this.board.width / 2, 200);
         if (this.incomingNukeCycle > 0) {
           this.incomingNukeCycle--;
-          context.strokeText("N U K E", this.boardWidth / 2 - 90, 240);
+          context.strokeText("N U K E", this.board.width / 2, 240);
         }
       }
 
@@ -1133,7 +1142,7 @@ export default class Game {
             this
           );
           user.userSprite.addSelf();
-          user.userSprite.setUser(user.slot);
+          user.userSprite.setUser(user.userId);
 
           this.sendState(this.sessionId);
         }
@@ -1341,9 +1350,11 @@ export default class Game {
   usePowerup(powerupType, upgradeLevel, toUserId, sessionId = 0, gameId = 0) {
     // stream.writeByte(107);
     const packet = {
-      type: "powerup",
+      type: "sendPowerup",
       sessionId,
-      powerupType,
+      // powerupType,
+      // TODO - only send nukes
+      powerupType: 14,
       toUserId,
       upgradeLevel,
     };
@@ -1541,13 +1552,17 @@ export default class Game {
         break;
       }
 
-      case "powerup": {
+      case "receivePowerup": {
         const powerupType = gamePacket.powerupType;
         const fromUserId = gamePacket.fromUserId;
         const toUserId = gamePacket.toUserId;
         const sessionId = gamePacket.sessionId;
-        const byte9 = gamePacket.byte9;
-        if (sessionId != this.sessionId && !this.gameOver) {
+        // b2 is always set to 0
+        const byte9 = gamePacket.b2;
+
+        // check that the game is not over for now
+        if (this.gameOver) {
+          // if (sessionId != this.sessionId && !this.gameOver) {
           return;
         }
 

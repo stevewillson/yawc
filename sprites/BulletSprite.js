@@ -14,7 +14,7 @@ export default class BulletSprite extends Sprite {
   static CONCUSSIVE_RECOIL = 5;
   lifespan = 100;
   maxVelocity = 10;
-  powerup;
+  isPowerup;
   bCountTowardsQuota;
   upgradeLevel;
   internalColor;
@@ -94,7 +94,7 @@ export default class BulletSprite extends Sprite {
       context.moveTo(0, -this.shapeRect.width);
       context.lineTo(0, this.shapeRect.width);
 
-      if (this.powerup) {
+      if (this.isPowerup) {
         WHUtil.drawCenteredCircle(context, 0, 0, 20);
 
         let shiftedNumber = this.powerupType - 6;
@@ -137,7 +137,7 @@ export default class BulletSprite extends Sprite {
       collided.velocity.y += 5 * Math.sin(angle * 0.017453292519943295);
     }
     if (this.shouldRemoveSelf) {
-      if (this.powerup) {
+      if (this.isPowerup) {
         let explosionSprite = new ExplosionSprite(
           { x: this.location.x, y: this.location.y },
           this.game,
@@ -163,6 +163,8 @@ export default class BulletSprite extends Sprite {
     }
   }
 
+  // TODO update to use the userId
+  // actually, just use a high slot right now
   setSentByEnemy(slot, powerupShipType) {
     this.slot = slot;
     this.powerupShipType = powerupShipType;
@@ -183,7 +185,7 @@ export default class BulletSprite extends Sprite {
 
   setPowerup(powerupType) {
     this.powerupType = powerupType;
-    this.powerup = true;
+    this.isPowerup = true;
   }
 
   setConcussive() {

@@ -159,14 +159,14 @@ export class ServerThread {
   receivePowerup(packet) {
     const sessionId = packet.sessionId;
     const powerupType = packet.powerupType;
-    const toSlot = packet.toSlot;
+    const toUserId = packet.toUserId;
     const upgradeLevel = packet.upgradeLevel;
     // TODO - use the room Id here
     this.server.broadcastPowerup(
       this.user.roomId,
       powerupType,
-      this.user.slot,
-      toSlot,
+      this.user.userId,
+      toUserId,
       sessionId,
       0,
     );
@@ -569,14 +569,15 @@ export class ServerThread {
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendPowerup(powerupType, fromSlot, toSlot, sessionId, b2) {
+  sendPowerup(powerupType, fromUserId, toUserId, sessionId, b2) {
     // 	byte opcode1 = 80;
     // 	byte opcode2 = 107;
+    // send the powerup to the client
     const packet = {
-      type: "powerup",
+      type: "receivePowerup",
       powerupType: powerupType,
-      fromSlot,
-      toSlot,
+      fromUserId,
+      toUserId,
       sessionId,
       b2: b2,
     };
@@ -717,7 +718,8 @@ export class ServerThread {
         this.receiveUserState(packetJSON);
         break;
       }
-      case "powerup": {
+      // get a 'sendPowerup' message from the client
+      case "sendPowerup": {
         // case 107:
         this.receivePowerup(packetJSON);
         break;
