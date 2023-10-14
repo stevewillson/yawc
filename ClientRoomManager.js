@@ -63,12 +63,10 @@ export default class ClientRoomManager {
   // user in the room, then delete the room
   removeRoom(targetRoomId) {
     // remove the room with id from the rooms
+
+    // TODO find a way to remove the room from the room storage without interrupting the loop
+    // add a shouldRemove flag?
     this.rooms = this.rooms.filter((room) => room.roomId != targetRoomId);
-
-    // remove the room from the display
-    document.getElementById(targetRoomId).remove();
-
-    // update the room display to reindex the rooms
   }
 
   getRoomById(roomId) {
@@ -117,19 +115,20 @@ export default class ClientRoomManager {
 
       // update the roomId for the user here?
       const user = this.gameNetLogic.clientUserManager.users.get(userId);
-      user.roomId = roomId;
-      user.slot = slot;
-      user.shipType = shipType;
-      user.teamId = teamId;
 
       // update the room slot element
       const roomSlotElement = document.getElementById(`${roomId}-slot${slot}`);
       roomSlotElement.innerHTML = user.username;
 
-      // update the userListPanel
-      const userListElementRow = document.getElementById(userId);
-      // set the room cell to be the room index
-      userListElementRow.cells[2].innerHTML = this.roomIndex(roomId);
+      // loop through all of the userIds and set their userListPanel room value to the room index
+      for (let i = 0; i < room.userIds.length; i++) {
+        if (room.userIds[i] != null) {
+          // get the room index
+          const roomIndex = this.roomIndex(roomId);
+          const userListPanelRow = document.getElementById(userId);
+          userListPanelRow.cells[2].innerHTML = roomIndex;
+        }
+      }
     }
   }
 
@@ -145,13 +144,18 @@ export default class ClientRoomManager {
       `${user.roomId}-slot${user.slot}`
     );
     roomSlotElement.innerHTML = "Open Slot";
+    // remove the background color from the element
+    // when a user leaves
+    roomSlotElement.style.backgroundColor = "";
 
-    user.isInARoom = false;
-    user.roomId = null;
-    user.slot = null;
     room.removeUser(userId);
 
     // check if there are any other usres in the room
     // if not, then remove the room
+    if (room.numUsers() < 1) {
+      room.shouldRemove = true;
+      // remove from the display
+      document.getElementById(room.roomId).remove();
+    }
   }
 }

@@ -402,6 +402,23 @@ export default class Game {
   }
 
   gameLoop(timeStamp) {
+    // check if the gameNetLogic's roomId is null
+    if (this.gameNetLogic.roomId == null) {
+      // error! this should not be null
+      return;
+    }
+
+    // get the room and check if it should be removed
+    const room = this.gameNetLogic.clientRoomManager.getRoomById(
+      this.gameNetLogic.roomId
+    );
+
+    if (room.shouldRemove) {
+      this.gameNetLogic.clientRoomManager.removeRoom(room.roomId);
+      this.gameNetLogic.roomId = null;
+      return;
+    }
+
     // Keep requesting new frames
     window.requestAnimationFrame(this.gameLoop.bind(this));
 
@@ -420,6 +437,7 @@ export default class Game {
         // behavior, collisions, checkSidebar
         this.update();
         // handles redrawing the screen
+        // could be called in the setAnimationFrame
         this.render();
         if (this.gameOver) {
           this.gameOverCycle = 0;
@@ -452,15 +470,19 @@ export default class Game {
         // checkSidebar();
 
         // draw the other bar if it should be refreshed
+
+        // TODO - add to render()
         if (this.refreshOtherBar) {
           this.drawOtherBar(this.otherStatusContext, true);
         }
 
+        // TODO - add to render()
         // draw the user bar if it should be refreshed
         if (this.refreshUserBar) {
           this.drawUserBar(this.userStatusContext);
         }
 
+        // TODO - add to render()
         this.draw(this.context);
 
         // ship selection area
@@ -474,6 +496,7 @@ export default class Game {
         if (room != null) {
           // if the game is already playing, wait for the next game
           if (room.status == "playing") {
+            // TODO - add to render()
             this.drawStrings(this.context, "Waiting for", "Next Game");
           } else if (room.status == "countdown") {
             this.drawStrings(this.context, "Countdown", "" + room.countdown);

@@ -65,6 +65,35 @@ export default class ClientUserManager {
     this.users.delete(userId);
   }
 
+  addUserToRoom(roomId, userId, slot, shipType, teamId) {
+    // update the roomId for the user here?
+    const user = this.users.get(userId);
+
+    user.joinRoom(roomId, slot, shipType, teamId);
+
+    // update the userListPanel
+    const userListPanelRow = document.getElementById(userId);
+    // set the room cell to be the room index
+
+    const roomIndex = this.gameNetLogic.clientRoomManager.roomIndex(roomId);
+    if (roomIndex != -1) {
+      userListPanelRow.cells[2].innerHTML = roomIndex;
+    } else {
+      // room is not yet created
+      userListPanelRow.cells[2].innerHTML = "-";
+    }
+  }
+
+  removeUserFromRoom(userId) {
+    const user = this.users.get(userId);
+    user.leaveRoom();
+
+    // update the user list panel with the '-' designator
+    // for the room
+    const userListPanelRow = document.getElementById(user.userId);
+    userListPanelRow.cells[2].innerHTML = "-";
+  }
+
   // get username
   getUsername(userId) {
     if (userId == null) {

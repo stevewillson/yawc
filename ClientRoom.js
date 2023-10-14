@@ -2,6 +2,8 @@ export default class ClientRoom {
   clientRoomManager;
   clientUserManager;
 
+  shouldRemove;
+
   roomId;
   status;
   numSlots;
@@ -50,6 +52,9 @@ export default class ClientRoom {
 
     // set start status in waiting
     this.status = "idle";
+
+    // used to check if the room sholud be removed after a render
+    this.shouldRemove = false;
   }
 
   toHtml() {

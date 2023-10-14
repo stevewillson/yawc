@@ -58,6 +58,9 @@ export default class GamePanel {
     }
     if (roomPanelDiv != undefined) {
       roomPanelDiv.hidden = true;
+      // remove so we don't error out when trying to redraw
+      // delete this.roomPanel.game;
+      // roomPanelDiv.remove();
     }
 
     let lobbyPanelDiv = document.getElementById("lobbyPanelDiv");

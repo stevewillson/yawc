@@ -8,7 +8,6 @@ export default class GameNetLogic {
 
   network;
 
-  isInARoom;
   gamePanel;
 
   username;
@@ -155,11 +154,28 @@ export default class GameNetLogic {
 
       case "leaveRoom": {
         const userId = packetJSON.userId;
-        this.clientRoomManager.removeUserFromRoom(userId);
+
+        // get the user and the roomId before the user is removed from the room
+        const user = this.clientUserManager.users.get(userId);
+        const roomId = user.roomId;
+
+        // first show the lobby so errors don't
+        // happen when redrawing
         if (this.userId == userId) {
           // show the lobby
           this.gamePanel.showLobby();
         }
+
+        this.clientRoomManager.removeUserFromRoom(userId);
+
+        // also update the room from the user
+        this.clientUserManager.removeUserFromRoom(userId);
+
+        // another user has left the room that this user is in
+        if (roomId == this.roomId && userId != this.userId) {
+          this.gamePanel.roomPanel.game.refreshOtherBar = true;
+        }
+
         break;
       }
 
@@ -204,6 +220,14 @@ export default class GameNetLogic {
           teamId
         );
 
+        this.clientUserManager.addUserToRoom(
+          roomId,
+          userId,
+          slot,
+          shipType,
+          teamId
+        );
+
         // if there is an issue with updating player teams, can request roomInfo upon entering the room
 
         // TODO - passwords should be handled by the server
@@ -213,7 +237,6 @@ export default class GameNetLogic {
         // check if the userId is the current user's id, then set to join the room
         if (userId == this.userId) {
           this.roomId = roomId;
-          this.isInARoom = true;
 
           // calls the "showGame" method for the game panel
           // a new Game instance is created
@@ -225,18 +248,13 @@ export default class GameNetLogic {
           // clear the chat panel lines
           // playingPanel.getChatPanel().clearLines();
           // CFSkin.getSkin().addTableInstructions(playingPanel.getChatPanel());
-          // this.m_pnlGame.showGame();
         }
 
         // don't update the user state for others unless the
         // user is in the room
         if (roomId == this.roomId && userId != this.userId) {
-          this.gamePanel.roomPanel.game.refreshOtherBar = true;
           // someone else joined the room
-          // getRoomState(roomId) this will request the server
-          // to send the state of the room?
-          // TODO add the user to the room from the client user manager
-          //this.gamePanel.roomPanel.game.clientRoomManager.addUserToRoom(roomId, userId, )
+          this.gamePanel.roomPanel.game.refreshOtherBar = true;
         }
 
         // clear the chat lines in the room

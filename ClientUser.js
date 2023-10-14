@@ -91,20 +91,33 @@ export default class ClientUser {
     // this.imgPowerups = (Image[])WormholeModel.g_mediaTable.get("img_smallpowerups");
     this.myHeight = 158;
     this.userHeight = 60;
-
-    // this.y = 0;
-    // this.h = 0;
   }
 
   /**
-   * Sets the draw location for the ClientUser representation
-   * @param {number} x
-   * @param {number} y
+   * Join a room
    */
-  // setDrawLocation(x, y) {
-  //   this.y = x;
-  //   this.h = y;
-  // }
+  joinRoom(roomId, slot, shipType, teamId) {
+    this.isInARoom = true;
+    this.roomId = roomId;
+    this.slot = slot;
+    this.color = this.colors.colors[slot][0];
+    this.shipType = shipType;
+  }
+
+  /**
+   * Leave a room
+   */
+  leaveRoom() {
+    this.isInARoom = false;
+    this.roomId = null;
+
+    // TODO - need to find a way to clear the slot without
+    // breaking the color array lookups
+    // this.slot = null;
+    this.slot = 8;
+    // color is based off slot
+    this.color = null;
+  }
 
   /**
    * Sets the slot for a ClientUser
