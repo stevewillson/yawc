@@ -79,7 +79,7 @@ export default class WHUtil {
     arcAngle = 2 * Math.PI
   ) {
     context.beginPath();
-    context.lineWidth = 1;
+    // context.lineWidth = 1;
     context.arc(x, y, radius, startAngle, arcAngle);
     context.fill();
   }

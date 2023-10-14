@@ -1,13 +1,13 @@
-import UserSprite from "./sprites/UserSprite.js";
-import UserState from "./ClientUser.js";
+import ClientRoomManager from "./ClientRoomManager.js";
+import ClientUser from "./ClientUser.js";
+import Polygon from "./Polygon.js";
+import Rectangle from "./Rectangle.js";
 import SpriteColors from "./SpriteColors.js";
 import WHUtil from "./WHUtil.js";
-import Rectangle from "./Rectangle.js";
 import PortalSprite from "./sprites/PortalSprite.js";
-import WallCrawlerSprite from "./sprites/WallCrawlerSprite.js";
-import Polygon from "./Polygon.js";
-import ClientRoomManager from "./ClientRoomManager.js";
 import PowerupSprite from "./sprites/PowerupSprite.js";
+import UserSprite from "./sprites/UserSprite.js";
+import WallCrawlerSprite from "./sprites/WallCrawlerSprite.js";
 
 /**
  * Game Class
@@ -1055,7 +1055,7 @@ export default class Game {
 
   drawTeamShape(context, n, n2) {
     if (this.teamId != 0) {
-      UserState.drawTeamShape(context, n, n2, this.teamId);
+      ClientUser.drawTeamShape(context, n, n2, this.teamId);
     }
   }
 
@@ -1620,7 +1620,7 @@ export default class Game {
   // combination of writeState and updateState
   /**
    * Send the user's current information
-   * @param {*} sessionId
+   * @param {uuid} sessionId
    */
   sendState(sessionId) {
     // stream.writeByte(106);
@@ -1635,7 +1635,6 @@ export default class Game {
 
   // combination of writeEvent and updateEvent
   sendEvent(eventString) {
-    // sendEvent(eventString, sessionId) {
     // stream.writeByte(109);
     const packet = {
       type: "userEvent",
@@ -1659,6 +1658,14 @@ export default class Game {
     this.drawCenteredText2(context, s, n2 + 13, n, n4 - n);
   }
 
+  /**
+   * Draw the bar on the right side of the screen
+   * containing the other players, their stats,
+   * powerups, and health
+   * @param {*} context
+   * @param {Boolean} forceRefresh
+   * @returns
+   */
   // user bar on the right side of the screen
   drawOtherBar(context, forceRefresh) {
     this.refreshOtherBar = false;
@@ -1738,10 +1745,11 @@ export default class Game {
   }
 
   /**
-   * draw the status bar, change the color if the game is over
+   * Draw the top user status bar,
+   * change the color if the game is over
    *
-   * this is the bar across the top o fthe screen with the player's
-   * information and the powerups the player has
+   * Bar across the top of the screen with the user's
+   * information, ship upgrades,  and the powerups
    */
   drawUserBar(context) {
     this.refreshUserBar = false;

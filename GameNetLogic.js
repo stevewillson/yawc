@@ -138,8 +138,18 @@ export default class GameNetLogic {
       }
 
       case "userInfo": {
-        // add the user now with the client user manager
-        this.clientUserManager.addUser(packetJSON.user);
+        // TODO - check if the user already exists on the client
+        // by userId, if yes then update the user's info
+        // do not add a new user
+        if (
+          this.clientUserManager.users.get(packetJSON.user.userId) != undefined
+        ) {
+          // the user already exists, update the userInfo
+          this.clientUserManager.updateUser(packetJSON.user);
+        } else {
+          // add the user now with the client user manager
+          this.clientUserManager.addUser(packetJSON.user);
+        }
         break;
       }
 

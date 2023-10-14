@@ -1,6 +1,7 @@
-// add a user to here,
-// this displays the users in the Lobby
-
+/**
+ * Display the users in the clientUserManager
+ * in the Lobby
+ */
 export default class UserListPanel {
   gamePanel;
   clientUserManager;
@@ -41,37 +42,35 @@ export default class UserListPanel {
     userListPanelTable.appendChild(tableHeaderRow);
 
     this.clientUserManager.users.forEach((user) => {
-      const el = user.toHtml();
-      userListPanelTable.appendChild(el);
+      const newRow = userListPanelDiv.insertRow(-1);
+      this.toHtml(newRow);
     });
 
     userListPanelDiv.appendChild(userListPanelTable);
     return userListPanelDiv;
   }
 
-  // the users are user objects
-  getUser(username) {
-    return this.users.get(username);
-  }
-
-  removeUser(username) {
+  // method for modifying the html
+  // used when a user logs out
+  removeUserFromList(userId) {
     this.users.delete(username);
   }
 
   // add the user to the panel
-  addUser(username, clan, rank, icons) {
-    if (this.getUser(username) != null) {
+  addUserToList(userId) {
+    const user = this.clientUserManager.users.get(userId);
+    if (user == null) {
       return;
     }
-    let newUserElement = new UserElement(this, username, clan, rank, icons);
+    // let newUserElement = new UserElement(this, username, clan, rank, icons);
 
     // make a function to add a sorted element to the panel
-    this.addSortedElement(newUserElement);
+    // this.addSortedElement(newUserElement);
 
     // TODO - check if the element is already on the userListPanel
     // also add to the DOM here
     let userListPanelTable = document.getElementById("userListPanelTable");
-    userListPanelTable.appendChild(newUserElement.toHtml());
+    userListPanelTable.appendChild(user.toHtml());
   }
 
   addSortedElement(element) {

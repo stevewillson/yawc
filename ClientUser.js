@@ -252,33 +252,32 @@ export default class ClientUser {
     }
   }
 
-  toHtml() {
+  toHtml(tableRow) {
     // TODO - add a click handler to bring up a dialog box for this user to see stats and whisper to them
 
-    // make a new table row
-    const tableRow = document.createElement("tr");
+    // set the row's id to be the userId
     tableRow.className = "userElementRow";
-    tableRow.id = `user:${this.username}`;
+    tableRow.id = this.userId;
 
-    const clanElement = document.createElement("td");
-    const usernameElement = document.createElement("td");
-    const roomIndexElement = document.createElement("td");
-    const rankElement = document.createElement("td");
+    const clanElement = tableRow.insertCell(0);
+    const usernameElement = tableRow.insertCell(1);
+    const roomIndexElement = tableRow.insertCell(2);
+    const rankElement = tableRow.insertCell(3);
+
     clanElement.innerText = this.clan;
     usernameElement.innerText = this.username;
 
+    // TODO - need to set the user's roomId on the server
     // get the room index from the user manager
-    roomIndexElement.innerText =
-      this.userPanel.gamePanel.lobbyPanel.roomPanel.roomIndex(this.roomId);
+
+    let roomIndex = this.gameNetLogic.clientRoomManager.roomIndex(this.roomId);
+    if (roomIndex != -1) {
+      roomIndexElement.innerText = roomIndex;
+    } else {
+      roomIndexElement.innerText = "-";
+    }
     // TODO - use graphic for rank rather than text
     rankElement.innerText = this.rank;
-
-    tableRow.appendChild(clanElement);
-    tableRow.appendChild(usernameElement);
-    tableRow.appendChild(roomIndexElement);
-    tableRow.appendChild(rankElement);
-
-    return tableRow;
   }
 
   static drawTeamShape(context, x, y, teamNum) {

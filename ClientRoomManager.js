@@ -39,6 +39,22 @@ export default class ClientRoomManager {
       let roomListPanelDiv = document.getElementById("roomListPanelDiv");
       roomListPanelDiv.appendChild(clientRoom.toHtml());
 
+      // go through the userlist and add the user's to the room
+      for (let i = 0; i < roomPacket.userIds.length; i++) {
+        const user = this.gameNetLogic.clientUserManager.users.get(
+          roomPacket.userIds[i]
+        );
+        if (user != undefined && user != null) {
+          this.addUserToRoom(
+            roomPacket.roomId,
+            user.userId,
+            i,
+            user.shipType,
+            user.teamId
+          );
+        }
+      }
+
       return clientRoom;
     }
   }
@@ -109,6 +125,11 @@ export default class ClientRoomManager {
       // update the room slot element
       const roomSlotElement = document.getElementById(`${roomId}-slot${slot}`);
       roomSlotElement.innerHTML = user.username;
+
+      // update the userListPanel
+      const userListElementRow = document.getElementById(userId);
+      // set the room cell to be the room index
+      userListElementRow.cells[2].innerHTML = this.roomIndex(roomId);
     }
   }
 

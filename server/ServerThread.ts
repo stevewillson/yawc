@@ -250,7 +250,7 @@ export class ServerThread {
         roomId,
         this.user.userId,
       );
-      // this.server.roomManager.addUserToRoom(roomId, this.user.userId);
+
       this.server.broadcastJoinRoom(
         room.roomId,
         this.user.userId,

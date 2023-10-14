@@ -30,10 +30,34 @@ export default class ClientUserManager {
       user.username,
       user.clan,
       user.rank,
-      user.icons,
+      user.icons
     );
 
     this.users.set(newUser.userId, newUser);
+
+    // trigger to display the user to the UserListPanel
+    // TODO - use the UserListPanel class to add the user
+    const userListPanelTable = document.getElementById("userListPanelTable");
+    const newRow = userListPanelTable.insertRow(-1);
+    newUser.toHtml(newRow);
+  }
+
+  updateUser(user) {
+    // TODO modify the existing user object and redraw
+    const curUser = this.users.get(user.userId);
+    curUser.username = user.username;
+    curUser.clan = user.clan;
+    curUser.rank = user.rank;
+    curUser.icons = user.icons;
+
+    // remove the row
+    const userListPanelRow = document.getElementById(curUser.userId);
+    userListPanelRow.remove();
+
+    // add a new row
+    const userListPanelTable = document.getElementById("userListPanelTable");
+    const newRow = userListPanelTable.insertRow(-1);
+    curUser.toHtml(newRow);
   }
 
   removeUser(userId) {
@@ -44,12 +68,21 @@ export default class ClientUserManager {
   // get username
   getUsername(userId) {
     if (userId == null) {
-      return null;
+      return "Open Slot";
     }
     let user = this.users.get(userId);
     if (user != undefined) {
       return user.username;
     }
     return "No user found";
+  }
+
+  // the users are user objects
+  getUserByUsername(username) {
+    // return this.users.get(username);
+    const retUser = this.clientUserManager.users.filter(
+      (user) => user.username == username
+    );
+    return retUser;
   }
 }
