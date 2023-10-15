@@ -1,8 +1,9 @@
-import WHUtil from "../WHUtil.js";
-import BulletSprite from "./BulletSprite.js";
 import Rectangle from "../Rectangle.js";
-import Sprite from "../sprites/Sprite.js";
 import RotationalPolygon from "../RotationalPolygon.js";
+import WHUtil from "../WHUtil.js";
+import Sprite from "../sprites/Sprite.js";
+import BulletSprite from "./BulletSprite.js";
+import PowerupSprite from "./PowerupSprite.js";
 
 export default class WallCrawlerSprite extends Sprite {
   static WC_WIDTH = 30;
@@ -36,27 +37,29 @@ export default class WallCrawlerSprite extends Sprite {
   direction;
   directionData;
   rotPolygon;
-  location;
+  x;
+  y;
   game;
   shapeRect;
 
-  constructor(location, game, b) {
-    super(location, game);
-    this.location = location;
+  constructor(x, y, game, b) {
+    super(x, y, game);
+    this.x = x;
+    this.y = y;
     this.game = game;
     this.direction = 0;
     this.rotPolygon = new RotationalPolygon(WallCrawlerSprite.drawPoints);
-    this.init("wc", location.x, location.y, false);
+    this.init("wc", x, y, false);
     this.spriteType = 1;
-    this.shapeRect = new Rectangle(location.x - 15, location.y - 30, 30, 60);
+    this.shapeRect = new Rectangle(x - 15, y - 30, 30, 60);
     this.setHealth(150, 20);
     if (b) {
       this.directionData = WallCrawlerSprite.c_directions;
     } else {
       this.directionData = WallCrawlerSprite.cc_directions;
     }
-    this.velocity.x = this.directionData[this.direction][0];
-    this.velocity.y = this.directionData[this.direction][1];
+    this.vx = this.directionData[this.direction][0];
+    this.vy = this.directionData[this.direction][1];
     this.rotPolygon.setAngle(
       this.directionData[this.direction][2] * 0.017453292519943295
     );
@@ -74,21 +77,21 @@ export default class WallCrawlerSprite extends Sprite {
     this.rotPolygon.setAngle(
       this.directionData[this.direction][2] * 0.017453292519943295
     );
-    this.move({ x: -this.velocity.x, y: -this.velocity.y });
-    this.velocity.x = this.directionData[this.direction][0];
-    this.velocity.y = this.directionData[this.direction][1];
+    this.move(-this.vx, -this.vy);
+    this.vx = this.directionData[this.direction][0];
+    this.vy = this.directionData[this.direction][1];
   }
 
   drawSelf(context) {
     context.strokeStyle =
       this.game.colors.colors[this.slot][this.spriteCycle % 20];
-    context.translate(this.location.x, this.location.y);
+    context.translate(this.x, this.y);
     this.rotPolygon.polygon.drawPolygon(context);
     context.translate(-1, -1);
 
     context.strokeStyle = this.game.colors.colors[this.slot][0];
     this.rotPolygon.polygon.drawPolygon(context);
-    context.translate(1 - this.location.x, 1 - this.location.y);
+    context.translate(1 - this.x, 1 - this.y);
     this.shapeRect = this.getShapeRect();
     // if (this.bSentByUser) {
     //   Sprite.drawFlag(
@@ -104,7 +107,7 @@ export default class WallCrawlerSprite extends Sprite {
     super.setCollided(collided);
     if (this.shouldRemoveSelf) {
       this.killSelf(30, 30);
-      //   PowerupSprite.genPowerup(super.intx, super.inty).addSelf();
+      PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
     }
   }
 
@@ -112,11 +115,12 @@ export default class WallCrawlerSprite extends Sprite {
     if (this.hasCollided) {
       this.shouldRemoveSelf = true;
     }
-    this.move(this.velocity);
+    this.move(this.vx, this.vy);
     this.spriteCycle++;
     if (this.isInDrawingRect && this.spriteCycle % 35 == 0) {
       let bulletSprite = new BulletSprite(
-        { ...this.location },
+        this.x,
+        this.y,
         3,
         10,
         this.color,

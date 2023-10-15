@@ -77,13 +77,15 @@ export default class PowerupSprite extends Sprite {
   DSHIELD_UPGRADE_VALUE = 30;
   DTHRUST_UPGRADE_VALUE = 0.1;
 
-  constructor(location, powerupType, game) {
-    super(location, game);
+  constructor(x, y, powerupType, game) {
+    super(x, y, game);
+    this.x = x;
+    this.y = y;
     this.game = game;
     this.ctype = 4;
-    this.init("pup", location.x, location.y, true);
+    this.init("pup", x, y, true);
     this.spriteType = 1;
-    this.shapeRect = new Rectangle(location.x - 17, location.y - 17, 34, 34);
+    this.shapeRect = new Rectangle(x - 17, y - 17, 34, 34);
     this.setHealth(10, 0);
     this.powerupType = powerupType;
     this.indestructible = true;
@@ -102,8 +104,8 @@ export default class PowerupSprite extends Sprite {
     // Is this a PNG issue?
     // set background color
     // draw a flashing outline around the powerup
-    // context.arc(this.location.x, this.location.y, 16, 0, 2 * Math.PI);
-    WHUtil.fillCenteredCircle(context, this.location.x, this.location.y, 18);
+    // context.arc(this.x, this.y, 16, 0, 2 * Math.PI);
+    WHUtil.fillCenteredCircle(context, this.x, this.y, 18);
 
     // TODO - set the image background color to black
     let shiftedNumber = this.powerupType - 2;
@@ -124,8 +126,8 @@ export default class PowerupSprite extends Sprite {
       1,
       imgWidth,
       imgHeight - 2,
-      this.location.x - 14,
-      this.location.y - 14,
+      this.x - 14,
+      this.y - 14,
       imgWidth,
       imgHeight - 2
     );
@@ -184,17 +186,18 @@ export default class PowerupSprite extends Sprite {
         this.givePowerupTo(user.userSprite);
         // add a string to show that the user got a powerup
         const stringSprite = new StringSprite(
-          this.location,
+          this.x,
+          this.y,
           PowerupSprite.names[this.powerupType],
           this.game
         );
         stringSprite.addSelf();
         return;
       }
-      const explosionSprite = new ExplosionSprite(this.location, this.game);
+      const explosionSprite = new ExplosionSprite(this.x, this.y, this.game);
       explosionSprite.addSelf();
 
-      const particleSprite = new ParticleSprite(this.location, this.game);
+      const particleSprite = new ParticleSprite(this.x, this.y, this.game);
       particleSprite.particleInit(20, 10);
       particleSprite.addSelf();
     }
@@ -268,7 +271,7 @@ export default class PowerupSprite extends Sprite {
         powerupType = 6 + WHUtil.randInt(powerupRandNum);
       }
     }
-    let powerupSprite = new PowerupSprite({ x: x, y: y }, powerupType, game);
+    let powerupSprite = new PowerupSprite(x, y, powerupType, game);
     powerupSprite.setVelocity(WHUtil.randInt(10), WHUtil.randInt(10));
     return powerupSprite;
   }

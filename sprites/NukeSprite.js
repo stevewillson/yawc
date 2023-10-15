@@ -20,16 +20,18 @@ export default class NukeSprite extends Sprite {
   }
 
   isCollision(sprite) {
-    let distance = WHUtil.distanceFrom(this.location, sprite.location);
+    let distance = WHUtil.distanceFrom(this.x, this.y, sprite.x, sprite.y);
     return distance <= this.radius && distance > this.radius - 50;
   }
 
-  constructor(location, slot, game) {
-    super(location, game);
+  constructor(x, y, slot, game) {
+    super(x, y, game);
+    this.x = x;
+    this.y = y;
     this.radius = 10;
     this.mode = "countdown";
-    this.init("nuke", location.x, location.y, true);
-    this.shapeRect = new Rectangle(location.x - 20, location.y - 20, 40, 40);
+    this.init("nuke", x, y, true);
+    this.shapeRect = new Rectangle(x - 20, y - 20, 40, 40);
     this.spriteType = 1;
     this.slot = slot;
     this.color = this.game.colors.colors[this.slot][0];
@@ -48,20 +50,14 @@ export default class NukeSprite extends Sprite {
           context.strokeStyle = this.color;
           context.lineWidth = 20;
           context.beginPath();
-          context.arc(
-            this.location.x,
-            this.location.y,
-            30,
-            n2,
-            n2 + Math.PI / 3
-          );
+          context.arc(this.x, this.y, 30, n2, n2 + Math.PI / 3);
           context.stroke();
         }
 
         context.lineWidth = 1;
         context.fillStyle = this.color;
         context.beginPath();
-        context.arc(this.location.x, this.location.y, 15, 0, 2 * Math.PI);
+        context.arc(this.x, this.y, 15, 0, 2 * Math.PI);
         context.fill();
 
         // context.fillStyle = "black";
@@ -74,8 +70,8 @@ export default class NukeSprite extends Sprite {
               maximumFractionDigits: 2,
               minimumFractionDigits: 2,
             })}`,
-            this.location.x,
-            this.location.y + 6
+            this.x,
+            this.y + 6
           );
         }
         break;
@@ -86,13 +82,7 @@ export default class NukeSprite extends Sprite {
           if (this.radius - n3 * 5 > 0) {
             context.lineWidth = 1;
             context.beginPath();
-            context.arc(
-              this.location.x,
-              this.location.y,
-              this.radius - n3 * 5,
-              0,
-              2 * Math.PI
-            );
+            context.arc(this.x, this.y, this.radius - n3 * 5, 0, 2 * Math.PI);
             context.stroke();
           }
         }
@@ -107,20 +97,15 @@ export default class NukeSprite extends Sprite {
       this.game.flashScreenColor = this.game.colors.colors[this.slot][0];
       this.shouldRemoveSelf = false;
       this.mode = "detonate";
-      let angle = WHUtil.findAngle(
-        collided.location.x,
-        collided.location.y,
-        this.location.x,
-        this.location.y
-      );
-      collided.velocity.x += 2 * Math.cos(angle * 0.017453292519943295);
-      collided.velocity.y += 2 * Math.sin(angle * 0.017453292519943295);
+      let angle = WHUtil.findAngle(collided.x, collided.y, this.x, this.y);
+      collided.vx += 2 * Math.cos(angle * 0.017453292519943295);
+      collided.vy += 2 * Math.sin(angle * 0.017453292519943295);
       return;
     }
     if (!this.shouldRemoveSelf) {
       this.bShotAlready = true;
-      this.velocity.x += collided.velocity.x / 4;
-      this.velocity.y += collided.velocity.y / 4;
+      this.vx += collided.vx / 4;
+      this.vy += collided.vy / 4;
       return;
     }
     this.killSelf();
@@ -131,12 +116,7 @@ export default class NukeSprite extends Sprite {
     switch (this.mode) {
       case "countdown": {
         this.countdown = 8 - (Date.now() - this.dropTime) / 1000;
-        this.shapeRect.reshape(
-          this.location.x - 60,
-          this.location.y - 60,
-          120,
-          120
-        );
+        this.shapeRect.reshape(this.x - 60, this.y - 60, 120, 120);
         if (this.countdown <= 0) {
           this.mode = "detonate";
           return;
@@ -151,7 +131,12 @@ export default class NukeSprite extends Sprite {
               if (
                 user.isPlaying() &&
                 user.portalSprite != null &&
-                WHUtil.distanceFrom(user.portalSprite, this) < 60
+                WHUtil.distanceFrom(
+                  user.portalSprite.x,
+                  user.portalSprite.y,
+                  this.x,
+                  this.y
+                ) < 60
               ) {
                 this.game.usePowerup(14, 0, user.userId, this.game.gameSession);
                 this.killSelf();
@@ -166,8 +151,8 @@ export default class NukeSprite extends Sprite {
         this.damage = Math.max(5, (40 * (1000 - this.radius)) / 1000);
         this.radius += 30;
         this.shapeRect.reshape(
-          this.location.x - this.radius - 10,
-          this.location.y - this.radius - 10,
+          this.x - this.radius - 10,
+          this.y - this.radius - 10,
           this.radius * 2 + 20,
           this.radius * 2 + 20
         );

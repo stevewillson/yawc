@@ -4,24 +4,27 @@ import Sprite from "./Sprite.js";
 export default class StringSprite extends Sprite {
   color;
   MAX_CYCLE = 100;
-  location;
+  x;
+  y;
+  string;
 
-  constructor(location, string, game) {
-    super({ x: location.x, y: location.y }, game);
-    this.location = location;
+  constructor(x, y, string, game) {
+    super(x, y, game);
+    this.x = x;
+    this.y = y;
     this.string = string;
     this.game = game;
     this.color = "white";
-    this.init(string, location.x, location.y, true);
+    this.init(string, x, y, true);
     this.spriteType = 0;
-    this.shapeRect = new Rectangle(location.x, location.y, 20, 100);
+    this.shapeRect = new Rectangle(x, y, 20, 100);
   }
 
   drawSelf(context) {
     context.fillStyle = this.color;
     context.strokeStyle = this.color;
     context.font = "12px Helvetica";
-    context.fillText(this.string, this.location.x, this.location.y);
+    context.fillText(this.string, this.x, this.y);
   }
 
   behave() {

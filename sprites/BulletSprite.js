@@ -23,24 +23,13 @@ export default class BulletSprite extends Sprite {
   offx;
   offy;
 
-  constructor(
-    location,
-    bulletDamage,
-    bulletSize,
-    internalColor,
-    spriteType,
-    game
-  ) {
-    super(location, game);
-    this.location = location;
+  constructor(x, y, bulletDamage, bulletSize, internalColor, spriteType, game) {
+    super(x, y, game);
+    this.x = x;
+    this.y = y;
     this.game = game;
-    super.init("blt", location.x, location.y, true);
-    this.shapeRect = new Rectangle(
-      location.x - 5,
-      location.y - 5,
-      bulletSize,
-      bulletSize
-    );
+    super.init("blt", x, y, true);
+    this.shapeRect = new Rectangle(x - 5, y - 5, bulletSize, bulletSize);
     this.spriteType = spriteType;
     this.internalColor = internalColor;
     this.setHealth(1, bulletDamage);
@@ -61,7 +50,7 @@ export default class BulletSprite extends Sprite {
 
   drawSelf(context) {
     context.strokeStyle = this.internalColor;
-    context.translate(this.location.x, this.location.y);
+    context.translate(this.x, this.y);
 
     if (this.bConcussive) {
       context.strokeStyle = this.internalColor;
@@ -126,20 +115,21 @@ export default class BulletSprite extends Sprite {
       context.lineTo(this.offx, this.offy);
       context.stroke();
     }
-    context.translate(-this.location.x, -this.location.y);
+    context.translate(-this.x, -this.y);
   }
 
   setCollided(collided) {
     super.setCollided(collided);
     if (this.bConcussive) {
       let angle = WHUtil.findAngle(collided.x, collided.y, this.x, this.y);
-      collided.velocity.x += 5 * Math.cos(angle * 0.017453292519943295);
-      collided.velocity.y += 5 * Math.sin(angle * 0.017453292519943295);
+      collided.vx += 5 * Math.cos(angle * 0.017453292519943295);
+      collided.vy += 5 * Math.sin(angle * 0.017453292519943295);
     }
     if (this.shouldRemoveSelf) {
       if (this.isPowerup) {
         let explosionSprite = new ExplosionSprite(
-          { x: this.location.x, y: this.location.y },
+          this.x,
+          this.y,
           this.game,
           this.game.slot
         );
@@ -147,17 +137,15 @@ export default class BulletSprite extends Sprite {
         explosionSprite.addSelf();
       } else {
         let explosionSprite2 = new ExplosionSprite(
-          { x: this.location.x, y: this.location.y },
+          this.x,
+          this.y,
           this.game,
           9
         );
         explosionSprite2.RINGS = 2;
         explosionSprite2.addSelf();
       }
-      let particleSprite = new ParticleSprite(
-        { x: this.location.x, y: this.location.y },
-        this.game
-      );
+      let particleSprite = new ParticleSprite(this.x, this.y, this.game);
       particleSprite.particleInit(8, 5);
       particleSprite.addSelf();
     }
@@ -177,10 +165,11 @@ export default class BulletSprite extends Sprite {
     }
   }
 
-  setVelocity(x, y) {
-    this.velocity = { x, y };
-    this.offx = -1 * (this.velocity.x * 8);
-    this.offy = -1 * (this.velocity.y * 8);
+  setVelocity(vx, vy) {
+    this.vx = vx;
+    this.vy = vy;
+    this.offx = -1 * (this.vx * 8);
+    this.offy = -1 * (this.vy * 8);
   }
 
   setPowerup(powerupType) {

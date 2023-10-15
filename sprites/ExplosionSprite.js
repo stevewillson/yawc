@@ -3,13 +3,15 @@ import WHUtil from "../WHUtil.js";
 import Sprite from "./Sprite.js";
 
 export default class ExplosionSprite extends Sprite {
-  constructor(location, game, colorType = 0) {
-    super(location, game);
+  constructor(x, y, game, colorType = 0) {
+    super(x, y, game);
+    this.x = x;
+    this.y = y;
     this.game = game;
     this.RINGS = 6;
-    this.init("explosion", location.x, location.y, true);
+    this.init("explosion", x, y, true);
     this.spriteType = 0;
-    this.shapeRect = new Rectangle(location.x - 50, location.y - 50, 100, 100);
+    this.shapeRect = new Rectangle(x - 50, y - 50, 100, 100);
     // TODO - explosion sound
     // GameBoard.playSound("snd_explosion");
     this.colorType = colorType;
@@ -23,12 +25,7 @@ export default class ExplosionSprite extends Sprite {
     if (n < 0) {
       n = 0;
     }
-    this.shapeRect.reshape(
-      this.location.x - n,
-      this.location.y - n,
-      n * 2,
-      n * 2
-    );
+    this.shapeRect.reshape(this.x - n, this.y - n, n * 2, n * 2);
   }
 
   drawSelf(context) {
@@ -43,7 +40,7 @@ export default class ExplosionSprite extends Sprite {
       }
 
       if (max != 19) {
-        WHUtil.drawCenteredCircle(context, this.location.x, this.location.y, n);
+        WHUtil.drawCenteredCircle(context, this.x, this.y, n);
       }
     }
   }
@@ -54,12 +51,7 @@ export default class ExplosionSprite extends Sprite {
       if (n < 0) {
         n = 0;
       }
-      this.shapeRect.reshape(
-        this.location.x - n,
-        this.location.y - n,
-        n * 2,
-        n * 2
-      );
+      this.shapeRect.reshape(this.x - n, this.y - n, n * 2, n * 2);
       super.behave();
     }
     if (this.spriteCycle > 40) {

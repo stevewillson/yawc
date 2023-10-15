@@ -20,12 +20,13 @@ export default class ParticleSprite extends Sprite {
   dy;
   spriteCycle;
 
-  constructor(location, game) {
-    super(location, game);
-    this.location = location;
+  constructor(x, y, game) {
+    super(x, y, game);
+    this.x = x;
+    this.y = y;
     this.game = game;
-    super.init("particles", location.x, location.y, true);
-    super.shapeRect = new Rectangle(location.x - 70, location.y - 70, 140, 140);
+    super.init("particles", x, y, true);
+    super.shapeRect = new Rectangle(x - 70, y - 70, 140, 140);
     super.spriteType = 0;
     this.spriteCycle = 0;
   }
@@ -53,8 +54,8 @@ export default class ParticleSprite extends Sprite {
     this.dx = new Array(particles);
     this.dy = new Array(particles);
     for (let i = 0; i < particles; i++) {
-      this.x[i] = this.location.x;
-      this.y[i] = this.location.y;
+      this.x[i] = this.x;
+      this.y[i] = this.y;
       this.dx[i] = WHUtil.randInt() % maxVelocity;
       this.dy[i] = WHUtil.randInt() % maxVelocity;
       this.state[i] = 0;

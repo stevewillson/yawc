@@ -420,14 +420,15 @@ export default class UserSprite extends Sprite {
 
   static bulletColors = ["white", "blue", "magenta", "red"];
 
-  constructor(location, shipSelect, game) {
-    super(location, game);
-    this.location = location;
+  constructor(x, y, shipSelect, game) {
+    super(x, y, game);
+    this.x = x;
+    this.y = y;
     this.game = game;
     this.user = this.game.gameNetLogic.clientUserManager.users.get(
       this.game.gameNetLogic.userId
     );
-    this.init("user", location.x, location.y, true);
+    this.init("user", x, y, true);
     this.shipSelect = shipSelect;
     this.polygon = new RotationalPolygon(UserSprite.shipShapes[shipSelect]);
     this.shapeRect = this.getShapeRect();
@@ -592,7 +593,8 @@ export default class UserSprite extends Sprite {
       }
       // create some explosion sprites and shrapnel sprites
       let explosion = new ExplosionSprite(
-        { x: this.location.x, y: this.location.y },
+        this.x,
+        this.y,
         this.game,
         this.user.slot
       );
@@ -600,8 +602,8 @@ export default class UserSprite extends Sprite {
       // new ShrapnelSprite(super.intx, super.inty, 30, Sprite.model.color, 50).addSelf();
       let n = 0;
       for (let n = 0; n < 3; n++) {
-        let n2 = this.location.x + WHUtil.randInt(10);
-        let n3 = this.location.y + WHUtil.randInt(10);
+        let n2 = this.x + WHUtil.randInt(10);
+        let n3 = this.y + WHUtil.randInt(10);
         new ExplosionSprite(
           { x: n2, y: n3 },
           this.game,
@@ -645,10 +647,8 @@ export default class UserSprite extends Sprite {
 
   fireBulletAngle(angle) {
     let bulletSprite = new BulletSprite(
-      {
-        x: Math.cos(angle) * 12 + this.location.x,
-        y: Math.sin(angle) * 12 + this.location.y,
-      },
+      Math.cos(angle) * 12 + this.x,
+      Math.sin(angle) * 12 + this.y,
       this.bulletDamage,
       this.bulletSize,
       UserSprite.bulletColors[this.bulletType],
@@ -657,8 +657,8 @@ export default class UserSprite extends Sprite {
     );
     bulletSprite.setUser(this.user.userId);
     bulletSprite.setVelocity(
-      Math.cos(angle) * 10 + this.velocity.x,
-      Math.sin(angle) * 10 + this.velocity.y
+      Math.cos(angle) * 10 + this.vx,
+      Math.sin(angle) * 10 + this.vy
     );
     bulletSprite.addSelf();
     this.lastShotCycle = this.spriteCycle + this.shotDelay;
@@ -678,8 +678,8 @@ export default class UserSprite extends Sprite {
     }
     // if (this.targetSprite != null && !this.targetSprite.shouldRemoveSelf) {
     // context.strokeStyle = this.color;
-    // WHUtil.drawTarget(paramGraphics, this.targetSprite.location.x,
-    // this.targetSprite.location.y);
+    // WHUtil.drawTarget(paramGraphics, this.targetSprite.x,
+    // this.targetSprite.y);
     // }
 
     // always draw the user at the center of the map
@@ -687,7 +687,7 @@ export default class UserSprite extends Sprite {
     //   this.game.viewportRect.width / 2,
     //   this.game.viewportRect.height / 2
     // );
-    context.translate(this.location.x, this.location.y);
+    context.translate(this.x, this.y);
     // if (this.specialType == 3) {
     //   let b = 0;
     // while (true) {
@@ -698,14 +698,14 @@ export default class UserSprite extends Sprite {
     //   paramGraphics.setColor(Color.gray);
     //   paramGraphics.drawRect(-18, 28 - b * 6, 5, 5);
     //   if (++b >= 3) {
-    //     paramGraphics.translate(-this.location.x + this.targetX,
-    //                             -this.location.y + this.targetY);
+    //     paramGraphics.translate(-this.x + this.targetX,
+    //                             -this.y + this.targetY);
     //     paramGraphics.setColor((this.heatSeekerRounds > 0) ? this.color
     //                                                          : Color.gray);
     //     paramGraphics.drawLine(0, -10, 0, 10);
     //     paramGraphics.drawLine(-10, 0, 10, 0);
-    //     paramGraphics.translate(this.location.x - this.targetX,
-    //                             this.location.y - this.targetY);
+    //     paramGraphics.translate(this.x - this.targetX,
+    //                             this.y - this.targetY);
     //     break;
     //   }
     // }
@@ -723,7 +723,7 @@ export default class UserSprite extends Sprite {
     this.polygon.rotate(-90);
 
     // console.log(
-    // `User: x: ${parseInt(this.location.x)} y: ${parseInt(this.location.y)}`
+    // `User: x: ${parseInt(this.x)} y: ${parseInt(this.y)}`
     // );
 
     // paramGraphics.drawPolygon(this.drawPoly.xpoints, this.drawPoly.ypoints,
@@ -757,9 +757,9 @@ export default class UserSprite extends Sprite {
     //     if (this.targetSprite == null) {
     //       j = (int)this.angle;
     //     } else {
-    //       j = (int)WHUtil.findAngle(this.targetSprite.location.x,
-    //                                 this.targetSprite.location.y, this.location.x,
-    //                                 this.location.y);
+    //       j = (int)WHUtil.findAngle(this.targetSprite.x,
+    //                                 this.targetSprite.y, this.x,
+    //                                 this.y);
     //     }
     //     paramGraphics.setColor(Color.black);
     //     WHUtil.fillCenteredArc(paramGraphics, this.turretLocations[b][0],
@@ -797,7 +797,7 @@ export default class UserSprite extends Sprite {
     context.fillRect(18, 38 - i, 5, i);
     context.stroke();
     this.game.drawTeamShape(context, 25, 15);
-    context.translate(-this.location.x, -this.location.y);
+    context.translate(-this.x, -this.y);
 
     // draw thrust trail
     if (this.thrustOn) {
@@ -813,14 +813,12 @@ export default class UserSprite extends Sprite {
 
   drawOneThrust(n, n2, n3, n4) {
     let thrustSprite = new ThrustSprite(
-      {
-        x: this.location.x - n3 * (Math.cos(n) * 12),
-        y: this.location.y - n3 * (Math.sin(n) * 12),
-      },
+      this.x - n3 * (Math.cos(n) * 12),
+      this.y - n3 * (Math.sin(n) * 12),
       this.game
     );
-    thrustSprite.velocity.x = -2 * this.velocity.x;
-    thrustSprite.velocity.y = -2 * this.velocity.y;
+    thrustSprite.vx = -2 * this.vx;
+    thrustSprite.vy = -2 * this.vy;
     thrustSprite.addSelf();
   }
 
@@ -855,13 +853,14 @@ export default class UserSprite extends Sprite {
 
   firePowerup() {
     if (this.user.numPowerups > 0) {
-      let x = Math.cos(this.radAngle) * 12 + this.location.x;
-      let y = Math.sin(this.radAngle) * 12 + this.location.y;
+      let x = Math.cos(this.radAngle) * 12 + this.x;
+      let y = Math.sin(this.radAngle) * 12 + this.y;
       // GameBoard.playSound("snd_fire");
       this.game.refreshUserBar = true;
       this.user.numPowerups--;
       const bulletSprite = new BulletSprite(
-        { x, y },
+        x,
+        y,
         100,
         20,
         "orange",
@@ -874,8 +873,8 @@ export default class UserSprite extends Sprite {
         bulletSprite.upgradeLevel = 2;
       }
       bulletSprite.setVelocity(
-        Math.cos(this.radAngle) * 10 + this.velocity.x,
-        Math.sin(this.radAngle) * 10 + this.velocity.y
+        Math.cos(this.radAngle) * 10 + this.vx,
+        Math.sin(this.radAngle) * 10 + this.vy
       );
       bulletSprite.addSelf();
       this.lastShotCycle = this.spriteCycle + this.shotDelay;
@@ -940,8 +939,8 @@ export default class UserSprite extends Sprite {
       }
     }
     if (this.specialType == 3) {
-      this.targetX = this.location.x + int(200 * Math.cos(this.radAngle));
-      this.targetY = this.location.y + int(200 * Math.sin(this.radAngle));
+      this.targetX = this.x + int(200 * Math.cos(this.radAngle));
+      this.targetY = this.y + int(200 * Math.sin(this.radAngle));
       if (System.currentTimeMillis() > this.nextHSRegen) {
         if (this.heatSeekerRounds < 3) this.heatSeekerRounds++;
         this.nextHSRegen = Date.now() + 20000;
@@ -1021,8 +1020,8 @@ export default class UserSprite extends Sprite {
   // this is the upper left of the viewing rectangle
   getViewportRect() {
     this.game.viewportRect = new Rectangle(
-      this.location.x - this.game.viewport.width / 2,
-      this.location.y - this.game.viewport.height / 2,
+      this.x - this.game.viewport.width / 2,
+      this.y - this.game.viewport.height / 2,
       this.game.viewport.width,
       this.game.viewport.height
     );
@@ -1032,10 +1031,7 @@ export default class UserSprite extends Sprite {
   // get a shapeRect that is centered around the current location of the object with the bounds
   getShapeRect() {
     let bounds = this.polygon.getBounds();
-    bounds.setLocation(
-      this.location.x - bounds.width / 2,
-      this.location.y - bounds.height / 2
-    );
+    bounds.setLocation(this.x - bounds.width / 2, this.y - bounds.height / 2);
     return bounds;
   }
 }

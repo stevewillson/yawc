@@ -376,7 +376,12 @@ export default class Game {
       this.gameNetLogic.userId
     );
     // move this to the joinRoom area?
-    user.userSprite = new UserSprite(this.boardCenter, this.userShipType, this);
+    user.userSprite = new UserSprite(
+      this.boardCenter.x,
+      this.boardCenter.y,
+      this.userShipType,
+      this
+    );
     // this.imgLogo = (Image)this.mediaTable.get("img_bg_logo");
     // if (this.imgLogo != null) {
     //   this.rectLogo.setBounds(
@@ -391,8 +396,8 @@ export default class Game {
     // get the slot from the user object
     user.userSprite.setUser(user.userId);
 
-    let wc1 = new WallCrawlerSprite({ x: 0, y: 0 }, this, true);
-    let wc2 = new WallCrawlerSprite({ x: 0, y: 0 }, this, false);
+    let wc1 = new WallCrawlerSprite(0, 0, this, true);
+    let wc2 = new WallCrawlerSprite(0, 0, this, false);
 
     wc1.addSelf();
     wc2.addSelf();
@@ -826,8 +831,8 @@ export default class Game {
         );
 
         if (user.isPlaying() && user.userSprite != null) {
-          let n = user.portalSprite.location.x - user.userSprite.location.x;
-          let n2 = user.portalSprite.location.y - user.userSprite.location.y;
+          let n = user.portalSprite.x - user.userSprite.x;
+          let n2 = user.portalSprite.y - user.userSprite.y;
           let hyp = Math.hypot(n, n2);
           if (hyp >= this.portalVisibility) {
             let n3 = (180 * n) / hyp;
@@ -1010,8 +1015,8 @@ export default class Game {
           !portalSprite.shouldRemoveSelf &&
           user.teamId != this.teamId
         ) {
-          let n = portalSprite.location.x - boardCenterX;
-          let n2 = portalSprite.location.y - boardCenterX2;
+          let n = portalSprite.x - boardCenterX;
+          let n2 = portalSprite.y - boardCenterX2;
           for (let n3 = this.orbitDistance / 35, j = 0; j < n3 - 1; j++) {
             let n4 = boardCenterX + (n / n3) * j;
             let n5 = boardCenterX2 + (n2 / n3) * j;
@@ -1160,7 +1165,8 @@ export default class Game {
           user.userSprite.removeSelf();
 
           user.userSprite = new UserSprite(
-            this.boardCenter,
+            this.boardCenter.x,
+            this.boardCenter.y,
             this.userShipType,
             this
           );

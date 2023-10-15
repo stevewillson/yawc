@@ -220,12 +220,8 @@ export default class WHUtil {
     );
   }
 
-  static distanceFrom(location1, location2) {
-    return Math.hypot(location1.x - location2.x, location1.y - location2.y);
-  }
-
-  distance(pt1x, pt1y, pt2x, pt2y) {
-    return Math.hypot(pt1x - pt2x, pt1y - pt2y);
+  static distanceFrom(x1, y1, x2, y2) {
+    return Math.hypot(x1 - x2, y1 - y2);
   }
 
   // get an RGB value from a named color

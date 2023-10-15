@@ -7,9 +7,11 @@ export default class InflatorSprite extends Sprite {
   maxAttackDistance = 100;
   perceivedSize;
 
-  constructor(location, game) {
-    super(location, game);
-    this.init("inf", location.x, location.y, true);
+  constructor(x, y, game) {
+    super(x, y, game);
+    this.x = x;
+    this.y = y;
+    this.init("inf", x, y, true);
     this.spriteType = 1;
     this.polygon = WHUtil.symPolygon(8, 30, 0);
     this.shapeType = 1;
@@ -23,12 +25,7 @@ export default class InflatorSprite extends Sprite {
     super.setCollided(collided);
     if (this.health < 8 || this.shouldRemoveSelf) {
       this.killSelf();
-      // TODO add a powerup when the inflator is destroyed
-      PowerupSprite.genPowerup(
-        this.location.x,
-        this.location.y,
-        this.game
-      ).addSelf();
+      PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
     }
   }
 
@@ -57,10 +54,7 @@ export default class InflatorSprite extends Sprite {
 
   getShapeRect() {
     let bounds = this.polygon.getBounds();
-    bounds.setLocation(
-      this.location.x - bounds.width / 2,
-      this.location.y - bounds.height / 2
-    );
+    bounds.setLocation(this.x - bounds.width / 2, this.y - bounds.height / 2);
     return bounds;
   }
 }
