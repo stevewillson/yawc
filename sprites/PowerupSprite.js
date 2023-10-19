@@ -7,7 +7,6 @@ import StringSprite from "./StringSprite.js";
 import ParticleSprite from "./ParticleSprite.js";
 
 export default class PowerupSprite extends Sprite {
-  //g_enemyRatios = new int[] { 0, 0, 0, 0, 0, 0, 0, 1, 0, 3, 4, 2, 1, 2, 1, 1, 1, 1, 0, 2 };
   static enemyRatios = [
     0, 0, 0, 0, 0, 0, 0, 1, 0, 3, 4, 2, 1, 2, 1, 1, 1, 1, 1, 2,
   ];
@@ -42,40 +41,9 @@ export default class PowerupSprite extends Sprite {
 
   ctype;
   powerupType;
-  PORTAL_HEAT_SEEKER = 6;
-  PORTAL_TURRET = 7;
-  PORTAL_MINES = 8;
-  PORTAL_UFO = 9;
-  PORTAL_INFLATER = 10;
-  PORTAL_MINELAYER = 11;
-  PORTAL_GUNSHIP = 12;
-  PORTAL_SCARAB = 13;
-  PORTAL_NUKE = 14;
-  PORTAL_WALLCRAWLER = 15;
-  PORTAL_SWEEP_BEAM = 16;
-  PORTAL_EMP = 17;
-  PORTAL_GHOST_PUD = 18;
-  PORTAL_ARTILLERY = 19;
-  PORTAL_LOWEST_SMALL_POWERUP = 6;
-  PORTAL_LOWEST_SENDABLE_POWERUP = 6;
-  PORTAL_HIGHEST_SENDABLE_POWERUP = 19;
-  PORTAL_HIGHEST_SENDABLE_NONSUBSCRIPTION_POWERUP = 16;
-  PORTAL_NUMBER_SENDABLE_POWERUPS = 14;
-  PORTAL_NUMBER_SENDABLE_NONSUBSCRIPTION_POWERUPS = 11;
-  GUN_UPGRADE = 0;
-  THRUST_UPGRADE = 1;
-  RETROS = 2;
-  INVULNERABILITY = 3;
-  CLEAR_SCREEN = 4;
-  EXTRA_HEALTH = 5;
-  PORTAL_LOWEST_NONSENDABLE_POWERUP = 0;
-  PORTAL_NUMBER_NONSENDABLE_POWERUP = 6;
-  g_enemyRatios;
-  g_largeConverstionTypes;
-  g_smallConverstionTypes;
-  g_names;
-  DSHIELD_UPGRADE_VALUE = 30;
-  DTHRUST_UPGRADE_VALUE = 0.1;
+  x;
+  y;
+  game;
 
   constructor(x, y, powerupType, game) {
     super(x, y, game);

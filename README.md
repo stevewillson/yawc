@@ -7,3 +7,5 @@ https://bitbucket.org/harenbergsd/wormhole-redux/commits/
 
 The client is written in Javascript and the server is a Deno server side
 application written in Typescript.
+
+Live experimental server at: https://yetanotherwormholeclone.com

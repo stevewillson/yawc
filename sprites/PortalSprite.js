@@ -1,10 +1,12 @@
-import Sprite from "./Sprite.js";
-import WHUtil from "../WHUtil.js";
 import Rectangle from "../Rectangle.js";
+import WHUtil from "../WHUtil.js";
 import InflatorSprite from "./InflatorSprite.js";
-import UFOSprite from "./UFOSprite.js";
-import PowerupSprite from "./PowerupSprite.js";
 import NukeSprite from "./NukeSprite.js";
+import PortalTurretSprite from "./PortalTurretSprite.js";
+import PowerupSprite from "./PowerupSprite.js";
+import Sprite from "./Sprite.js";
+import UFOSprite from "./UFOSprite.js";
+import GunshipSprite from "./GunshipSprite.js";
 
 export default class PortalSprite extends Sprite {
   constructor(n, user, game) {
@@ -114,21 +116,25 @@ export default class PortalSprite extends Sprite {
    * add the enemy to the sprite array
    */
   genEnemy(x, y, n3, userId, b) {
-    let enemyRatio = PowerupSprite.g_enemyRatios[n3];
+    let enemyRatio = PowerupSprite.enemyRatios[n3];
     if (n3 == 18) {
       enemyRatio += b;
     }
-    for (let b2 = 0; b2 < enemyRatio; ++b2) {
+    for (let b2 = 0; b2 < enemyRatio; b2++) {
       let spriteXLoc = x + WHUtil.randInt(70);
       let spriteYLoc = y + WHUtil.randInt(70);
       let sprite = null;
+
+      // testing for generating a portal turret sprite
+      n3 = 7;
+
       switch (n3) {
         case 9: {
-          sprite = new UFOSprite(spriteXLoc, spriteYLoc);
+          sprite = new UFOSprite(spriteXLoc, spriteYLoc, this.game);
           break;
         }
         case 10: {
-          sprite = new InflatorSprite(spriteXLoc, spriteYLoc);
+          sprite = new InflatorSprite(spriteXLoc, spriteYLoc, this.game);
           break;
         }
         case 11: {
@@ -136,7 +142,7 @@ export default class PortalSprite extends Sprite {
           break;
         }
         case 12: {
-          sprite = new GunshipSprite(spriteXLoc, spriteYLoc);
+          sprite = new GunshipSprite(spriteXLoc, spriteYLoc, this.game);
           break;
         }
         case 15: {
@@ -156,7 +162,7 @@ export default class PortalSprite extends Sprite {
           break;
         }
         case 7: {
-          sprite = new PortalTurretSprite(this);
+          sprite = new PortalTurretSprite(this, this.game);
           break;
         }
         case 17: {
@@ -183,11 +189,11 @@ export default class PortalSprite extends Sprite {
   }
 
   drawSelf(context) {
-    for (let n = 30; n < 60; n++) {
+    for (let i = 30; i < 60; i++) {
       context.strokeStyle =
-        this.game.colors.colors[this.slot][(this.spriteCycle + n) % 20];
+        this.game.colors.colors[this.slot][(this.spriteCycle + i) % 20];
       context.beginPath();
-      context.ellipse(this.x, this.y, n * 2, n, 0, 0, 2 * Math.PI);
+      context.ellipse(this.x, this.y, i * 2, i, 0, 0, 2 * Math.PI);
       context.stroke();
     }
 
@@ -291,23 +297,27 @@ export default class PortalSprite extends Sprite {
     super.behave();
     this.setOrbit();
     if (this.genEnemy) {
+      // DEBUG - generate this type of enemy
+      // new GunshipSprite(this.x, this.y, this.game).addSelf();
+      // this.genEnemy = false;
+      // return;
+      // END DEBUG
+
       switch (WHUtil.randInt(5)) {
         case 0:
         case 1: {
-          let inf = new InflatorSprite(this.x, this.y, this.game);
-          inf.addSelf();
+          new InflatorSprite(this.x, this.y, this.game).addSelf();
           break;
         }
         case 2:
         case 3: {
-          let ufo = new UFOSprite(this.x, this.y, this.game);
-          ufo.addSelf();
+          new UFOSprite(this.x, this.y, this.game).addSelf();
           break;
         }
-        //   case 4: {
-        //     // new GunshipSprite(this.x, this.y).addSelf();
-        //     break;
-        //   }
+        case 4: {
+          new GunshipSprite(this.x, this.y, this.game).addSelf();
+          break;
+        }
       }
       this.genEnemy = false;
     }
@@ -331,7 +341,7 @@ export default class PortalSprite extends Sprite {
                 this.x + WHUtil.randInt(50),
                 this.y + WHUtil.randInt(50)
               );
-              heatSeekerMissile.rotate(WHUtil.randABSInt(360));
+              heatSeekerMissile.rotate(WHUtil.randInt(360));
               heatSeekerMissile.doMaxThrust(heatSeekerMissile.maxThrust);
               heatSeekerMissile.addSelf();
               heatSeekerMissile.setUser(this.powerupUserIdQ[i]);

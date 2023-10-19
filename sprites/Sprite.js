@@ -93,7 +93,7 @@ export default class Sprite {
     this.shouldRemoveSelf = false;
 
     // need to have a secure browser context to use this method
-    this.uuid = crypto.randomUUID();
+    this.spriteId = crypto.randomUUID();
   }
 
   getShapeRect() {
@@ -181,33 +181,22 @@ export default class Sprite {
   }
 
   removeSelf() {
-    // go through the list and check for a sprite with the same uuid
-    // if found, remove it
+    // remove sprites with a matching spriteId
     this.game.allSprites = this.game.allSprites.filter(
-      (el) => el.uuid != this.uuid
+      (el) => el.spriteId != this.spriteId
     );
     switch (this.spriteType) {
       case 1:
         this.game.badGuys = this.game.badGuys.filter(
-          (el) => el.uuid != this.uuid
+          (el) => el.spriteId != this.spriteId
         );
-        return;
+        break;
       case 2:
         this.game.goodGuys = this.game.goodGuys.filter(
-          (el) => el.uuid != this.uuid
+          (el) => el.spriteId != this.spriteId
         );
-        return;
+        break;
     }
-  }
-
-  drawImage(paramGraphics) {
-    if (this.currentFrame >= this.numImages) return;
-    paramGraphics.drawImage(
-      this.images[this.currentFrame],
-      this.x - this.cachedWidth,
-      this.y - this.cachedHeight,
-      null
-    );
   }
 
   // moveTowards(paramInt1, paramInt2, paramDouble) {

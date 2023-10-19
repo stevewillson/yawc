@@ -51,7 +51,6 @@ export default class Game {
 
     this.soundOn = true;
 
-    this.userSprite = null;
     this.colors = new SpriteColors();
 
     this.novaInfo = [];
@@ -161,6 +160,9 @@ export default class Game {
     this.otherStatusContext = this.otherStatusCanvas.getContext("2d");
 
     this.context = this.canvas.getContext("2d");
+
+    this.context.globalCompositeOperation = "source-over";
+
     document.body.style.margin = 0;
     document.body.style.padding = 0;
 
@@ -210,12 +212,40 @@ export default class Game {
     this.context.fillStyle = "black";
     this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
+    // draw the game on the canvas
     this.draw(this.context);
+
+    if (this.mode == "waiting") {
+      // ship selection area
+      this.drawIntro(this.context);
+
+      const room = this.gameNetLogic.clientRoomManager.getRoomById(
+        this.gameNetLogic.roomId
+      );
+
+      if (room != null) {
+        // if the game is already playing, wait for the next game
+        if (room.status == "playing") {
+          this.drawStrings(this.context, "Waiting for", "Next Game");
+        } else if (room.status == "countdown") {
+          this.drawStrings(this.context, "Countdown", "" + room.countdown);
+          // write a message depending on how many users there are
+        } else if (room.numUsers() < 2) {
+          this.drawStrings(this.context, "Waiting for", "More Users");
+        } else {
+          this.drawStrings(this.context, "Press Play Button", "To Start");
+        }
+      }
+    }
 
     // refresh the user bar after getting a powerup
     if (this.refreshUserBar) {
       this.drawUserBar(this.userStatusContext);
-      this.sendState(this.sessionId);
+
+      // TODO - find where to send the user state outside of the draw method
+      // only send the state when it is updated
+      // don't send every time it is redrawn
+      // this.sendState(this.sessionId);
 
       this.strDamagedByUser = null;
       this.damagingPowerup = null;
@@ -226,26 +256,29 @@ export default class Game {
     }
   }
 
-  // initialize the game
-  // reset the wins slot and color
-  // do a full reset on all the users
+  /**
+   * Reset the game
+   */
   reset() {
     this.init();
     // this.wins = 0;
     // this.kills = 0;
     // super.slot = 0;
     this.color = this.colors.colors[0][0];
-    this.refreshOtherBar = true;
+    if (this.user.color != null) {
+      this.color = this.colors.colors[this.user.slot][0];
+    }
     // for (let i = 0; i < this.userStates.length; ++i) {
     // this.userStates[i].fullReset();
     // }
-    this.mode = "resetGame";
+    this.gameOver = true;
+    this.mode = "waiting";
+    // refresh the user and other bar
+    this.refreshUserBar = true;
+    this.refreshOtherBar = true;
   }
 
   init() {
-    // should we use the clientRoomManager and the clientUserManager
-    // to make sure all of the necessary people are in the room?
-
     this.prepareCanvas();
 
     // use these to track playable board size
@@ -284,7 +317,6 @@ export default class Game {
     );
 
     // set position for the welcome screen elements
-
     this.intro = { width: 410, height: 260 };
     this.introX = (this.board.width - this.intro.width) / 2;
     this.introY = this.board.height - this.intro.height - 10;
@@ -293,7 +325,6 @@ export default class Game {
 
     // https://stackoverflow.com/questions/16919601/html5-canvas-camera-viewport-how-to-actually-do-it
     // want to render the game using a centered portal
-
     this.portalVisibility = (this.board.width / 2) * 1.45;
 
     this.incomingCycle = 0;
@@ -309,7 +340,7 @@ export default class Game {
     this.flashScreenColor = "black";
 
     // get the start time (in ms)
-    this.startTime = Date.now();
+    this.startTime = window.performance.now();
 
     // reset powerups
     const room = this.gameNetLogic.clientRoomManager.getRoomById(
@@ -329,6 +360,11 @@ export default class Game {
 
     this.orbitDistance = 240;
     let n;
+
+    this.msPrev = window.performance.now();
+    this.fps = 60;
+    this.msPerFrame = 1000 / this.fps;
+    this.frames = 0;
 
     // set the orbitDistance based on the number of users
     if (this.gameNetLogic.roomId != null) {
@@ -365,13 +401,10 @@ export default class Game {
     // set user messages to an empty array
     this.userMessages = [];
 
-    this.initBorderShade();
-
     this.winningUserString = null;
 
     // create a new user that starts at the center of the board
     // with the specified ship type
-
     const user = this.gameNetLogic.clientUserManager.users.get(
       this.gameNetLogic.userId
     );
@@ -382,30 +415,37 @@ export default class Game {
       this.userShipType,
       this
     );
-    // this.imgLogo = (Image)this.mediaTable.get("img_bg_logo");
-    // if (this.imgLogo != null) {
-    //   this.rectLogo.setBounds(
-    //     this.boardCenter.x - this.imgLogo.getWidth(null) / 2,
-    //     this.boardCenter.y - this.imgLogo.getHeight(null) / 2,
-    //     this.imgLogo.getWidth(null),
-    //     this.imgLogo.getHeight(null)
-    //   );
-    // }
 
     user.userSprite.addSelf();
     // get the slot from the user object
     user.userSprite.setUser(user.userId);
 
-    let wc1 = new WallCrawlerSprite(0, 0, this, true);
-    let wc2 = new WallCrawlerSprite(0, 0, this, false);
+    this.initBorderShade(user);
 
-    wc1.addSelf();
-    wc2.addSelf();
+    new WallCrawlerSprite(0, 0, this, true).addSelf();
+    new WallCrawlerSprite(0, 0, this, false).addSelf();
+
+    // setInterval(() => {
+    //   console.log(this.frames % this.fps);
+    // }, 1000);
 
     // start gameLoop
     window.requestAnimationFrame(this.gameLoop.bind(this));
   }
 
+  /**
+   * Main Game loop
+   * checks what state the game is in (playing, waiting, gameOver)
+   * gets user input
+   * update the game
+   * - increment the cycle
+   * - do sprite behaviors
+   * - check collisions
+   * - check the sidebar
+   * render
+   * @param {number} timeStamp
+   * @returns
+   */
   gameLoop(timeStamp) {
     // check if the gameNetLogic's roomId is null
     if (this.gameNetLogic.roomId == null) {
@@ -424,112 +464,81 @@ export default class Game {
       return;
     }
 
-    // Keep requesting new frames
-    window.requestAnimationFrame(this.gameLoop.bind(this));
+    this.msPassed = timeStamp - this.msPrev;
+
+    if (this.msPassed < this.msPerFrame) {
+      // return;
+    }
+
+    this.excessTime = this.msPassed % this.msPerFrame;
+    this.msPrev = timeStamp - this.excessTime;
+
+    this.frames++;
 
     // insert silence audio clip here
     // GameBoard.playSound((AudioClip)g_mediaTable.get("snd_silence"));
 
-    // state machine
-    // playing -> gameOver
-    // gameOver -> resetGame
-    // resetGame -> waiting
-    // waiting (should go to start game?), when the "Start Game" button
-    // is pushed, the "startGame" packet is received,
-    // which sets the mode to "playing" in handleGamePacket
+    /**
+     * Game Loop state machine
+     * playing -> gameOver
+     * gameOver -> waiting
+     * waiting (should go to "playing"), when the "Start Game" button
+     * is pushed, the "startGame" packet is received,
+     * which sets the mode to "playing" in handleGamePacket
+     */
     switch (this.mode) {
       case "playing": {
+        // get user input
+        // TODO separate from update()
+
         // behavior, collisions, checkSidebar
         this.update();
-        // handles redrawing the screen
-        // could be called in the setAnimationFrame
+
+        // render the screen
         this.render();
         if (this.gameOver) {
           this.gameOverCycle = 0;
           this.mode = "gameOver";
           if (this.winningUserString == null) {
             this.sendGameOver(this.sessionId, this.killedBy);
-            return;
           }
         }
         break;
       }
 
       /**
-       * resetGame
-       * game is over
+       * Waiting for a new game to start
        */
-      case "resetGame": {
-        // case where the game is over
-        this.gameOver = true;
-        this.mode = "waiting";
-        // refresh the user and other bar
-        this.refreshUserBar = true;
+      case "waiting": {
+        // checks if there is time left on any of the powerups in a
+        // user's area
+        // checkSidebar();
         this.refreshOtherBar = true;
+        this.render();
         break;
       }
 
-      // case 2 is waiting for the game to start
-      case "waiting": {
-        // this is the timeout attacks function
-        // checkSidebar();
-
-        // draw the other bar if it should be refreshed
-
-        // TODO - add to render()
-        if (this.refreshOtherBar) {
-          this.drawOtherBar(this.otherStatusContext, true);
-        }
-
-        // TODO - add to render()
-        // draw the user bar if it should be refreshed
-        if (this.refreshUserBar) {
-          this.drawUserBar(this.userStatusContext);
-        }
-
-        // TODO - add to render()
-        this.draw(this.context);
-
-        // ship selection area
-        this.drawIntro(this.context);
-        // get the status of the game
-
-        const room = this.gameNetLogic.clientRoomManager.getRoomById(
-          this.gameNetLogic.roomId
-        );
-
-        if (room != null) {
-          // if the game is already playing, wait for the next game
-          if (room.status == "playing") {
-            // TODO - add to render()
-            this.drawStrings(this.context, "Waiting for", "Next Game");
-          } else if (room.status == "countdown") {
-            this.drawStrings(this.context, "Countdown", "" + room.countdown);
-            // write a message depending on how many users there are
-          } else if (room.numUsers() < 2) {
-            this.drawStrings(this.context, "Waiting for", "More Users");
-          } else {
-            this.drawStrings(this.context, "Press Play Button", "To Start");
-          }
-        }
-        return;
-      }
-
+      /** Game over, allow the sprites to keep moving
+       * display message that the game is over
+       */
       case "gameOver": {
+        // don't update after a gameOver
         //  // behavior, collisions, checkSidebar
         //  this.update();
 
         //  // handles redrawing the screen
         //  this.render();
 
-        // reset the game
+        // reset the game and enter the waiting state
         if (this.gameOverCycle++ > 120 || this.winningUserString != null) {
-          this.mode = "resetGame";
-          return;
+          // reset the game after 120 cycles
+          this.reset();
         }
         break;
       }
     }
+
+    window.requestAnimationFrame(this.gameLoop.bind(this));
   }
 
   playSound(paramAudioClip) {
@@ -541,6 +550,12 @@ export default class Game {
   //   this.model.readJoin(paramDataInput);
   // }
 
+  /**
+   * Does the behavior for all sprites in the sprite arrays
+   * Writes user messages
+   * Checks how long the game has gone on
+   * @returns
+   */
   doBehavior() {
     // loop through all the sprites and remove or do the behavior
     for (let i = 0; i < this.allSprites.length; i++) {
@@ -554,6 +569,7 @@ export default class Game {
       }
     }
 
+    // checks the user message queue and removes messages are past due
     if (
       this.lastCycleForMessages < this.cycle &&
       this.userMessages.length > 0
@@ -561,7 +577,8 @@ export default class Game {
       this.userMessages.shift();
     }
 
-    let gameTimeSeconds = (Date.now() - this.startTime) / 1000;
+    // sets the probability that an enemy will generate
+    const gameTimeSeconds = (window.performance.now() - this.startTime) / 1000;
     let genEnemyProb = 500;
     if (gameTimeSeconds > 240) {
       genEnemyProb = 400;
@@ -570,11 +587,16 @@ export default class Game {
     } else if (gameTimeSeconds > 80) {
       genEnemyProb = 500;
     } else if (gameTimeSeconds < 40) {
+      // don't generate enemies in the first 40 seconds of the game
+      // DEBUG - commented out for debugging
       return;
     }
 
-    // is this randomness to generate enemies from a portal?
-    if (WHUtil.randInt() % genEnemyProb == 1) {
+    // DEBUG patched for generating UFOs
+    // genEnemyProb = 360;
+
+    // as the game goes up in seconds, the probability that an enemy will spawn increases
+    if (WHUtil.randInt(genEnemyProb) == 1) {
       // we are generating enemies for all users currently playing
       // but this starts at a 'random' user and generates enemies for all users
       // now, just loop through all users to generate enemies
@@ -585,17 +607,33 @@ export default class Game {
         this.gameNetLogic.roomId
       );
 
-      for (let i = 0; i < room.userIds.length; i++) {
-        if (room.userIds[i] != null) {
-          const user = this.gameNetLogic.clientUserManager.users.get(
-            room.userIds[i]
-          );
-          if (user.isPlaying() && user.portalSprite != null) {
-            user.portalSprite.genEnemy = true;
-            return;
-          }
-        }
+      // remove this user's userId
+      let userIds = room.userIds.filter(
+        (userId) => userId != null && userId != this.gameNetLogic.userId
+      );
+
+      // get a random user
+      const user = this.gameNetLogic.clientUserManager.users.get(
+        userIds[WHUtil.randInt(userIds.length)]
+      );
+
+      // set that random user's portal to generate an enemy
+      if (user.isPlaying() && user.portalSprite != null) {
+        user.portalSprite.genEnemy = true;
       }
+
+      // generate an enemy to come out of a random user portal
+      // for (let i = 0; i < room.userIds.length; i++) {
+      //   if (room.userIds[i] != null) {
+      //     const user = this.gameNetLogic.clientUserManager.users.get(
+      //       room.userIds[i]
+      //     );
+      //     if (user.isPlaying() && user.portalSprite != null) {
+      //       user.portalSprite.genEnemy = true;
+      //       return;
+      //     }
+      //   }
+      // }
     }
   }
 
@@ -620,6 +658,11 @@ export default class Game {
     }
   }
 
+  /**
+   * For the room check all users whether there
+   * is time in the powerupTimeouts matrix
+   * if yes, then redraw the OtherBar
+   */
   checkSidebar() {
     const room = this.gameNetLogic.clientRoomManager.getRoomById(
       this.gameNetLogic.roomId
@@ -700,22 +743,11 @@ export default class Game {
       if (user.teamId != 0 && room.isTeamTable && !this.gameOver) {
         this.drawTeamStuff(context);
       }
-      // draw wormhole backgrounds?
-      // if (this.imgLogo != null && viewRect.intersects(this.rectLogo)) {
-      //   graphics.drawImage(
-      //     this.imgLogo,
-      //     this.rectLogo.x,
-      //     this.rectLogo.y,
-      //     null
-      //   );
-      // }
 
       if (this.incomingCycle > 0) {
         this.incomingCycle--;
         context.font = "40px helvetica";
 
-        // TODO - use the room object
-        // const fromSlot = this.getUserSlot(this.fromUserId);
         const fromSlot = room.getSlot(this.fromUserId);
         context.textAlign = "center";
         context.strokeStyle =
@@ -756,23 +788,30 @@ export default class Game {
         }
       }
 
-      // for (let l = 0; l < this.incomingIconIndex; l++) {
-      // draw a powerup sprite
-      //   graphics.drawImage(
-      //     getImages("img_smallpowerups")[
-      //       PowerupSprite.convertToSmallImage(this.incomingTypeStack[l])
-      //     ],
-      //     2,
-      //     l * 15 + 31,
-      //     null
-      //   );
-      //   Sprite.drawFlag(
-      //     graphics,
-      //     Sprite.g_colors[this.incomingWhoStack[l]][0],
-      //     25,
-      //     l * 15 + 31
-      //   );
-      // }
+      // draw the incoming icons
+      const img = document.getElementById("smallPowerupImages");
+      const imgWidth = 21;
+      const imgHeight = 17;
+      for (let i = 0; i < this.incomingIconIndex; i++) {
+        let shiftedNumber = this.incomingTypeStack[i] - 6;
+        let powerupNumber;
+        if (shiftedNumber <= 0) {
+          powerupNumber = 0;
+        } else {
+          powerupNumber = shiftedNumber;
+        }
+        context.drawImage(
+          img,
+          powerupNumber + powerupNumber * imgWidth + 1,
+          1,
+          imgWidth,
+          imgHeight - 2,
+          2,
+          i * 15 + 31,
+          imgWidth,
+          imgHeight - 2
+        );
+      }
       // if (this.winningUserString != null) {
       //   this.drawShadowString(graphics, "GAME OVER!", 100, 100);
       //   this.drawShadowString(
@@ -800,10 +839,10 @@ export default class Game {
     // graphics.drawRect(0, 0, this.boardWidth - 1, this.boardHeight - 1);
   }
 
-  initBorderShade() {
+  initBorderShade(user) {
     // initialize the border shade color
-    if (this.color != null) {
-      this.borderShades[0] = this.color;
+    if (user.color != null) {
+      this.borderShades[0] = user.color;
       for (let i = 0; i < this.borderShades.length - 1; i++) {
         // reimplement the Java .darker() function
         let DARKER_FACTOR = 0.251;
@@ -1787,15 +1826,9 @@ export default class Game {
       this.gameNetLogic.userId
     );
 
-    if (this.gameOver) {
-      context.fillStyle = "gray";
-      context.strokeStyle = "gray";
-    } else {
-      context.fillStyle = "black";
-      context.strokeStyle = "black";
-    }
+    context.fillStyle = this.gameOver ? "gray" : "black";
+    context.beginPath();
     context.fillRect(0, 0, 430, 49);
-    context.fillStyle = user.color;
     context.strokeStyle = user.color;
     context.strokeRect(0, 0, 429, 48);
     context.font = "12px helvetica";
@@ -1820,19 +1853,19 @@ export default class Game {
     }
     let n2 = 370;
     let n3 = n2 - 10;
-    context.fillStyle = "white";
     context.strokeStyle = "white";
     context.beginPath();
     context.moveTo(n3, 0);
     context.lineTo(n3, 90);
     context.stroke();
 
+    context.fillStyle = "white";
     context.fillText("History", n2, 12);
     context.fillText(`Wins: ${user.wins}`, n2, 28);
     context.fillText(`Kills: ${user.kills}`, n2, 42);
   }
 
   getTimeElapsed() {
-    return Date.now() - this.startTime;
+    return window.performance.now() - this.startTime;
   }
 }

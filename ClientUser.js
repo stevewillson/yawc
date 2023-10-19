@@ -211,8 +211,12 @@ export default class ClientUser {
     // CFSkin.getSkin().drawIcons(graphics, this.icons, 97, 2, 15, 3);
     context.fillText(`wins: ${this.wins}`, 85, 24);
     context.fillText(`rank: ${this.rank != null ? this.rank : "n/a"}`, 30, 24);
-    for (let b = 0; b < this.numPowerups; b++) {
-      let shiftedNumber = this.powerups[b] - 6;
+    const img = document.getElementById("smallPowerupImages");
+    const imgWidth = 21;
+    const imgHeight = 17;
+
+    for (let i = 0; i < this.numPowerups; i++) {
+      let shiftedNumber = this.powerups[i] - 6;
       let powerupNumber;
       if (shiftedNumber <= 0) {
         powerupNumber = 0;
@@ -220,17 +224,13 @@ export default class ClientUser {
         powerupNumber = shiftedNumber;
       }
 
-      let img = document.getElementById("smallPowerupImages");
-      let imgWidth = 21;
-      let imgHeight = 17;
-
       context.drawImage(
         img,
         powerupNumber + powerupNumber * imgWidth + 1,
         1,
         imgWidth,
         imgHeight - 2,
-        34 + b * 21,
+        34 + i * 21,
         29,
         imgWidth,
         imgHeight - 2
@@ -348,13 +348,22 @@ export default class ClientUser {
     );
   }
 
+  /**
+   * Get the current time
+   * Check if the attacks are all timed out
+   * to determine if the sidebar should be redrawn
+   * @returns
+   */
   timeoutAttacks() {
-    let n = Date.now();
+    let curTime = window.performance.now();
     let b = false;
     for (let i = 0; i < 6; i++) {
       this.powerupTimeouts[i] = Array(10);
       for (let j = 0; j < 10; j++) {
-        if (this.powerupTimeouts[i][j] > 0 && n > this.powerupTimeouts[i][j]) {
+        if (
+          this.powerupTimeouts[i][j] > 0 &&
+          curTime > this.powerupTimeouts[i][j]
+        ) {
           this.powerupTimeouts[i][j] = 0;
           b = true;
           this.refresh = true;

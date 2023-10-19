@@ -1,10 +1,11 @@
-import RotationalPolygon from "../RotationalPolygon.js";
-import ThrustSprite from "./ThrustSprite.js";
-import Sprite from "./Sprite.js";
-import WHUtil from "../WHUtil.js";
 import Rectangle from "../Rectangle.js";
+import RotationalPolygon from "../RotationalPolygon.js";
+import WHUtil from "../WHUtil.js";
 import BulletSprite from "./BulletSprite.js";
 import ExplosionSprite from "./ExplosionSprite.js";
+import ShrapnelSprite from "./ShrapnelSprite.js";
+import Sprite from "./Sprite.js";
+import ThrustSprite from "./ThrustSprite.js";
 
 export default class UserSprite extends Sprite {
   static shipShapes = [
@@ -576,11 +577,10 @@ export default class UserSprite extends Sprite {
     super.setCollided(collided);
     if (this.shouldRemoveSelf) {
       if (collided.color != null) {
-        // TODO - update to use userId
-        // this function is now in the ClientRoom
         this.killedBy = this.game.room.getUser(
           collided.slot,
-          this.game.gameNetLogic.userId
+          // update to use the collided userId
+          this.game.room.getUserId(collided.slot)
         );
         this.killedBySlot = collided.slot;
       }
@@ -591,25 +591,20 @@ export default class UserSprite extends Sprite {
         );
         this.game.killedBy = this.killedBySlot;
       }
-      // create some explosion sprites and shrapnel sprites
-      let explosion = new ExplosionSprite(
+      new ExplosionSprite(this.x, this.y, this.game, this.user.slot).addSelf();
+      new ShrapnelSprite(
         this.x,
         this.y,
         this.game,
-        this.user.slot
-      );
-      explosion.addSelf();
-      // new ShrapnelSprite(super.intx, super.inty, 30, Sprite.model.color, 50).addSelf();
-      let n = 0;
-      for (let n = 0; n < 3; n++) {
-        let n2 = this.x + WHUtil.randInt(10);
-        let n3 = this.y + WHUtil.randInt(10);
-        new ExplosionSprite(
-          { x: n2, y: n3 },
-          this.game,
-          this.user.slot
-        ).addSelf();
-        // new ShrapnelSprite(n2, n3, 30, Sprite.model.color, 50).addSelf();
+        30,
+        this.game.color,
+        50
+      ).addSelf();
+      for (let i = 0; i < 3; i++) {
+        let x = this.x + WHUtil.randInt(10);
+        let y = this.y + WHUtil.randInt(10);
+        new ExplosionSprite(x, y, this.game, this.user.slot).addSelf();
+        new ShrapnelSprite(x, y, this.game, 30, this.game.color, 50).addSelf();
       }
       return;
     }
@@ -625,12 +620,13 @@ export default class UserSprite extends Sprite {
         this.game.damagingPowerup = collided.powerupType;
         this.lostHealth = health - this.health;
       }
-      // new ShrapnelSprite(
-      //   super.intx,
-      //   super.inty,
-      //   10,
-      //   Sprite.model.color
-      // ).addSelf();
+      new ShrapnelSprite(
+        this.x,
+        this.y,
+        this.game,
+        10,
+        this.game.color
+      ).addSelf();
     }
   }
 
@@ -683,10 +679,6 @@ export default class UserSprite extends Sprite {
     // }
 
     // always draw the user at the center of the map
-    // context.translate(
-    //   this.game.viewportRect.width / 2,
-    //   this.game.viewportRect.height / 2
-    // );
     context.translate(this.x, this.y);
     // if (this.specialType == 3) {
     //   let b = 0;
@@ -811,10 +803,10 @@ export default class UserSprite extends Sprite {
     this.polygon.rotate(degrees);
   }
 
-  drawOneThrust(n, n2, n3, n4) {
+  drawOneThrust(angle, offset) {
     let thrustSprite = new ThrustSprite(
-      this.x - n3 * (Math.cos(n) * 12),
-      this.y - n3 * (Math.sin(n) * 12),
+      this.x - offset * (Math.cos(angle) * 12),
+      this.y - offset * (Math.sin(angle) * 12),
       this.game
     );
     thrustSprite.vx = -2 * this.vx;
@@ -825,20 +817,10 @@ export default class UserSprite extends Sprite {
   drawThrust() {
     if (this.thrustCount > 3) {
       let i = this.spriteCycle % 20;
-      this.drawOneThrust(
-        (this.angle + i) * 0.017453292519943295,
-        1 + (WHUtil.randInt() % 2),
-        3,
-        0
-      );
-      this.drawOneThrust(
-        (this.angle - i) * 0.017453292519943295,
-        1 + (WHUtil.randInt() % 2),
-        3,
-        0
-      );
+      this.drawOneThrust((this.angle + i) * 0.017453292519943295, 3);
+      this.drawOneThrust((this.angle - i) * 0.017453292519943295, 3);
     }
-    this.drawOneThrust(this.radAngle, Math.min(this.thrustCount, 5), 2, 0);
+    this.drawOneThrust(this.radAngle, 2);
   }
 
   handleThrust() {
@@ -943,7 +925,7 @@ export default class UserSprite extends Sprite {
       this.targetY = this.y + int(200 * Math.sin(this.radAngle));
       if (System.currentTimeMillis() > this.nextHSRegen) {
         if (this.heatSeekerRounds < 3) this.heatSeekerRounds++;
-        this.nextHSRegen = Date.now() + 20000;
+        this.nextHSRegen = window.performance.now() + 20000;
       }
     }
     let weaponsReady = true;

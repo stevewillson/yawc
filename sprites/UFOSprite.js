@@ -1,7 +1,12 @@
 import Sprite from "./Sprite.js";
 import Rectangle from "../Rectangle.js";
 import PowerupSprite from "./PowerupSprite.js";
+import HeatSeekerMissile from "./HeatSeekerMissile.js";
 
+/**
+ * UFO Sprite class
+ * Creates a UFO ship that flies around and shoots heat seeking missiles
+ */
 export default class UFOSprite extends Sprite {
   ufoW = 60;
   ufoH = 26;
@@ -23,6 +28,9 @@ export default class UFOSprite extends Sprite {
       this.ufoH
     );
     this.setHealth(40, 20);
+    this.currentColor = 0;
+    this.color = this.game.colors.colors[this.slot][0];
+
     this.dRotate = 30;
     this.thrust = 0.2;
     this.maxThrust = 5;
@@ -34,8 +42,11 @@ export default class UFOSprite extends Sprite {
     context.beginPath();
     context.ellipse(this.x, this.y, this.ufoW, this.ufoH, 0, 0, 2 * Math.PI);
     context.stroke();
+
     context.beginPath();
     context.strokeStyle =
+      this.game.colors.colors[this.slot][this.currentColor++ % 20];
+    context.fillStyle =
       this.game.colors.colors[this.slot][this.currentColor++ % 20];
 
     context.ellipse(
@@ -49,9 +60,9 @@ export default class UFOSprite extends Sprite {
     );
     context.fill();
     context.stroke();
+
     context.beginPath();
     context.strokeStyle = this.color;
-
     context.ellipse(
       this.x,
       this.y - this.ufoH / 2,
@@ -78,10 +89,14 @@ export default class UFOSprite extends Sprite {
     this.track();
     if (this.spriteCycle % 150 == 0) {
       for (let i = 0; i < 3; i++) {
-        // let heatSeekerMissile = new HeatSeekerMissile(this.x, this.y, this.game);
-        // heatSeekerMissile.addSelf();
-        // heatSeekerMissile.setDegreeAngle(i * 120);
-        // heatSeekerMissile.doMaxThrust(heatSeekerMissile.maxThrust);
+        let heatSeekerMissile = new HeatSeekerMissile(
+          this.x,
+          this.y,
+          this.game
+        );
+        heatSeekerMissile.addSelf();
+        heatSeekerMissile.setDegreeAngle(i * 120);
+        heatSeekerMissile.doMaxThrust(heatSeekerMissile.maxThrust);
       }
     }
   }

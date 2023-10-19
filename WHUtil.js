@@ -88,6 +88,10 @@ export default class WHUtil {
     return Math.atan2(y1 - y2, x1 - x2) * 57.29577951308232;
   }
 
+  static findAngleRad(x1, y1, x2, y2) {
+    return Math.atan2(y1 - y2, x1 - x2);
+  }
+
   static drawBoundCircle(context, x, y, radius, color, color2) {
     context.beginPath();
     context.fillStyle = color2;

@@ -15,7 +15,7 @@ export default class NukeSprite extends Sprite {
 
   addSelf() {
     super.addSelf();
-    this.dropTime = Date.now();
+    this.dropTime = window.performance.now();
     this.game.flashScreenColor = this.game.colors.colors[this.slot][0];
   }
 
@@ -115,7 +115,7 @@ export default class NukeSprite extends Sprite {
     super.behave();
     switch (this.mode) {
       case "countdown": {
-        this.countdown = 8 - (Date.now() - this.dropTime) / 1000;
+        this.countdown = 8 - (window.performance.now() - this.dropTime) / 1000;
         this.shapeRect.reshape(this.x - 60, this.y - 60, 120, 120);
         if (this.countdown <= 0) {
           this.mode = "detonate";

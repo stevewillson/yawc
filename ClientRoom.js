@@ -206,12 +206,17 @@ export default class ClientRoom {
     return this.userIds[slot];
   }
 
-  getUser(slot, userId) {
+  getUser(slot, userId = null) {
     if (slot > this.userIds.length) {
       return "COMPUTER";
     }
 
-    if (slot == this.getSlot(userId)) {
+    // if the userId is not specified, get the userId by the slot provided
+    if (userId == null) {
+      userId = this.getUserId(slot);
+    }
+
+    if (this.slot == this.getSlot(userId)) {
       return "YOU";
     }
     return this.clientUserManager.users.get(userId).username;
