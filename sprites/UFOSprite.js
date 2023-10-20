@@ -1,13 +1,13 @@
-import Sprite from "./Sprite.js";
-import Rectangle from "../Rectangle.js";
-import PowerupSprite from "./PowerupSprite.js";
-import HeatSeekerMissile from "./HeatSeekerMissile.js";
+import { Rectangle } from "../Rectangle.js";
+import { HeatSeekerMissile } from "./HeatSeekerMissile.js";
+import { PowerupSprite } from "./PowerupSprite.js";
+import { Sprite } from "./Sprite.js";
 
 /**
  * UFO Sprite class
  * Creates a UFO ship that flies around and shoots heat seeking missiles
  */
-export default class UFOSprite extends Sprite {
+export class UFOSprite extends Sprite {
   ufoW = 60;
   ufoH = 26;
   ufoW2 = 30;

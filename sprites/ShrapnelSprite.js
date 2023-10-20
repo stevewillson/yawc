@@ -1,8 +1,8 @@
-import Sprite from "./Sprite.js";
-import Rectangle from "../Rectangle.js";
-import WHUtil from "../WHUtil.js";
+import { Rectangle } from "../Rectangle.js";
+import { WHUtil } from "../WHUtil.js";
+import { Sprite } from "./Sprite.js";
 
-export default class ShrapnelSprite extends Sprite {
+export class ShrapnelSprite extends Sprite {
   shrapnel;
   xArr;
   yArr;

@@ -1,20 +1,20 @@
-import ClientRoomManager from "./ClientRoomManager.js";
-import ClientUser from "./ClientUser.js";
-import Polygon from "./Polygon.js";
-import Rectangle from "./Rectangle.js";
-import SpriteColors from "./SpriteColors.js";
-import WHUtil from "./WHUtil.js";
-import PortalSprite from "./sprites/PortalSprite.js";
-import PowerupSprite from "./sprites/PowerupSprite.js";
-import UserSprite from "./sprites/UserSprite.js";
-import WallCrawlerSprite from "./sprites/WallCrawlerSprite.js";
+import { ClientRoomManager } from "./ClientRoomManager.js";
+import { ClientUser } from "./ClientUser.js";
+import { Polygon } from "./Polygon.js";
+import { Rectangle } from "./Rectangle.js";
+import { SpriteColors } from "./SpriteColors.js";
+import { WHUtil } from "./WHUtil.js";
+import { PortalSprite } from "./sprites/PortalSprite.js";
+import { PowerupSprite } from "./sprites/PowerupSprite.js";
+import { UserSprite } from "./sprites/UserSprite.js";
+import { WallCrawlerSprite } from "./sprites/WallCrawlerSprite.js";
 
 /**
  * Game Class
  * @description implements a Game (Wormhole) that contains a board
  * world is the total renderable canvas, use this size for generating the stars
  */
-export default class Game {
+export class Game {
   canvas;
   context;
 
@@ -839,13 +839,18 @@ export default class Game {
     // graphics.drawRect(0, 0, this.boardWidth - 1, this.boardHeight - 1);
   }
 
+  /**
+   * Initialize the border shade
+   *
+   * @param {Object<ClientUser>} user
+   */
   initBorderShade(user) {
     // initialize the border shade color
     if (user.color != null) {
+      // reimplement the Java .darker() function
+      const DARKER_FACTOR = 0.251;
       this.borderShades[0] = user.color;
       for (let i = 0; i < this.borderShades.length - 1; i++) {
-        // reimplement the Java .darker() function
-        let DARKER_FACTOR = 0.251;
         // get the rgb values of the color
         let curColorRGB = WHUtil.nameToRGB(this.borderShades[i]);
         // get the 3 RGB values
@@ -943,11 +948,16 @@ export default class Game {
     }
   }
 
-  drawStars(context, color, loc) {
+  drawStars(context, color, starLocations) {
     // set the color of the stars
     context.fillStyle = color;
-    for (let i = 0; i < loc.length; i++) {
-      context.fillRect(loc[i].x, loc[i].y, this.starSize[i], this.starSize[i]);
+    for (let i = 0; i < starLocations.length; i++) {
+      context.fillRect(
+        starLocations[i][0],
+        starLocations[i][1],
+        this.starSize[i],
+        this.starSize[i]
+      );
     }
   }
 
@@ -964,10 +974,10 @@ export default class Game {
     // let n4 = this.boardCenter.y - 40;
 
     for (let i = 0; i < this.numStars; i++) {
-      this.star.push({
-        x: WHUtil.randInt() % this.world.width,
-        y: WHUtil.randInt() % this.world.height,
-      });
+      this.star.push([
+        WHUtil.randInt(this.world.width),
+        WHUtil.randInt(this.world.height),
+      ]);
 
       // if (i < 35) {
       //   // require that these stars are n3 < STARX < n3+80
@@ -980,12 +990,12 @@ export default class Game {
       //     y: starY,
       //   });
       // }
-      this.narrowStar.push({
-        x: WHUtil.randInt() % this.world.width,
-        y: WHUtil.randInt() % this.world.height,
-      });
+      this.narrowStar.push([
+        WHUtil.randInt(this.world.width),
+        WHUtil.randInt(this.world.height),
+      ]);
 
-      this.starSize.push((WHUtil.randInt() % 2) + 1);
+      this.starSize.push(WHUtil.randInt(2) + 1);
     }
   }
 

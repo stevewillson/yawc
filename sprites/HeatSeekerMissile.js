@@ -1,7 +1,7 @@
-import Rectangle from "../Rectangle.js";
-import RotationalPolygon from "../RotationalPolygon.js";
-import Sprite from "./Sprite.js";
-export default class HeatSeekerMissile extends Sprite {
+import { Rectangle } from "../Rectangle.js";
+import { RotationalPolygon } from "../RotationalPolygon.js";
+import { Sprite } from "./Sprite.js";
+export class HeatSeekerMissile extends Sprite {
   points;
   polygon;
   trackingSprite;

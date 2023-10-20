@@ -1,13 +1,13 @@
-import Rectangle from "../Rectangle.js";
-import RotationalPolygon from "../RotationalPolygon.js";
-import WHUtil from "../WHUtil.js";
-import BulletSprite from "./BulletSprite.js";
-import ExplosionSprite from "./ExplosionSprite.js";
-import ShrapnelSprite from "./ShrapnelSprite.js";
-import Sprite from "./Sprite.js";
-import ThrustSprite from "./ThrustSprite.js";
+import { Rectangle } from "../Rectangle.js";
+import { RotationalPolygon } from "../RotationalPolygon.js";
+import { WHUtil } from "../WHUtil.js";
+import { BulletSprite } from "./BulletSprite.js";
+import { ExplosionSprite } from "./ExplosionSprite.js";
+import { ShrapnelSprite } from "./ShrapnelSprite.js";
+import { Sprite } from "./Sprite.js";
+import { ThrustSprite } from "./ThrustSprite.js";
 
-export default class UserSprite extends Sprite {
+export class UserSprite extends Sprite {
   static shipShapes = [
     // tank ship coordinates
     [

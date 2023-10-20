@@ -1,4 +1,4 @@
-export default class LoginPanel {
+export class LoginPanel {
   connectionStatusMsg;
   pnlGame;
   tfUsername;

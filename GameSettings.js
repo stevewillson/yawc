@@ -1,4 +1,4 @@
-export default class GameSettings {
+export class GameSettings {
   static port = 443;
   static host = "yetanotherwormholeclone.com";
   static socketType = "wss";

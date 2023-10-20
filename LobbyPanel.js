@@ -1,9 +1,9 @@
-// import RoomListPanel from "./RoomListPanel.js";
-import UserListPanel from "./UserListPanel.js";
-import ChatPanel from "./ChatPanel.js";
-import RoomListPanel from "./RoomListPanel.js";
+// import { RoomListPanel from "./RoomListPanel.js";
+import { ChatPanel } from "./ChatPanel.js";
+import { RoomListPanel } from "./RoomListPanel.js";
+import { UserListPanel } from "./UserListPanel.js";
 
-export default class LobbyPanel {
+export class LobbyPanel {
   roomListPanel;
   userListPanel;
   chatPanel;

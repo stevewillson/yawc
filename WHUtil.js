@@ -1,6 +1,6 @@
-import Polygon from "./Polygon.js";
+import { Polygon } from "./Polygon.js";
 
-export default class WHUtil {
+export class WHUtil {
   static DTOR = 0.017453292519943295;
   static RTOD = 57.29577951308232;
   static DIST = 60;

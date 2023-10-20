@@ -1,8 +1,8 @@
-import ClientUserManager from "./ClientUserManager.js";
-import ClientRoomManager from "./ClientRoomManager.js";
-import Network from "./Network.js";
+import { ClientRoomManager } from "./ClientRoomManager.js";
+import { ClientUserManager } from "./ClientUserManager.js";
+import { Network } from "./Network.js";
 
-export default class GameNetLogic {
+export class GameNetLogic {
   userId;
   roomId;
 

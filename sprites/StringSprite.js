@@ -1,7 +1,7 @@
-import Rectangle from "../Rectangle.js";
-import Sprite from "./Sprite.js";
+import { Rectangle } from "../Rectangle.js";
+import { Sprite } from "./Sprite.js";
 
-export default class StringSprite extends Sprite {
+export class StringSprite extends Sprite {
   color;
   MAX_CYCLE = 100;
   x;

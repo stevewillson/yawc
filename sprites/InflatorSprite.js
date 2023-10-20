@@ -1,8 +1,8 @@
-import WHUtil from "../WHUtil.js";
-import Sprite from "./Sprite.js";
-import PowerupSprite from "./PowerupSprite.js";
+import { WHUtil } from "../WHUtil.js";
+import { PowerupSprite } from "./PowerupSprite.js";
+import { Sprite } from "./Sprite.js";
 
-export default class InflatorSprite extends Sprite {
+export class InflatorSprite extends Sprite {
   inflationSize;
   maxAttackDistance = 100;
   perceivedSize;

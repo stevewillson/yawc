@@ -1,7 +1,8 @@
-import Rectangle from "../Rectangle.js";
-import WHUtil from "../WHUtil.js";
-import Sprite from "./Sprite.js";
-export default class NukeSprite extends Sprite {
+import { Rectangle } from "../Rectangle.js";
+import { WHUtil } from "../WHUtil.js";
+import { Sprite } from "./Sprite.js";
+
+export class NukeSprite extends Sprite {
   static D_RADIUS = 30;
   static MAX_RADIUS = 1000;
   static NUKE_SIZE = 40;

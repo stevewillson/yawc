@@ -1,10 +1,10 @@
-import GameNetLogic from "./GameNetLogic.js";
-import LoginPanel from "./LoginPanel.js";
-import LobbyPanel from "./LobbyPanel.js";
-import RoomPanel from "./RoomPanel.js";
+import { GameNetLogic } from "./GameNetLogic.js";
+import { LobbyPanel } from "./LobbyPanel.js";
+import { LoginPanel } from "./LoginPanel.js";
+import { RoomPanel } from "./RoomPanel.js";
 
 // GamePanel is a wrapper for the different displays
-export default class GamePanel {
+export class GamePanel {
   lobbyPanel;
   loginPanel;
   roomPanel;

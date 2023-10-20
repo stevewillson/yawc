@@ -1,4 +1,4 @@
-export default class SpriteColors {
+export class SpriteColors {
   colors;
   types = [
     [0.1667, 1],

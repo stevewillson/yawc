@@ -2,7 +2,7 @@
  * Display the users in the clientUserManager
  * in the Lobby
  */
-export default class UserListPanel {
+export class UserListPanel {
   gamePanel;
   clientUserManager;
 

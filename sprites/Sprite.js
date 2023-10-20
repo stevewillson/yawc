@@ -1,21 +1,13 @@
-import Rectangle from "../Rectangle.js";
-import WHUtil from "../WHUtil.js";
-// import ExplosionSprite from "./ExplosionSprite.js";
-import Polygon from "../Polygon.js";
+import { Rectangle } from "../Rectangle.js";
+import { WHUtil } from "../WHUtil.js";
+import { Polygon } from "../Polygon.js";
 
-export default class Sprite {
+export class Sprite {
   static REBOUND_COEFF = -0.5;
-  colors;
-  x;
-  y;
-  vx;
-  vy;
 
   polygon;
-  slot;
   name;
   type;
-  uuid;
   shapeRect;
 
   bZappable;
@@ -42,20 +34,26 @@ export default class Sprite {
   images;
 
   constructor(x, y, game) {
-    // used to track the location of the sprite
+    /** @type {number} horizontal location */
     this.x = x;
+    /** @type {number} vertical location */
     this.y = y;
+
+    /** @type {Object<Game>} instance of the game */
     this.game = game;
 
-    // used as the default slot if no user is set
-    //
+    /** @type {number} slot for the sprite, defaults to 8 */
     this.slot = 8;
 
-    // handle rotation
+    /** @type {number} rotation degrees */
     this.dRotate = 0;
+    /** @type {Boolean} is the sprite rotating */
     this.isRotating = false;
 
+    /** @type {number} number of cycles the sprite has existed */
     this.spriteCycle = 0;
+
+    /** @type {Boolean} is the sprite bounded */
     this.bounded = false;
 
     // set up the shape rect for the sprite, use the x,y coordinates and then offset by the bounding box of the polygon
@@ -67,6 +65,7 @@ export default class Sprite {
     //   game.world.height
     // );
 
+    /** @type {number} shape type, used for collisions */
     this.shapeType = 0;
     this.dVector = [];
 
@@ -93,6 +92,7 @@ export default class Sprite {
     this.shouldRemoveSelf = false;
 
     // need to have a secure browser context to use this method
+
     this.spriteId = crypto.randomUUID();
   }
 
@@ -216,9 +216,10 @@ export default class Sprite {
     this.vx *= decelAmount;
     this.vy *= decelAmount;
   }
-
   /**
-   * move the sprite around the map
+   * Change the sprite's location by the current velocity
+   * @param {number} vx - x velocity
+   * @param {number} vy - y velocity
    */
   move(vx, vy) {
     this.setLocation(this.x + vx, this.y + vy);
@@ -240,6 +241,13 @@ export default class Sprite {
     }
   }
 
+  /**
+   * execute the default behavior for the sprite
+   * move the sprite according to its current velocity
+   * advance the sprite cycle
+   * if it has collided or it's not bounded and it's not in the global bounds
+   * then set that the sprite should remove itself
+   */
   behave() {
     this.move(this.vx, this.vy);
     this.spriteCycle++;
@@ -251,6 +259,10 @@ export default class Sprite {
     }
   }
 
+  /**
+   * Set the user's color by the slot that the user is in
+   * @param {uuid} userId
+   */
   setUser(userId) {
     const user = this.game.gameNetLogic.clientUserManager.users.get(userId);
     this.slot = user.slot;

@@ -1,6 +1,6 @@
-import GameSettings from "./GameSettings.js";
+import { GameSettings } from "./GameSettings.js";
 
-export default class Network {
+export class Network {
   static LOGIN_TYPE_REGISTERED = 0;
   socket;
   staticbConnected;
@@ -14,7 +14,7 @@ export default class Network {
   login(gameId, majorVersion, minorVersion, username, password) {
     // start a new websocket
     this.socket = new WebSocket(
-      `${GameSettings.socketType}://${GameSettings.host}:${GameSettings.port}/${GameSettings.endpoint}/`,
+      `${GameSettings.socketType}://${GameSettings.host}:${GameSettings.port}/${GameSettings.endpoint}/`
     );
 
     this.socket.onerror = (e) => {
@@ -81,7 +81,7 @@ export default class Network {
     boardSize = 3,
     isBalancedRoom = false,
     allShips = true,
-    allPowerups = true,
+    allPowerups = true
   ) {
     console.log(`Sending a packet to create a new room`);
     const packet = {

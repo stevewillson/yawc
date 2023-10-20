@@ -1,10 +1,10 @@
-import Sprite from "./Sprite.js";
-import Rectangle from "../Rectangle.js";
-import ExplosionSprite from "./ExplosionSprite.js";
-import ParticleSprite from "./ParticleSprite.js";
-import WHUtil from "../WHUtil.js";
+import { Rectangle } from "../Rectangle.js";
+import { WHUtil } from "../WHUtil.js";
+import { ExplosionSprite } from "./ExplosionSprite.js";
+import { ParticleSprite } from "./ParticleSprite.js";
+import { Sprite } from "./Sprite.js";
 
-export default class BulletSprite extends Sprite {
+export class BulletSprite extends Sprite {
   // tracked in Game now
   // nBullets;
   static BULLETSIZE = 10;

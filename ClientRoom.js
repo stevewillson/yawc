@@ -1,4 +1,4 @@
-export default class ClientRoom {
+export class ClientRoom {
   clientRoomManager;
   clientUserManager;
 

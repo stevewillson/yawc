@@ -1,12 +1,11 @@
-import SpriteColors from "../SpriteColors.js";
-import Sprite from "./Sprite.js";
-import WHUtil from "../WHUtil.js";
-import Rectangle from "../Rectangle.js";
-import ExplosionSprite from "./ExplosionSprite.js";
-import StringSprite from "./StringSprite.js";
-import ParticleSprite from "./ParticleSprite.js";
+import { Rectangle } from "../Rectangle.js";
+import { WHUtil } from "../WHUtil.js";
+import { ExplosionSprite } from "./ExplosionSprite.js";
+import { ParticleSprite } from "./ParticleSprite.js";
+import { Sprite } from "./Sprite.js";
+import { StringSprite } from "./StringSprite.js";
 
-export default class PowerupSprite extends Sprite {
+export class PowerupSprite extends Sprite {
   static enemyRatios = [
     0, 0, 0, 0, 0, 0, 0, 1, 0, 3, 4, 2, 1, 2, 1, 1, 1, 1, 1, 2,
   ];

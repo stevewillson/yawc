@@ -1,6 +1,6 @@
 // client side user manager
 
-import ClientUser from "./ClientUser.js";
+import { ClientUser } from "./ClientUser.js";
 
 // accepts network packets that tell about the users connected
 
@@ -14,7 +14,7 @@ import ClientUser from "./ClientUser.js";
 // maintains a collection of users, currently, the user panel does this.
 // I want the user panel to query the user manager,
 // this is something created by the gameNetLogic on login
-export default class ClientUserManager {
+export class ClientUserManager {
   gameNetLogic;
   users;
 

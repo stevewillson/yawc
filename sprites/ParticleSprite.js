@@ -1,8 +1,8 @@
-import Sprite from "./Sprite.js";
-import Rectangle from "../Rectangle.js";
-import WHUtil from "../WHUtil.js";
+import { Rectangle } from "../Rectangle.js";
+import { WHUtil } from "../WHUtil.js";
+import { Sprite } from "./Sprite.js";
 
-export default class ParticleSprite extends Sprite {
+export class ParticleSprite extends Sprite {
   static GSTATES = 12;
   static MAX_CYCLE = 40;
   static PARTICLES = 20;

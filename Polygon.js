@@ -1,6 +1,6 @@
-import Rectangle from "./Rectangle.js";
+import { Rectangle } from "./Rectangle.js";
 
-export default class Polygon {
+export class Polygon {
   constructor(xpoints = [], ypoints = [], npoints = 0) {
     this.xpoints = xpoints;
     this.ypoints = ypoints;
@@ -18,7 +18,7 @@ export default class Polygon {
       Math.min(...this.xpoints),
       Math.min(...this.ypoints),
       Math.max(...this.xpoints) - Math.min(...this.xpoints),
-      Math.max(...this.ypoints) - Math.min(...this.ypoints),
+      Math.max(...this.ypoints) - Math.min(...this.ypoints)
     );
   }
 

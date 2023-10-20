@@ -1,11 +1,11 @@
-import Rectangle from "../Rectangle.js";
-import RotationalPolygon from "../RotationalPolygon.js";
-import WHUtil from "../WHUtil.js";
-import Sprite from "../sprites/Sprite.js";
-import BulletSprite from "./BulletSprite.js";
-import PowerupSprite from "./PowerupSprite.js";
+import { Rectangle } from "../Rectangle.js";
+import { RotationalPolygon } from "../RotationalPolygon.js";
+import { WHUtil } from "../WHUtil.js";
+import { Sprite } from "../sprites/Sprite.js";
+import { BulletSprite } from "./BulletSprite.js";
+import { PowerupSprite } from "./PowerupSprite.js";
 
-export default class WallCrawlerSprite extends Sprite {
+export class WallCrawlerSprite extends Sprite {
   static WC_WIDTH = 30;
   static WC_HEIGHT = 60;
   static drawPoints = [

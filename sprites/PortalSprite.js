@@ -1,14 +1,14 @@
-import Rectangle from "../Rectangle.js";
-import WHUtil from "../WHUtil.js";
-import InflatorSprite from "./InflatorSprite.js";
-import NukeSprite from "./NukeSprite.js";
-import PortalTurretSprite from "./PortalTurretSprite.js";
-import PowerupSprite from "./PowerupSprite.js";
-import Sprite from "./Sprite.js";
-import UFOSprite from "./UFOSprite.js";
-import GunshipSprite from "./GunshipSprite.js";
+import { Rectangle } from "../Rectangle.js";
+import { WHUtil } from "../WHUtil.js";
+import { GunshipSprite } from "./GunshipSprite.js";
+import { InflatorSprite } from "./InflatorSprite.js";
+import { NukeSprite } from "./NukeSprite.js";
+import { PortalTurretSprite } from "./PortalTurretSprite.js";
+import { PowerupSprite } from "./PowerupSprite.js";
+import { Sprite } from "./Sprite.js";
+import { UFOSprite } from "./UFOSprite.js";
 
-export default class PortalSprite extends Sprite {
+export class PortalSprite extends Sprite {
   constructor(n, user, game) {
     // start portalsprite at location
     // 0,0

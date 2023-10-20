@@ -1,8 +1,8 @@
-import Sprite from "./Sprite.js";
-import WHUtil from "../WHUtil.js";
-import BulletSprite from "./BulletSprite.js";
+import { WHUtil } from "../WHUtil.js";
+import { BulletSprite } from "./BulletSprite.js";
+import { Sprite } from "./Sprite.js";
 
-export default class PortalTurretSprite extends Sprite {
+export class PortalTurretSprite extends Sprite {
   g_points;
   g_turretPoints;
   rPoly;

@@ -1,6 +1,6 @@
-import ClientRoom from "./ClientRoom.js";
+import { ClientRoom } from "./ClientRoom.js";
 
-export default class ClientRoomManager {
+export class ClientRoomManager {
   gameNetLogic;
   rooms;
 

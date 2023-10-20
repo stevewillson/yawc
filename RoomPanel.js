@@ -1,7 +1,7 @@
-import Game from "./Game.js";
+import { Game } from "./Game.js";
 
 // called PlayingPanel.java for wormhole
-export default class RoomPanel {
+export class RoomPanel {
   userStatusCanvas;
   otherUserStatusCanvas;
   gameCanvas;
@@ -99,7 +99,7 @@ export default class RoomPanel {
 
     // need to get the room id for the current user?
     const user = this.gamePanel.gameNetLogic.clientUserManager.users.get(
-      this.gamePanel.gameNetLogic.userId,
+      this.gamePanel.gameNetLogic.userId
     );
 
     startGameButton.onclick = () =>

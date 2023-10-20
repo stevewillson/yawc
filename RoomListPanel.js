@@ -1,4 +1,4 @@
-export default class RoomListPanel {
+export class RoomListPanel {
   gamePanel;
   clientRoomManager;
 

@@ -1,10 +1,10 @@
-import RotationalPolygon from "../RotationalPolygon.js";
-import WHUtil from "../WHUtil.js";
-import PowerupSprite from "./PowerupSprite.js";
-import Sprite from "./Sprite.js";
-import BulletSprite from "./BulletSprite.js";
+import { RotationalPolygon } from "../RotationalPolygon.js";
+import { WHUtil } from "../WHUtil.js";
+import { BulletSprite } from "./BulletSprite.js";
+import { PowerupSprite } from "./PowerupSprite.js";
+import { Sprite } from "./Sprite.js";
 
-export default class GunshipSprite extends Sprite {
+export class GunshipSprite extends Sprite {
   rPoly;
   rTurretPoly;
   bRightSeeker;
@@ -169,9 +169,9 @@ export default class GunshipSprite extends Sprite {
     super.setCollided(collided);
     if (this.shouldRemoveSelf) {
       this.killSelf(20, 10);
-      PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
-      PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
-      PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
+      new PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
+      new PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
+      new PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
     }
   }
 

@@ -1,6 +1,6 @@
-import Polygon from "./Polygon.js";
+import { Polygon } from "./Polygon.js";
 
-export default class RotationalPolygon {
+export class RotationalPolygon {
   xpoints;
   ypoints;
   npoints;

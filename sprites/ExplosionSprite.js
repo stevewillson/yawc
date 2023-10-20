@@ -1,8 +1,8 @@
-import Rectangle from "../Rectangle.js";
-import WHUtil from "../WHUtil.js";
-import Sprite from "./Sprite.js";
+import { Rectangle } from "../Rectangle.js";
+import { WHUtil } from "../WHUtil.js";
+import { Sprite } from "./Sprite.js";
 
-export default class ExplosionSprite extends Sprite {
+export class ExplosionSprite extends Sprite {
   constructor(x, y, game, colorType = 0) {
     super(x, y, game);
     this.x = x;

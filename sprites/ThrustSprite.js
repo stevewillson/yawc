@@ -1,8 +1,8 @@
-import Rectangle from "../Rectangle.js";
-import Sprite from "./Sprite.js";
-import WHUtil from "../WHUtil.js";
+import { Rectangle } from "../Rectangle.js";
+import { WHUtil } from "../WHUtil.js";
+import { Sprite } from "./Sprite.js";
 
-export default class ThrustSprite extends Sprite {
+export class ThrustSprite extends Sprite {
   x;
   y;
   radius;
