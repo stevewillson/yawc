@@ -28,9 +28,10 @@ export class ServerThread {
 
   handleGameEnd(roomId) {
     const room = this.server.roomManager.rooms.get(roomId);
-    room.increaseWinCounts();
+    this.server.roomManager.increaseWinCounts(roomId);
     room.status = "gameOver";
     this.server.broadcastGameEnd(roomId);
+    // send a message that the room's status is now "gameOver"
     this.server.broadcastRoomStatusChange(roomId, room.status, -1);
     this.server.roomManager.endGameTransition(roomId);
   }
@@ -86,7 +87,6 @@ export class ServerThread {
   // receive a user state packet from a client
   receiveUserState(packet) {
     let userId = packet.userId;
-    // let sessionId = packet.sessionId;
     let healthPercent = packet.healthPercent;
     // let numPowerups = packet.numPowerups;
     let powerups = [];
@@ -106,7 +106,6 @@ export class ServerThread {
     this.server.broadcastUserState(
       this.user.roomId,
       this.user.userId,
-      // sessionId,
       this.user.slot,
       healthPercent,
       powerups,
@@ -114,16 +113,31 @@ export class ServerThread {
     );
   }
 
-  receiveUserDeath(packet) {
-    let sessionId = packet.sessionId;
+  receiveUserDestroyed(packet) {
     let killedBy = packet.killedBy;
 
     const room = this.server.roomManager.rooms.get(this.user.roomId);
 
     // user the room ID here
-    this.server.broadcastGameOver(room, sessionId, this.user.slot, killedBy);
-
+    this.server.broadcastUserDestroyed(
+      room.roomId,
+      this.user.userId,
+      killedBy,
+    );
     this.user.isAlive = false;
+
+    // check if there are other users that are alive in the room
+    if (this.server.roomManager.numUsersAlive(room.roomId) === 1) {
+      // only one user left, the game is over
+      // TODO - also check in a team game if the team only has users left
+      room.gameOver = true;
+    }
+
+    // check if the game should continue
+    // get the number of players still alive in the room
+    // if > 1 then continue the game
+    // else the game should end
+
     if (room.gameOver) {
       this.handleGameEnd(room.roomId);
     }
@@ -131,12 +145,11 @@ export class ServerThread {
 
   receiveUserEvent(packet) {
     const eventString = packet.eventString;
-    const sessionId = packet.sessionId;
 
     // may want to track some facts about the user here before sending
     // the packet out
 
-    this.server.broadcastUserEvent(this.user.roomId, sessionId, eventString);
+    this.server.broadcastUserEvent(this.user.roomId, eventString);
   }
 
   // /*
@@ -157,7 +170,6 @@ export class ServerThread {
   }
 
   receivePowerup(packet) {
-    const sessionId = packet.sessionId;
     const powerupType = packet.powerupType;
     const toUserId = packet.toUserId;
     const upgradeLevel = packet.upgradeLevel;
@@ -167,7 +179,6 @@ export class ServerThread {
       powerupType,
       this.user.userId,
       toUserId,
-      sessionId,
       0,
     );
   }
@@ -472,7 +483,6 @@ export class ServerThread {
     // const packet = {
     //   type: "startGame",
     //   gameId: 0,
-    //   sessionId: 0,
     //   numUsers: room.numUsers,
     //   roomUsers,
     // };
@@ -569,7 +579,7 @@ export class ServerThread {
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendPowerup(powerupType, fromUserId, toUserId, sessionId, b2) {
+  sendPowerup(powerupType, fromUserId, toUserId, b2) {
     // 	byte opcode1 = 80;
     // 	byte opcode2 = 107;
     // send the powerup to the client
@@ -578,14 +588,13 @@ export class ServerThread {
       powerupType: powerupType,
       fromUserId,
       toUserId,
-      sessionId,
       b2: b2,
     };
     this.socket.send(JSON.stringify(packet));
   }
 
   sendUserState(userId, slot, healthPercent, powerups, shipType) {
-    // sendUserState(userId, sessionId, slot, healthPercent, powerups, shipType) {
+    // sendUserState(userId, slot, healthPercent, powerups, shipType) {
     // let powerupArray: { powerup: string }[] = [];
     // powerups.forEach((powerup) => {
     //   powerupArray.push(powerup);
@@ -603,7 +612,6 @@ export class ServerThread {
     const packet = {
       type: "userState",
       userId,
-      // sessionId,
       slot,
       healthPercent,
       numPowerups,
@@ -613,7 +621,7 @@ export class ServerThread {
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendUserEvent(gameSession, eventString) {
+  sendUserEvent(eventString) {
     // 	byte opcode1 = 80;
     // 	byte opcode2 = 109;
     const packet = {
@@ -623,12 +631,12 @@ export class ServerThread {
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendGameOver(gameSession, deceasedSlot, killerSlot) {
+  sendUserDestroyed(destroyedUserId, killerSlot) {
     // 	byte opcode1 = 80;
     // 	byte opcode2 = 110;
     const packet = {
-      type: "gameOver",
-      deceasedSlot,
+      type: "userDestroyed",
+      destroyedUserId,
       killerSlot,
     };
     this.socket.send(JSON.stringify(packet));
@@ -729,9 +737,9 @@ export class ServerThread {
         this.receiveUserEvent(packetJSON);
         break;
       }
-      case "userDeath": {
+      case "userDestroyed": {
         // case 110:
-        this.receiveUserDeath(packetJSON);
+        this.receiveUserDestroyed(packetJSON);
         break;
       }
 

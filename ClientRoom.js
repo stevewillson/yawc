@@ -1,31 +1,4 @@
 export class ClientRoom {
-  clientRoomManager;
-  clientUserManager;
-
-  shouldRemove;
-
-  roomId;
-  status;
-  numSlots;
-
-  isPrivate;
-  isRanked;
-  isTeamRoom;
-  isBigRoom;
-  allShipsAllowed;
-  allPowerupsAllowed;
-  isBalancedRoom;
-
-  boardSize;
-  text;
-  countdown;
-  options;
-
-  password;
-  wins;
-
-  users;
-
   constructor(clientRoomManager, roomPacket) {
     this.clientRoomManager = clientRoomManager;
     this.clientUserManager = clientRoomManager.gameNetLogic.clientUserManager;
@@ -33,11 +6,24 @@ export class ClientRoom {
     this.roomId = roomPacket.roomId;
     this.numSlots = roomPacket.numSlots;
 
+    this.isPrivate = undefined;
+    this.isRanked = undefined;
+    this.isTeamRoom = undefined;
+    this.isBigRoom = undefined;
+    this.allShipsAllowed = undefined;
+    this.allPowerupsAllowed = undefined;
+    this.isBalancedRoom = undefined;
+
+    this.boardSize = undefined;
+    this.text = undefined;
+
+    this.countdown = undefined;
+    this.options = undefined;
+
     // set that each of the users listed in the userIds array is in the room
     // I expect that we receive userInfo packets before creating the user for the room
     // if there is no user, we may need to make a 'partial user' set the slot, and then update
     // the user's info when we receive a userInfo
-
     for (let i = 0; i < this.userIds.length; i++) {
       if (this.userIds[i] != null) {
         const user = this.clientUserManager.users.get(roomPacket.userIds[i]);

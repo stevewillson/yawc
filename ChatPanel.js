@@ -68,8 +68,8 @@ export class ChatPanel {
         s2,
         s3,
         super.scrollingAreaWidth,
-        color
-      )
+        color,
+      ),
     );
     while (super.vComponents.size() > this.maxLines) {
       super.vComponents.removeElementAt(0);
@@ -109,7 +109,7 @@ export class ChatPanel {
       super.leftGutter + 30,
       bounds.height - super.bottomGutter - height + 1,
       bounds.width - 30 - super.totalHorizontalGutter + 2,
-      height
+      height,
     );
     super.vBar.setSize(15, bounds.height - super.totalVerticalGutter - height);
   }

@@ -12,18 +12,8 @@ export class BulletSprite extends Sprite {
   static INNER_BOX = 3;
   static INNER_BOX_SIZE = 6;
   static CONCUSSIVE_RECOIL = 5;
-  lifespan = 100;
-  maxVelocity = 10;
-  isPowerup;
-  bCountTowardsQuota;
-  upgradeLevel;
-  internalColor;
-  powerupShipType;
-  bConcussive;
-  offx;
-  offy;
 
-  constructor(x, y, bulletDamage, bulletSize, internalColor, spriteType, game) {
+  constructor(x, y, game, bulletDamage, bulletSize, internalColor, spriteType) {
     super(x, y, game);
     this.x = x;
     this.y = y;
@@ -32,13 +22,25 @@ export class BulletSprite extends Sprite {
     this.shapeRect = new Rectangle(x - 5, y - 5, bulletSize, bulletSize);
     this.spriteType = spriteType;
     this.internalColor = internalColor;
-    this.setHealth(1, bulletDamage);
-    this.bIsBullet = true;
+    this.setHealth(1);
+    this.damage = bulletDamage;
+    this.isBullet = true;
     if (this.spriteType == 2) {
       this.color = this.game.color;
       this.bCountTowardsQuota = true;
+    } else {
+      this.bCountTowardsQuota = false;
     }
     this.spriteCycle = 0;
+
+    this.isPowerup = undefined;
+    this.offx = undefined;
+    this.offy = undefined;
+    this.upgradeLevel = undefined;
+    this.internalColor = undefined;
+    this.powerupShipType = undefined;
+
+    this.concussive = false;
   }
 
   addSelf() {
@@ -52,7 +54,7 @@ export class BulletSprite extends Sprite {
     context.strokeStyle = this.internalColor;
     context.translate(this.x, this.y);
 
-    if (this.bConcussive) {
+    if (this.concussive) {
       context.strokeStyle = this.internalColor;
       WHUtil.drawCenteredCircle(context, 0, 0, 10);
       context.strokeStyle =
@@ -107,7 +109,7 @@ export class BulletSprite extends Sprite {
           -8,
           -5,
           imgWidth,
-          imgHeight - 2
+          imgHeight - 2,
         );
       }
 
@@ -120,7 +122,7 @@ export class BulletSprite extends Sprite {
 
   setCollided(collided) {
     super.setCollided(collided);
-    if (this.bConcussive) {
+    if (this.concussive) {
       let angle = WHUtil.findAngle(collided.x, collided.y, this.x, this.y);
       collided.vx += 5 * Math.cos(angle * 0.017453292519943295);
       collided.vy += 5 * Math.sin(angle * 0.017453292519943295);
@@ -131,7 +133,7 @@ export class BulletSprite extends Sprite {
           this.x,
           this.y,
           this.game,
-          this.game.slot
+          this.game.slot,
         );
         explosionSprite.setPowerupExplosion();
         explosionSprite.addSelf();
@@ -140,7 +142,7 @@ export class BulletSprite extends Sprite {
           this.x,
           this.y,
           this.game,
-          9
+          9,
         );
         explosionSprite2.RINGS = 2;
         explosionSprite2.addSelf();
@@ -175,10 +177,6 @@ export class BulletSprite extends Sprite {
   setPowerup(powerupType) {
     this.powerupType = powerupType;
     this.isPowerup = true;
-  }
-
-  setConcussive() {
-    this.bConcussive = true;
   }
 
   // remove the bullet after 100 spriteCycles

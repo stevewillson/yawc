@@ -1,16 +1,8 @@
-import { Rectangle } from "../Rectangle.js";
+// import { Rectangle } from "../Rectangle.js";
 import { WHUtil } from "../WHUtil.js";
 import { Sprite } from "./Sprite.js";
 
 export class ShrapnelSprite extends Sprite {
-  shrapnel;
-  xArr;
-  yArr;
-  dx;
-  dy;
-  rotation;
-  angle;
-  len;
   static MAX_CYCLE = 200;
 
   constructor(x, y, game, n3, color, shrapnel = 10) {
@@ -18,9 +10,9 @@ export class ShrapnelSprite extends Sprite {
     this.game = game;
     this.init("shrapnel", x, y, false);
     this.shrapnel = shrapnel;
-    super.spriteType = 0;
-    super.shapeRect = new Rectangle(0, 0);
-    super.color = color;
+    this.spriteType = 0;
+    // super.shapeRect = new Rectangle(0, 0);
+    this.color = color;
 
     this.xArr = new Array(shrapnel);
     this.yArr = new Array(shrapnel);
@@ -32,8 +24,8 @@ export class ShrapnelSprite extends Sprite {
     for (let i = 0; i < this.shrapnel; i++) {
       this.xArr[i] = x + WHUtil.randInt(n3);
       this.yArr[i] = y + WHUtil.randInt(n3);
-      this.dx[i] = WHUtil.randInt(3);
-      this.dy[i] = WHUtil.randInt(3);
+      this.dx[i] = WHUtil.randInt(3) - 1;
+      this.dy[i] = WHUtil.randInt(3) - 1;
       this.rotation[i] = WHUtil.randInt(70) / 100;
       this.angle[i] = WHUtil.randInt(3) / 100;
       this.len[i] = WHUtil.randInt(3) + 4;
@@ -54,14 +46,14 @@ export class ShrapnelSprite extends Sprite {
 
   behave() {
     super.behave();
-    if (super.spriteCycle++ > 200) {
-      super.shouldRemoveSelf = true;
+    if (this.spriteCycle++ > 200) {
+      this.shouldRemoveSelf = true;
       return;
     }
     for (let i = 0; i < this.shrapnel; ++i) {
       this.angle[i] += this.rotation[i];
-      this.xArr[i] += this.dx[i];
-      this.yArr[i] += this.dy[i];
+      this.xArr[i] += this.dx[i] - WHUtil.randInt(1);
+      this.yArr[i] += this.dy[i] - WHUtil.randInt(1);
     }
   }
 }

@@ -2,12 +2,7 @@ import { Rectangle } from "../Rectangle.js";
 import { Sprite } from "./Sprite.js";
 
 export class StringSprite extends Sprite {
-  color;
-  MAX_CYCLE = 100;
-  x;
-  y;
-  string;
-
+  static MAX_CYCLE = 100;
   constructor(x, y, string, game) {
     super(x, y, game);
     this.x = x;
@@ -28,7 +23,7 @@ export class StringSprite extends Sprite {
   }
 
   behave() {
-    if (this.spriteCycle++ > 100) {
+    if (this.spriteCycle++ > StringSprite.MAX_CYCLE) {
       this.shouldRemoveSelf = true;
     }
   }

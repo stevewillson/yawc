@@ -431,18 +431,32 @@ export class UserSprite extends Sprite {
     );
     this.init("user", x, y, true);
     this.shipSelect = shipSelect;
-    this.polygon = new RotationalPolygon(UserSprite.shipShapes[shipSelect]);
+    this.rotationalPolygon = new RotationalPolygon(
+      UserSprite.shipShapes[shipSelect]
+    );
     this.shapeRect = this.getShapeRect();
 
     // set the shot, thrust, and retro upgrade status
     this.thrustUpgradeStatus = 0;
     this.shotUpgrade = 0;
 
+    this.maxShotUpgrade = false;
+    this.maxThrustUpgrade = false;
+
     // set the ship's basic parameters
-    this.setBasicParams(shipSelect);
+    this.dRotate = UserSprite.fighterData[shipSelect].dRotate;
+    this.maxThrust = UserSprite.fighterData[shipSelect].maxThrust;
+    this.thrust = UserSprite.fighterData[shipSelect].thrust;
+    this.trackingFiringRate =
+      UserSprite.fighterData[shipSelect].trackingFiringRate;
 
     // set ship parameters based on the fighterData
-    this.setHealth(UserSprite.fighterData[shipSelect].health, 1000000);
+    this.setHealth(UserSprite.fighterData[shipSelect].health);
+
+    // DEBUG - set to a low health
+    // this.setHealth(1);
+    // END DEBUG
+    this.damage = 1000000;
 
     // upgrade the ship's cannon
     this.setShot(0);
@@ -489,6 +503,9 @@ export class UserSprite extends Sprite {
     // sprite type - 2 - goodGuy
     this.spriteType = 2;
     this.shapeType = 1;
+
+    this.damagingPowerup = undefined;
+    this.strDamagedByUser = undefined;
 
     // rotate the ship so that it is facing north
     this.rotate(0);
@@ -576,6 +593,7 @@ export class UserSprite extends Sprite {
     let health = this.health;
     super.setCollided(collided);
     if (this.shouldRemoveSelf) {
+      // the sprite was killed
       if (collided.color != null) {
         this.killedBy = this.game.room.getUser(
           collided.slot,
@@ -585,10 +603,7 @@ export class UserSprite extends Sprite {
         this.killedBySlot = collided.slot;
       }
       if (this.killedBy != null && !this.killedBy == "") {
-        this.game.sendEvent(
-          "killed by " + this.killedBy,
-          this.game.gameSession
-        );
+        this.game.sendEvent("killed by " + this.killedBy);
         this.game.killedBy = this.killedBySlot;
       }
       new ExplosionSprite(this.x, this.y, this.game, this.user.slot).addSelf();
@@ -606,19 +621,24 @@ export class UserSprite extends Sprite {
         new ExplosionSprite(x, y, this.game, this.user.slot).addSelf();
         new ShrapnelSprite(x, y, this.game, 30, this.game.color, 50).addSelf();
       }
+
+      this.game.sendUserDestroyed(this.game.killedBy);
       return;
     }
     if (health != this.health) {
-      this.game.strDamagedByUser = null;
+      this.strDamagedByUser = null;
       if (collided.color != null && collided.bSentByUser) {
         // set the username for the damaging user
         let damagingUserId = this.game.room.getUserId(collided.slot);
-        this.game.strDamagedByUser = this.game.room.getUser(
+        this.strDamagedByUser = this.game.room.getUser(
           collided.slot,
           damagingUserId
         ).username;
-        this.game.damagingPowerup = collided.powerupType;
+        this.damagingPowerup = collided.powerupType;
         this.lostHealth = health - this.health;
+
+        // send the userState with the updated health
+        this.game.sendState();
       }
       new ShrapnelSprite(
         this.x,
@@ -645,11 +665,11 @@ export class UserSprite extends Sprite {
     let bulletSprite = new BulletSprite(
       Math.cos(angle) * 12 + this.x,
       Math.sin(angle) * 12 + this.y,
+      this.game,
       this.bulletDamage,
       this.bulletSize,
       UserSprite.bulletColors[this.bulletType],
-      2,
-      this.game
+      2
     );
     bulletSprite.setUser(this.user.userId);
     bulletSprite.setVelocity(
@@ -658,13 +678,6 @@ export class UserSprite extends Sprite {
     );
     bulletSprite.addSelf();
     this.lastShotCycle = this.spriteCycle + this.shotDelay;
-  }
-
-  setBasicParams(n) {
-    this.dRotate = UserSprite.fighterData[n].dRotate;
-    this.maxThrust = UserSprite.fighterData[n].maxThrust;
-    this.thrust = UserSprite.fighterData[n].thrust;
-    this.trackingFiringRate = UserSprite.fighterData[n].trackingFiringRate;
   }
 
   // called every cycle to draw the user's ship
@@ -704,15 +717,16 @@ export class UserSprite extends Sprite {
     // }
 
     // rotate the model 90 degrees?
-    this.polygon.rotate(90);
+    this.rotationalPolygon.rotate(90);
 
     // draw the user polygon
-    this.polygon
-      .getPolygon()
-      .drawPolygon(context, this.game.colors.colors[this.user.slot][0]);
+    this.rotationalPolygon.polygon.drawPolygon(
+      context,
+      this.game.colors.colors[this.user.slot][0]
+    );
 
     // undo the rotation
-    this.polygon.rotate(-90);
+    this.rotationalPolygon.rotate(-90);
 
     // console.log(
     // `User: x: ${parseInt(this.x)} y: ${parseInt(this.y)}`
@@ -800,7 +814,7 @@ export class UserSprite extends Sprite {
 
   rotate(degrees) {
     super.rotate(degrees);
-    this.polygon.rotate(degrees);
+    this.rotationalPolygon.rotate(degrees);
   }
 
   drawOneThrust(angle, offset) {
@@ -843,11 +857,11 @@ export class UserSprite extends Sprite {
       const bulletSprite = new BulletSprite(
         x,
         y,
+        this.game,
         100,
         20,
         "orange",
-        2,
-        this.game
+        2
       );
       bulletSprite.setPowerup(this.user.powerups[this.user.numPowerups]);
       this.user.powerups[this.user.numPowerups] = null;
@@ -921,8 +935,8 @@ export class UserSprite extends Sprite {
       }
     }
     if (this.specialType == 3) {
-      this.targetX = this.x + int(200 * Math.cos(this.radAngle));
-      this.targetY = this.y + int(200 * Math.sin(this.radAngle));
+      this.targetX = this.x + 200 * Math.cos(this.radAngle);
+      this.targetY = this.y + 200 * Math.sin(this.radAngle);
       if (System.currentTimeMillis() > this.nextHSRegen) {
         if (this.heatSeekerRounds < 3) this.heatSeekerRounds++;
         this.nextHSRegen = window.performance.now() + 20000;
@@ -1012,7 +1026,7 @@ export class UserSprite extends Sprite {
 
   // get a shapeRect that is centered around the current location of the object with the bounds
   getShapeRect() {
-    let bounds = this.polygon.getBounds();
+    let bounds = this.rotationalPolygon.polygon.bounds;
     bounds.setLocation(this.x - bounds.width / 2, this.y - bounds.height / 2);
     return bounds;
   }

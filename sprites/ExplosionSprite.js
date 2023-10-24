@@ -20,7 +20,8 @@ export class ExplosionSprite extends Sprite {
 
   setPowerupExplosion() {
     this.spriteType = 2;
-    this.setHealth(100, 500);
+    this.setHealth(100);
+    this.damage = 500;
     let n = (this.spriteCycle - this.RINGS) * 2;
     if (n < 0) {
       n = 0;

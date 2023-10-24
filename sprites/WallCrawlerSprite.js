@@ -34,35 +34,35 @@ export class WallCrawlerSprite extends Sprite {
     [4, 0, 270],
     [0, -4, 180],
   ];
-  direction;
-  directionData;
-  rotPolygon;
-  x;
-  y;
-  game;
-  shapeRect;
-
   constructor(x, y, game, b) {
     super(x, y, game);
     this.x = x;
     this.y = y;
     this.game = game;
     this.direction = 0;
-    this.rotPolygon = new RotationalPolygon(WallCrawlerSprite.drawPoints);
-    this.init("wc", x, y, false);
-    this.spriteType = 1;
-    this.shapeRect = new Rectangle(x - 15, y - 30, 30, 60);
-    this.setHealth(150, 20);
+    this.rotationalPolygon = new RotationalPolygon(
+      WallCrawlerSprite.drawPoints,
+    );
     if (b) {
       this.directionData = WallCrawlerSprite.c_directions;
     } else {
       this.directionData = WallCrawlerSprite.cc_directions;
     }
+    this.rotationalPolygon.setAngle(
+      this.directionData[this.direction][2] * 0.017453292519943295,
+    );
+    this.init("wc", x, y, false);
+    this.spriteType = 1;
+    this.shapeRect = new Rectangle(
+      x - 15,
+      y - 30,
+      WallCrawlerSprite.WC_WIDTH,
+      WallCrawlerSprite.WC_HEIGHT,
+    );
+    this.setHealth(150);
+    this.damage = 20;
     this.vx = this.directionData[this.direction][0];
     this.vy = this.directionData[this.direction][1];
-    this.rotPolygon.setAngle(
-      this.directionData[this.direction][2] * 0.017453292519943295
-    );
     this.powerupType = 15;
   }
 
@@ -70,12 +70,22 @@ export class WallCrawlerSprite extends Sprite {
     this.direction++;
     this.direction %= 4;
     if (this.direction % 2 == 0) {
-      this.shapeRect.reshape(this.shapeRect.x, this.shapeRect.y, 30, 60);
+      this.shapeRect.reshape(
+        this.shapeRect.x,
+        this.shapeRect.y,
+        WallCrawlerSprite.WC_WIDTH,
+        WallCrawlerSprite.WC_HEIGHT,
+      );
     } else {
-      this.shapeRect.reshape(this.shapeRect.x, this.shapeRect.y, 60, 30);
+      this.shapeRect.reshape(
+        this.shapeRect.x,
+        this.shapeRect.y,
+        WallCrawlerSprite.WC_HEIGHT,
+        WallCrawlerSprite.WC_WIDTH,
+      );
     }
-    this.rotPolygon.setAngle(
-      this.directionData[this.direction][2] * 0.017453292519943295
+    this.rotationalPolygon.setAngle(
+      this.directionData[this.direction][2] * 0.017453292519943295,
     );
     this.move(-this.vx, -this.vy);
     this.vx = this.directionData[this.direction][0];
@@ -86,11 +96,11 @@ export class WallCrawlerSprite extends Sprite {
     context.strokeStyle =
       this.game.colors.colors[this.slot][this.spriteCycle % 20];
     context.translate(this.x, this.y);
-    this.rotPolygon.polygon.drawPolygon(context);
+    this.rotationalPolygon.polygon.drawPolygon(context);
     context.translate(-1, -1);
 
     context.strokeStyle = this.game.colors.colors[this.slot][0];
-    this.rotPolygon.polygon.drawPolygon(context);
+    this.rotationalPolygon.polygon.drawPolygon(context);
     context.translate(1 - this.x, 1 - this.y);
     this.shapeRect = this.getShapeRect();
     // if (this.bSentByUser) {
@@ -117,18 +127,18 @@ export class WallCrawlerSprite extends Sprite {
     }
     this.move(this.vx, this.vy);
     this.spriteCycle++;
-    if (this.isInDrawingRect && this.spriteCycle % 35 == 0) {
+    if (this.inDrawingRect && this.spriteCycle % 35 == 0) {
       let bulletSprite = new BulletSprite(
         this.x,
         this.y,
+        this.game,
         3,
         10,
         this.color,
         1,
-        this.game
       );
 
-      // TODO - find a way to use an computer
+      // TODO - find a way to use a computer
       // userId or a slot number
       // const user = this.game.gameNetLogic.clientUserManager.users.get(
       //   room.userIds[i]
@@ -137,7 +147,7 @@ export class WallCrawlerSprite extends Sprite {
       let calcLead = this.calcLead();
       bulletSprite.setVelocity(
         6 * WHUtil.scaleVector(calcLead.x, calcLead.y),
-        6 * WHUtil.scaleVector(calcLead.y, calcLead.x)
+        6 * WHUtil.scaleVector(calcLead.y, calcLead.x),
       );
       bulletSprite.addSelf();
     }

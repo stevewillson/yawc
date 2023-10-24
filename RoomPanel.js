@@ -2,22 +2,17 @@ import { Game } from "./Game.js";
 
 // called PlayingPanel.java for wormhole
 export class RoomPanel {
-  userStatusCanvas;
-  otherUserStatusCanvas;
-  gameCanvas;
-
-  roomChatPanel;
-  gameNetLogic;
-  gamePanel;
-
-  countdown;
-  inCountdown;
-
   constructor(gamePanel) {
     this.gamePanel = gamePanel;
 
     this.countdown = null;
     this.inCountdown = null;
+
+    this.userStatusCanvas = undefined;
+    this.otherUserStatusCanvas = undefined;
+    this.gameCanvas = undefined;
+    this.roomChatPanel = undefined;
+    this.gameNetLogic = undefined;
   }
 
   toHtml() {
@@ -99,7 +94,7 @@ export class RoomPanel {
 
     // need to get the room id for the current user?
     const user = this.gamePanel.gameNetLogic.clientUserManager.users.get(
-      this.gamePanel.gameNetLogic.userId
+      this.gamePanel.gameNetLogic.userId,
     );
 
     startGameButton.onclick = () =>

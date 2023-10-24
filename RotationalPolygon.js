@@ -1,14 +1,6 @@
 import { Polygon } from "./Polygon.js";
 
 export class RotationalPolygon {
-  xpoints;
-  ypoints;
-  npoints;
-  distances;
-  angles;
-  currentAngle;
-  polygon;
-
   constructor(points) {
     this.xpoints = [];
     this.ypoints = [];
@@ -23,14 +15,6 @@ export class RotationalPolygon {
     });
 
     this.polygon = new Polygon(this.xpoints, this.ypoints, this.npoints);
-  }
-
-  getPolygon() {
-    return this.polygon;
-  }
-
-  getBounds() {
-    return this.polygon.getBounds();
   }
 
   addDistAnglePoint(distance, angle) {
@@ -58,10 +42,10 @@ export class RotationalPolygon {
     this.currentAngle = angle;
     this.currentAngle %= 360;
     for (let i = 0; i < this.npoints; i++) {
-      this.xpoints[i] =
-        Math.cos(this.angles[i] + this.currentAngle) * this.distances[i];
-      this.ypoints[i] =
-        Math.sin(this.angles[i] + this.currentAngle) * this.distances[i];
+      this.xpoints[i] = Math.cos(this.angles[i] + this.currentAngle) *
+        this.distances[i];
+      this.ypoints[i] = Math.sin(this.angles[i] + this.currentAngle) *
+        this.distances[i];
     }
 
     // update the polygon with the new points

@@ -5,17 +5,10 @@ import { PowerupSprite } from "./PowerupSprite.js";
 import { Sprite } from "./Sprite.js";
 
 export class GunshipSprite extends Sprite {
-  rPoly;
-  rTurretPoly;
-  bRightSeeker;
   static START_STRAFE = 0;
   static STRAFE = 1;
   static RETREAT = 2;
   static KAMIKAZE = 3;
-  mode;
-  strafeOffsetX;
-  strafeOffsetY;
-  retreatCounter;
 
   static points = [
     { x: 40, y: 0 },
@@ -37,38 +30,38 @@ export class GunshipSprite extends Sprite {
   behave() {
     super.behave();
     let n = WHUtil.distanceFrom(this, this.game.user.userSprite);
-    if (this.spriteCycle % 40 == 0 && this.bInDrawingRect) {
+    if (this.spriteCycle % 40 == 0 && this.inDrawingRect) {
       for (let i = 0; i < GunshipSprite.turretPoints.length; i++) {
         let bulletSprite = new BulletSprite(
           this.rTurretPoly.polygon.xpoints[i] + this.x,
           this.rTurretPoly.polygon.ypoints[i] + this.y,
+          this.game,
           2,
           10,
           this.color,
-          1
+          1,
         );
         bulletSprite.setSentByEnemy(this.slot, 12);
         let calcLead = this.calcLead();
         bulletSprite.setVelocity(
           6 * WHUtil.scaleVector(calcLead.x, calcLead.y),
-          6 * WHUtil.scaleVector(calcLead.y, calcLead.x)
+          6 * WHUtil.scaleVector(calcLead.y, calcLead.x),
         );
         bulletSprite.addSelf();
       }
     }
     switch (this.mode) {
       case 0: {
-        let n2 =
-          (WHUtil.findAngle(
-            this.game.user.userSprite.x,
-            this.game.user.userSprite.y,
-            this.x,
-            this.y
-          ) +
-            (this.bRightSeeker ? 90 : -90)) *
+        let n2 = (WHUtil.findAngle(
+          this.game.user.userSprite.x,
+          this.game.user.userSprite.y,
+          this.x,
+          this.y,
+        ) +
+          (this.rightSeeker ? 90 : -90)) *
           0.017453292519943295;
-        this.strafeOffsetX = int(200 * Math.cos(n2));
-        this.strafeOffsetY = int(200 * Math.sin(n2));
+        this.strafeOffsetX = 200 * Math.cos(n2);
+        this.strafeOffsetY = 200 * Math.sin(n2);
         this.mode = 1;
         break;
       }
@@ -115,20 +108,27 @@ export class GunshipSprite extends Sprite {
     this.game = game;
     // start in track mode
     this.mode = 3;
-    this.rPoly = new RotationalPolygon(GunshipSprite.points);
+    this.rotationalPolygon = new RotationalPolygon(GunshipSprite.points);
     this.rTurretPoly = new RotationalPolygon(GunshipSprite.turretPoints);
+    // this.polygon = this.rotationalPolygon.polygon;
+
     this.init("gs", x, y, true);
     this.spriteType = 1;
-    this.setHealth(50, 10);
+    this.setHealth(50);
+    this.damage = 10;
     this.shapeType = 1;
-    this.polygon = this.rPoly.polygon;
-    this.bRightSeeker = WHUtil.randInt(2) == 0;
+    this.rightSeeker = WHUtil.randInt(2) == 0;
     this.dRotate = 2;
     this.thrust = 0.25;
     this.maxThrust = 4;
     this.powerupType = 12;
 
     this.color = this.game.colors.colors[this.slot][0];
+
+    this.rightSeeker = undefined;
+    this.strafeOffsetX = undefined;
+    this.strafeOffsetY = undefined;
+    this.retreatCounter = undefined;
   }
 
   drawSelf(context) {
@@ -142,7 +142,7 @@ export class GunshipSprite extends Sprite {
         this.game.user.userSprite.x,
         this.game.user.userSprite.y,
         x + this.x,
-        y + this.y
+        y + this.y,
       );
       context.fillStyle = this.color;
       context.beginPath();
@@ -153,7 +153,7 @@ export class GunshipSprite extends Sprite {
         8,
         gunAngle + Math.PI / 8,
         gunAngle - Math.PI / 8,
-        true
+        true,
       );
       context.lineTo(x, y);
       context.fill();
@@ -169,21 +169,20 @@ export class GunshipSprite extends Sprite {
     super.setCollided(collided);
     if (this.shouldRemoveSelf) {
       this.killSelf(20, 10);
-      new PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
-      new PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
-      new PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
+      PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
+      PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
+      PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
     }
   }
 
   setDegreeAngle(degreeAngle) {
     super.setDegreeAngle(degreeAngle);
-    this.rPoly.setAngle(this.radAngle);
+    this.rotationalPolygon.setAngle(this.radAngle);
     this.rTurretPoly.setAngle(this.radAngle);
-    this.polygon = this.rPoly.polygon;
   }
 
   getShapeRect() {
-    let bounds = this.polygon.getBounds();
+    let bounds = this.rotationalPolygon.polygon.bounds;
     bounds.setLocation(this.x - bounds.width / 2, this.y - bounds.height / 2);
     return bounds;
   }

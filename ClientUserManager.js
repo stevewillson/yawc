@@ -30,7 +30,7 @@ export class ClientUserManager {
       user.username,
       user.clan,
       user.rank,
-      user.icons
+      user.icons,
     );
 
     this.users.set(newUser.userId, newUser);
@@ -110,7 +110,7 @@ export class ClientUserManager {
   getUserByUsername(username) {
     // return this.users.get(username);
     const retUser = this.clientUserManager.users.filter(
-      (user) => user.username == username
+      (user) => user.username == username,
     );
     return retUser;
   }

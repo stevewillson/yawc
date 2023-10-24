@@ -15,38 +15,17 @@ import { WallCrawlerSprite } from "./sprites/WallCrawlerSprite.js";
  * world is the total renderable canvas, use this size for generating the stars
  */
 export class Game {
-  canvas;
-  context;
-
-  loop;
-  gameNetLogic;
-  input;
-  colors;
-  mode;
-
-  allSprites;
-  badGuys;
-  goodGuys;
-
-  isDebugMode;
-  currentFighterShade;
-
-  selectedShip;
-  zoomInIntro;
-
-  powerups;
-
-  incomingCycle;
-
   constructor(gameNetLogic) {
     // set a debug mode for displaying shapeRects
     this.isDebugMode = false;
     this.gameNetLogic = gameNetLogic;
+
     this.input = {
       right: false,
       left: false,
       up: false,
       spacebar: false,
+      fKey: false,
     };
 
     this.soundOn = true;
@@ -83,14 +62,17 @@ export class Game {
 
     // default to using the shipType of 1
     this.userShipType = 1;
-
-    this.selectedShip = 1;
     this.zoomInIntro = 0;
 
     this.incomingCycle = 0;
 
     // array to store the user messages in
     this.userMessages = [];
+
+    this.canvas = undefined;
+    this.context = undefined;
+
+    this.cycle = undefined;
 
     // only use key handlers when the game is in focus?
     // key press handlers
@@ -207,11 +189,6 @@ export class Game {
     // the full canvas is drawn and then only a portion of it is displayed to the
     // viewport canvas
 
-    // console.log("gameloop rendering");
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.context.fillStyle = "black";
-    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
     // draw the game on the canvas
     this.draw(this.context);
 
@@ -245,10 +222,6 @@ export class Game {
       // TODO - find where to send the user state outside of the draw method
       // only send the state when it is updated
       // don't send every time it is redrawn
-      // this.sendState(this.sessionId);
-
-      this.strDamagedByUser = null;
-      this.damagingPowerup = null;
     }
     if (this.refreshOtherBar) {
       this.drawOtherBar(this.otherStatusContext, this.refreshAll);
@@ -271,7 +244,9 @@ export class Game {
     // for (let i = 0; i < this.userStates.length; ++i) {
     // this.userStates[i].fullReset();
     // }
-    this.gameOver = true;
+    this.gameOver = false;
+    this.gameOverCycle = 0;
+
     this.mode = "waiting";
     // refresh the user and other bar
     this.refreshUserBar = true;
@@ -287,24 +262,17 @@ export class Game {
     // set the board width to the canvas width
     // this.board = { width: 430, height: 423 };
     this.board = { width: this.canvas.width, height: this.canvas.height };
-
     this.viewport = { width: this.canvas.width, height: this.canvas.height };
     // this is the entire size of the virtual world for rendering stars
     this.world = {
       width: this.board.width + this.viewport.width,
       height: this.board.width + this.viewport.height,
     };
-    this.worldCenter = { x: this.world.width / 2, y: this.world.height / 2 };
-    this.boardCenter = { x: this.board.width / 2, y: this.board.height / 2 };
-    this.viewportCenter = {
-      x: this.viewport.width / 2,
-      y: this.viewport.height / 2,
-    };
 
     // this holds the upper left corner of the viewable rectangle
     this.viewportRect = new Rectangle(
-      this.boardCenter.x - this.viewport.width / 2,
-      this.boardCenter.y - this.viewport.height / 2,
+      (this.board.width - this.viewport.width) / 2,
+      (this.board.height - this.viewport.height) / 2,
       this.viewport.width,
       this.viewport.height
     );
@@ -339,16 +307,11 @@ export class Game {
     this.numPowerups = 0;
     this.flashScreenColor = "black";
 
-    // get the start time (in ms)
-    this.startTime = window.performance.now();
-
     // reset powerups
     const room = this.gameNetLogic.clientRoomManager.getRoomById(
       this.gameNetLogic.roomId
     );
     room.resetPowerups();
-
-    this.boardChanged = true;
 
     this.gameOver = false;
     this.refreshUserBar = true;
@@ -361,10 +324,14 @@ export class Game {
     this.orbitDistance = 240;
     let n;
 
+    // get the start time (in ms)
+    this.startTime = window.performance.now();
     this.msPrev = window.performance.now();
     this.fps = 60;
     this.msPerFrame = 1000 / this.fps;
     this.frames = 0;
+
+    this.cycle = 0;
 
     // set the orbitDistance based on the number of users
     if (this.gameNetLogic.roomId != null) {
@@ -410,14 +377,13 @@ export class Game {
     );
     // move this to the joinRoom area?
     user.userSprite = new UserSprite(
-      this.boardCenter.x,
-      this.boardCenter.y,
+      this.board.width / 2,
+      this.board.height / 2,
       this.userShipType,
       this
     );
 
     user.userSprite.addSelf();
-    // get the slot from the user object
     user.userSprite.setUser(user.userId);
 
     this.initBorderShade(user);
@@ -425,11 +391,7 @@ export class Game {
     new WallCrawlerSprite(0, 0, this, true).addSelf();
     new WallCrawlerSprite(0, 0, this, false).addSelf();
 
-    // setInterval(() => {
-    //   console.log(this.frames % this.fps);
-    // }, 1000);
-
-    // start gameLoop
+    // start main game loop
     window.requestAnimationFrame(this.gameLoop.bind(this));
   }
 
@@ -466,77 +428,64 @@ export class Game {
 
     this.msPassed = timeStamp - this.msPrev;
 
-    if (this.msPassed < this.msPerFrame) {
+    if (this.msPassed > this.msPerFrame) {
+      // insert silence audio clip here
+      // GameBoard.playSound((AudioClip)g_mediaTable.get("snd_silence"));
+
       // return;
+
+      /**
+       * Game Loop state machine
+       * playing -> gameOver
+       * gameOver -> waiting
+       * waiting (should go to "playing"), when the "Start Game" button
+       * is pushed, the "startGame" packet is received,
+       * which sets the mode to "playing" in handleGamePacket
+       */
+      switch (this.mode) {
+        case "playing": {
+          // get user input
+          // TODO separate from update()
+
+          // behavior, collisions, checkSidebar
+          this.update();
+          this.render();
+          break;
+        }
+
+        /**
+         * Waiting for a new game to start
+         */
+        case "waiting": {
+          // checks if there is time left on any of the powerups in a
+          // user's area
+          // checkSidebar();
+          this.refreshOtherBar = true;
+          this.render();
+          break;
+        }
+
+        /** Game over, allow the sprites to keep moving
+         * display message that the game is over
+         */
+        case "gameOver": {
+          this.render();
+
+          // reset the game and enter the waiting state
+          if (this.gameOverCycle++ > 120) {
+            // if (this.gameOverCycle++ > 12000000 || this.winningUserString != null) {
+            // reset the game after 120 cycles
+            this.reset();
+          }
+          break;
+        }
+      }
     }
 
     this.excessTime = this.msPassed % this.msPerFrame;
     this.msPrev = timeStamp - this.excessTime;
 
     this.frames++;
-
-    // insert silence audio clip here
-    // GameBoard.playSound((AudioClip)g_mediaTable.get("snd_silence"));
-
-    /**
-     * Game Loop state machine
-     * playing -> gameOver
-     * gameOver -> waiting
-     * waiting (should go to "playing"), when the "Start Game" button
-     * is pushed, the "startGame" packet is received,
-     * which sets the mode to "playing" in handleGamePacket
-     */
-    switch (this.mode) {
-      case "playing": {
-        // get user input
-        // TODO separate from update()
-
-        // behavior, collisions, checkSidebar
-        this.update();
-
-        // render the screen
-        this.render();
-        if (this.gameOver) {
-          this.gameOverCycle = 0;
-          this.mode = "gameOver";
-          if (this.winningUserString == null) {
-            this.sendGameOver(this.sessionId, this.killedBy);
-          }
-        }
-        break;
-      }
-
-      /**
-       * Waiting for a new game to start
-       */
-      case "waiting": {
-        // checks if there is time left on any of the powerups in a
-        // user's area
-        // checkSidebar();
-        this.refreshOtherBar = true;
-        this.render();
-        break;
-      }
-
-      /** Game over, allow the sprites to keep moving
-       * display message that the game is over
-       */
-      case "gameOver": {
-        // don't update after a gameOver
-        //  // behavior, collisions, checkSidebar
-        //  this.update();
-
-        //  // handles redrawing the screen
-        //  this.render();
-
-        // reset the game and enter the waiting state
-        if (this.gameOverCycle++ > 120 || this.winningUserString != null) {
-          // reset the game after 120 cycles
-          this.reset();
-        }
-        break;
-      }
-    }
 
     window.requestAnimationFrame(this.gameLoop.bind(this));
   }
@@ -592,7 +541,7 @@ export class Game {
       return;
     }
 
-    // DEBUG patched for generating UFOs
+    // DEBUG patched for generating enemies
     // genEnemyProb = 360;
 
     // as the game goes up in seconds, the probability that an enemy will spawn increases
@@ -619,7 +568,7 @@ export class Game {
 
       // set that random user's portal to generate an enemy
       if (user.isPlaying() && user.portalSprite != null) {
-        user.portalSprite.genEnemy = true;
+        user.portalSprite.shouldGenEnemy = true;
       }
 
       // generate an enemy to come out of a random user portal
@@ -708,7 +657,7 @@ export class Game {
       let sprite = this.badGuys[i];
       if (
         sprite != null &&
-        sprite.isInDrawingRect &&
+        sprite.inDrawingRect &&
         (!sprite.indestructible || sprite.isZappable)
       ) {
         sprite.killSelf();
@@ -726,6 +675,7 @@ export class Game {
       // get the viewable area for the user
       let viewportRect = user.userSprite.getViewportRect();
 
+      context.clearRect(0, 0, this.canvas.width, this.canvas.height);
       context.fillStyle = "black";
       context.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -763,8 +713,8 @@ export class Game {
       this.allSprites.forEach((sprite) => {
         if (sprite != null) {
           // check if the sprite is in the viewportRect
-          sprite.isInDrawingRect = sprite.inViewingRect(viewportRect);
-          if (sprite.isInDrawingRect) {
+          sprite.inDrawingRect = sprite.inViewingRect(viewportRect);
+          if (sprite.inDrawingRect) {
             sprite.drawSelf(context);
 
             // display shapeRects when in debug mode
@@ -812,15 +762,17 @@ export class Game {
           imgHeight - 2
         );
       }
-      // if (this.winningUserString != null) {
-      //   this.drawShadowString(graphics, "GAME OVER!", 100, 100);
-      //   this.drawShadowString(
-      //     graphics,
-      //     "WINNER: " + this.winningUserString,
-      //     100,
-      //     120
-      //   );
-      // }
+
+      // draw the winning user string
+      if (this.winningUserString != null) {
+        context.beginPath();
+        context.font = "40px helvetica";
+        context.textAlign = "center";
+        context.fillStyle = "white";
+        // put the text on the center of the board
+        context.fillText("GAME OVER!", this.board.width / 2, 100);
+        context.fillText(this.winningUserString, this.board.width / 2, 150);
+      }
 
       // draw the userMessages
       context.fillStyle = "white";
@@ -881,8 +833,8 @@ export class Game {
           if (hyp >= this.portalVisibility) {
             let n3 = (180 * n) / hyp;
             let n4 = (180 * n2) / hyp;
-            let n5 = n3 + this.viewportCenter.x;
-            let n6 = n4 + this.viewportCenter.y;
+            let n5 = n3 + this.viewport.width / 2;
+            let n6 = n4 + this.viewport.height / 2;
 
             let atan = Math.atan(n2 / n);
             let n7 = 171;
@@ -891,17 +843,17 @@ export class Game {
             }
             let n8 = atan + 0.04;
             let n9 = atan - 0.04;
-            let n10 = n7 * Math.cos(n8) + this.viewportCenter.x;
-            let n11 = n7 * Math.sin(n8) + this.viewportCenter.y;
-            let n12 = n7 * Math.cos(n9) + this.viewportCenter.x;
-            let n13 = n7 * Math.sin(n9) + this.viewportCenter.y;
+            let n10 = n7 * Math.cos(n8) + this.viewport.width / 2;
+            let n11 = n7 * Math.sin(n8) + this.viewport.height / 2;
+            let n12 = n7 * Math.cos(n9) + this.viewport.width / 2;
+            let n13 = n7 * Math.sin(n9) + this.viewport.height / 2;
 
             context.strokeStyle = user.color;
             context.beginPath();
             context.moveTo(n5, n6);
             context.lineTo(
-              n3 * 0.9 + this.viewportCenter.x,
-              n4 * 0.9 + this.viewportCenter.y
+              n3 * 0.9 + this.viewport.width / 2,
+              n4 * 0.9 + this.viewport.height / 2
             );
 
             context.moveTo(n5, n6);
@@ -928,12 +880,16 @@ export class Game {
     context.strokeStyle = "gray";
     WHUtil.drawCenteredCircle(
       context,
-      this.worldCenter.x,
-      this.worldCenter.y,
+      this.world.width / 2,
+      this.world.height / 2,
       this.orbitDistance
     );
   }
 
+  /**
+   * Draws a border around the world
+   * @param context a canvas context to draw the border
+   */
   drawBorder(context) {
     // draw the outer border box
     context.beginPath();
@@ -951,6 +907,7 @@ export class Game {
   drawStars(context, color, starLocations) {
     // set the color of the stars
     context.fillStyle = color;
+    context.beginPath();
     for (let i = 0; i < starLocations.length; i++) {
       context.fillRect(
         starLocations[i][0],
@@ -999,7 +956,7 @@ export class Game {
     }
   }
 
-  drawStrings(context, s, s2) {
+  drawStrings(context, string1, string2) {
     let n = this.introY - 115;
     let n2 = n + 30;
     context.fillStyle = this.color;
@@ -1013,8 +970,8 @@ export class Game {
     context.fillStyle = this.color == "blue" ? "white" : "black";
     context.strokeStyle = this.color == "blue" ? "white" : "black";
     this.drawCenteredText(context, "Yet Another Wormhole Clone", n2);
-    this.drawCenteredText(context, s, n2 + 28);
-    this.drawCenteredText(context, s2, n2 + 56);
+    this.drawCenteredText(context, string1, n2 + 28);
+    this.drawCenteredText(context, string2, n2 + 56);
   }
 
   drawCenteredText(context, text, y) {
@@ -1042,8 +999,7 @@ export class Game {
     let s = ClientRoomManager.TEAM_NAMES[b];
     let color = ClientRoomManager.TEAM_COLORS[b];
     let color2 = ClientRoomManager.TEAM_BG_COLORS[b];
-    let boardCenterX = this.boardCenterX;
-    let boardCenterX2 = this.boardCenterX;
+    let boardCenterX = this.board.width / 2;
     context.strokeStyle = color;
     context.fillStyle = color;
 
@@ -1065,10 +1021,10 @@ export class Game {
           user.teamId != this.teamId
         ) {
           let n = portalSprite.x - boardCenterX;
-          let n2 = portalSprite.y - boardCenterX2;
+          let n2 = portalSprite.y - boardCenterX;
           for (let n3 = this.orbitDistance / 35, j = 0; j < n3 - 1; j++) {
             let n4 = boardCenterX + (n / n3) * j;
-            let n5 = boardCenterX2 + (n2 / n3) * j;
+            let n5 = boardCenterX + (n2 / n3) * j;
             context.fillStyle = ClientRoomManager.TEAM_COLORS[b];
             context.strokeStyle = ClientRoomManager.TEAM_COLORS[b];
             if (b == 1) {
@@ -1086,7 +1042,7 @@ export class Game {
         if (this.novaInfo[n6][0] > 45.0) {
           this.novaInfo[n6][0] = Math.abs(WHUtil.randInt(45));
           this.novaInfo[n6][1] = boardCenterX - 5 + WHUtil.randInt(16);
-          this.novaInfo[n6][2] = boardCenterX2 - 5 + WHUtil.randInt(16);
+          this.novaInfo[n6][2] = boardCenterX - 5 + WHUtil.randInt(16);
           this.novaInfo[n6][3] =
             (WHUtil.randInt(2) < 1 ? -1 : 1) * Math.random() * 4;
           this.novaInfo[n6][4] =
@@ -1147,7 +1103,7 @@ export class Game {
     // do not limit by permissions
     context.fillStyle = this.colors.colors[user.slot][2];
     context.strokeStyle = this.colors.colors[user.slot][2];
-    if (this.selectedShip == fighterNumber) {
+    if (this.userShipType == fighterNumber) {
       context.fillStyle =
         this.colors.colors[user.slot][(this.currentFighterShade++ / 2) % 20];
       context.fillRect(-25, -24, 50, 50);
@@ -1200,29 +1156,28 @@ export class Game {
           // subtract the introX from the eventx
           let xOffset = event.x - this.canvas.offsetLeft - this.intro_shipX;
           let xSelection = Math.floor((xOffset * 8) / this.intro.width);
-          this.selectedShip = xSelection;
-          this.userShipType = this.selectedShip;
+          this.userShipType = xSelection;
           this.zoomInIntro = 0;
 
           // TODO send over the network that the ship has changed
           const user = this.gameNetLogic.clientUserManager.users.get(
             this.gameNetLogic.userId
           );
-          user.shipType = this.selectedShip;
+          user.shipType = this.userShipType;
 
           // change the user to the selected ship
           user.userSprite.removeSelf();
 
           user.userSprite = new UserSprite(
-            this.boardCenter.x,
-            this.boardCenter.y,
+            this.board.width / 2,
+            this.board.height / 2,
             this.userShipType,
             this
           );
           user.userSprite.addSelf();
           user.userSprite.setUser(user.userId);
 
-          this.sendState(this.sessionId);
+          this.sendState();
         }
       }
     }
@@ -1236,17 +1191,17 @@ export class Game {
     let img = document.getElementById("smallPowerupImages");
     let imgWidth = 21;
     let imgHeight = 17;
+
     // the powerup array contains numbers,
     // reference the PowerupSprite smallConversionTypes array
     // get the offset of the
-
     const user = this.gameNetLogic.clientUserManager.users.get(
       this.gameNetLogic.userId
     );
     for (let i = user.numPowerups - 1; i >= 0; i--) {
       let powerupNumber = user.powerups[i];
       // subtract 6 from the number, if the number is less than or equal to 0, set it to 0
-      let shiftedNumber = powerupNumber - 6;
+      const shiftedNumber = powerupNumber - 6;
       if (shiftedNumber <= 0) {
         powerupNumber = 0;
       } else {
@@ -1293,11 +1248,9 @@ export class Game {
       this.introY + 28
     );
 
-    // graphics.fillRect(this.intro_shipX, this.intro_shipY, 400, 50);
     context.fillStyle = "gray";
     context.fillRect(this.intro_shipX, this.intro_shipY, 400, 50);
 
-    // graphics.drawRect(this.intro_shipX, this.intro_shipY, 400, 50);
     context.strokeStyle = this.color;
     context.strokeRect(this.intro_shipX, this.intro_shipY, 400, 50);
 
@@ -1315,7 +1268,7 @@ export class Game {
     }
 
     // ship descriptions
-    let n2 = this.intro_shipX + (this.selectedShip % 8) * 50 + 25;
+    let n2 = this.intro_shipX + (this.userShipType % 8) * 50 + 25;
     let n3 = this.intro_shipY + 25;
     let n4 = this.intro_shipY + 50 + 10;
     let n5 = this.intro_shipX + 200;
@@ -1337,7 +1290,7 @@ export class Game {
       this.introY + 260 - n4 - 15
     );
 
-    let array = UserSprite.shipDescriptions[this.selectedShip];
+    let array = UserSprite.shipDescriptions[this.userShipType];
     let n6 = n5 - 40;
     let n7 = n4 + 10;
     context.beginPath();
@@ -1369,20 +1322,20 @@ export class Game {
     }
 
     context.translate(this.introX + 75, this.introY + 180);
-    // //WHUtil.drawScaledPoly(graphics, PlayerSprite.g_polyShip[this.selectedShip][this.currentFighterShade / 2 % 24], zoomInIntro);
-    // WHUtil.drawScaledPoly(graphics, PlayerSprite.g_polyShip[this.selectedShip][this.currentFighterShade * 10 / PlayerSprite.DROTATE % PlayerSprite.NROTATIONS], zoomInIntro);
+    // //WHUtil.drawScaledPoly(graphics, PlayerSprite.g_polyShip[this.userShipType][this.currentFighterShade / 2 % 24], zoomInIntro);
+    // WHUtil.drawScaledPoly(graphics, PlayerSprite.g_polyShip[this.userShipType][this.currentFighterShade * 10 / PlayerSprite.DROTATE % PlayerSprite.NROTATIONS], zoomInIntro);
     const polygon = WHUtil.createPolygon(UserSprite.shipShapes[user.shipType]);
     WHUtil.drawScaledPoly(
       context,
       polygon,
       zoomInIntro
-      // UserSprite.fighterData[this.selectedShip].shipScale
+      // UserSprite.fighterData[this.userShipType].shipScale
     );
 
     // TODO - draw the rotating polygon
     // WHUtil.drawScaledPoly(
     //   context,
-    //   UserSprite.g_polyShip[this.selectedShip][
+    //   UserSprite.g_polyShip[this.userShipType][
     //     ((this.currentFighterShade * 10) / PlayerSprite.DROTATE) %
     //       PlayerSprite.NROTATIONS
     //   ],
@@ -1425,11 +1378,10 @@ export class Game {
     }
   }
 
-  usePowerup(powerupType, upgradeLevel, toUserId, sessionId = 0, gameId = 0) {
+  usePowerup(powerupType, upgradeLevel, toUserId) {
     // stream.writeByte(107);
     const packet = {
       type: "sendPowerup",
-      sessionId,
       // powerupType,
       // TODO - only send nukes
       powerupType: 14,
@@ -1440,12 +1392,11 @@ export class Game {
     // monitorexit(super.m_logic.getNetwork())
   }
 
-  sendGameOver(sessionId, killedBy) {
+  sendUserDestroyed(killedBy) {
     // send a packet showing that the game is over
     // stream.writeByte(110);
     const packet = {
-      type: "userDeath",
-      sessionId,
+      type: "userDestroyed",
       killedBy,
     };
     this.gameNetLogic.network.socket.send(JSON.stringify(packet));
@@ -1524,8 +1475,8 @@ export class Game {
       // userState communicates the health and the powerups
       // that a user has
       case "userState": {
-        let sessionId = gamePacket.sessionId;
-        if (sessionId != this.sessionId && !this.gameOver) {
+        // don't update if it is a game over
+        if (this.gameOver) {
           return;
         }
 
@@ -1557,72 +1508,66 @@ export class Game {
         break;
       }
 
-      // receive a packet for non-team game
-      case "gameOverIndividual": {
-        const userId = gamePacket.userId;
-        const user = this.gameNetLogic.clientUserManager.users.get(userId);
-        if (this.gameNetLogic.userId == userId) {
-          this.winningUserString = "YOU WON";
-        } else {
-          this.winningUserString = `${user.username} WON`;
-        }
-        user.wins++;
-        user.gameOver = true;
-        this.refreshUserBar = true;
-        break;
-      }
+      // combine these two and check whether it is a team room
+      case "gameEnd": {
+        const isTeamRoom = gamePacket.isTeamRoom;
+        const winnerSlot = gamePacket.winnerSlot;
 
-      case "gameOverTeam": {
-        const userId = gamePacket.userId;
-        const thisUser = this.gameNetLogic.clientUserManager.users.get(userId);
         const room = this.gameNetLogic.clientRoomManager.getRoomById(
           this.gameNetLogic.roomId
         );
-        let teamId = gamePacket.teamId;
-        this.winningUserString = `${CFSkin.TEANAMES[teamId]} WON`;
-        if (thisUser.teamId == teamId) {
-          thisUser.wins++;
-          thisUser.gameOver = true;
+
+        this.mode = "gameOver";
+        this.gameOverCycle = 0;
+
+        // check if it is a team room
+        if (isTeamRoom) {
+          // TODO - implement teams
+          // set the winning team
+          // get the winning team and then display the winning team's name
         } else {
-          for (let i = 0; i < room.userIds.length; i++) {
-            if (room.userIds[i] != null) {
-              const user = this.gameNetLogic.clientUserManager.users.get(
-                room.userIds[i]
-              );
-              if (user.teamId == teamId) {
-                user.wins++;
-                user.gameOver = true;
-              }
-            }
+          // not a team room
+          // get the winning user's id
+          const winningUserId = room.getUserId(winnerSlot);
+          const winningUser =
+            this.gameNetLogic.clientUserManager.users.get(winningUserId);
+          if (this.gameNetLogic.userId === winningUser.userId) {
+            this.winningUserString = "YOU WON";
+          } else {
+            this.winningUserString = `${winningUser.username} WON`;
           }
+          winningUser.wins++;
+          winningUser.gameOver = true;
+          this.refreshUserBar = true;
         }
-        this.refreshUserBar = true;
         break;
       }
 
-      case "killUser": {
-        let deceasedUserId = gamePacket.deceasedUserId;
-        let killerUserId = gamePacket.killerUserId;
-        const deceasedUser =
-          this.gameNetLogic.clientUserManager.users.get(deceasedUserId);
-        const killerUser =
-          this.gameNetLogic.clientUserManager.users.get(killerUserId);
+      case "userDestroyed": {
+        let destroyedUserId = gamePacket.destroyedUserId;
+        const destroyedUser =
+          this.gameNetLogic.clientUserManager.users.get(destroyedUserId);
 
-        if (deceasedUserId == this.gameNetLogic.userId) {
-          deceasedUser.gameOver = true;
+        // now we get slots
+        const killerUserSlot = gamePacket.killerSlot;
+        const room = this.gameNetLogic.clientRoomManager.getRoomById(
+          this.gameNetLogic.roomId
+        );
+        const killerUserId = room.getUser(killerUserSlot);
+
+        destroyedUser.gameOver = true;
+        if (destroyedUserId == this.gameNetLogic.userId) {
           return;
         }
-
-        const user =
-          this.gameNetLogic.clientUserManager.users.get(deceasedUserId);
-        deceasedUser.gameOver = true;
-        deceasedUser.refresh = true;
-        if (deceasedUser.portalSprite != null) {
-          deceasedUser.portalSprite.killSelf();
+        destroyedUser.refresh = true;
+        if (destroyedUser.portalSprite != null) {
+          destroyedUser.portalSprite.killSelf();
         }
-        deceasedUser.healthPercent = 0;
+        destroyedUser.healthPercent = 0;
 
         if (killerUserId == this.gameNetLogic.userId) {
+          const killerUser =
+            this.gameNetLogic.clientUserManager.users.get(killerUserId);
           killerUser.kills++;
         }
 
@@ -1634,13 +1579,11 @@ export class Game {
         const powerupType = gamePacket.powerupType;
         const fromUserId = gamePacket.fromUserId;
         const toUserId = gamePacket.toUserId;
-        const sessionId = gamePacket.sessionId;
         // b2 is always set to 0
         const byte9 = gamePacket.b2;
 
         // check that the game is not over for now
         if (this.gameOver) {
-          // if (sessionId != this.sessionId && !this.gameOver) {
           return;
         }
 
@@ -1666,48 +1609,20 @@ export class Game {
         );
         break;
       }
-
-      // case "userWins":
-      //   let numUsers = gamePacket.numUsers;
-      //   for (let i = 0; i < numUsers; i++) {
-      //     let slot = gamePacket.slot[i];
-      //     let winCount = gamePacket.winCount[i];
-      //     let translateSlot = this.translateSlot(slot);
-      //     let userInfo = this.userStates[translateSlot];
-      //     userInfo.wins = winCount;
-      //     this.refreshUserBar = true;
-      //   }
-      //   break;
-
-      // case "slotTeamId":
-      //   slot = gamePacket.slot;
-      //   teamId = gamePacket.teamId;
-      //   if (slot == this.slot) {
-      //     this.teamId = teamId;
-      //   } else {
-      //     let translateSlot = this.translateSlot(slot);
-      //     let userInfo = this.userStates[translateSlot];
-      //     userInfo.teamId = teamId;
-      //     userInfo.refresh = true;
-      //   }
-      //   this.refreshUserBar = true;
-      //   break;
     }
   }
 
   // combination of writeState and updateState
   /**
    * Send the user's current information
-   * @param {uuid} sessionId
    */
-  sendState(sessionId) {
+  sendState() {
     // stream.writeByte(106);
     // get the state from the clientUser
     const user = this.gameNetLogic.clientUserManager.users.get(
       this.gameNetLogic.userId
     );
     const packet = user.getUserState();
-    packet.sessionId = sessionId;
     this.gameNetLogic.network.socket.send(JSON.stringify(packet));
   }
 
@@ -1716,7 +1631,6 @@ export class Game {
     // stream.writeByte(109);
     const packet = {
       type: "userEvent",
-      // sessionId,
       eventString: `${this.gameNetLogic.username} ${eventString}`,
     };
     this.gameNetLogic.network.socket.send(JSON.stringify(packet));
@@ -1774,7 +1688,9 @@ export class Game {
           // get the user with the userId
           user = this.gameNetLogic.clientUserManager.users.get(room.userIds[i]);
           if (forceRefresh || user.refresh) {
-            let n = 49 + user.userHeight * yOffset;
+            // why offset by 49?
+            // let n = 49 + user.userHeight * yOffset;
+            let n = user.userHeight * yOffset;
             // user.setDrawLocation(n, user.userHeight - 1);
             context.translate(0, n);
             user.draw(context, 143, user.userHeight - 1);

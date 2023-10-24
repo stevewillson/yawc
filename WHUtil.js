@@ -15,8 +15,9 @@ export class WHUtil {
     [60, 60, 40, 60],
     [60, 60, 60, 40],
   ];
+
   static randInt(number = Number.MAX_SAFE_INTEGER) {
-    return parseInt(Math.random() * Number.MAX_SAFE_INTEGER) % number;
+    return Math.floor(Math.random() * number);
   }
 
   static createPolygon(points) {

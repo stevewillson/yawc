@@ -24,48 +24,6 @@ export class ClientUser {
   static POWERUP_LEN = 10;
   static POWERUP_DISPLAY_TIMEOUT = 10000;
 
-  refresh;
-
-  username;
-  userId;
-
-  roomId;
-  rank;
-  icons;
-  clan;
-  bIgnored;
-  userPanel;
-  shipType;
-
-  portalSprite;
-
-  gameOver;
-  wins;
-  kills;
-
-  width;
-  height;
-  teamId;
-
-  myHeight;
-  cx;
-  cy;
-  imgPowerups;
-  offsetCycle;
-  y;
-  h;
-
-  powerups;
-  numPowerups;
-
-  healthPercent;
-  oldHealth;
-  color;
-  slot;
-  game;
-
-  userSprite;
-
   constructor(gameNetLogic) {
     this.gameNetLogic = gameNetLogic;
 
@@ -88,9 +46,26 @@ export class ClientUser {
     this.powerupTimeouts = new Array(6);
     this.colors = new SpriteColors();
     this.reset();
-    // this.imgPowerups = (Image[])WormholeModel.g_mediaTable.get("img_smallpowerups");
     this.myHeight = 158;
     this.userHeight = 60;
+
+    this.roomId = undefined;
+    this.rank = undefined;
+    this.icons = undefined;
+    this.clan = undefined;
+    this.ignored = false;
+    this.shipType = undefined;
+
+    this.gameOver = undefined;
+    this.width = undefined;
+    this.height = undefined;
+    this.teamId = undefined;
+    this.offsetCycle = undefined;
+    this.healthPercent = undefined;
+    this.color = undefined;
+    this.oldHealth = undefined;
+    this.slot = undefined;
+    this.userSprite = undefined;
   }
 
   /**
@@ -131,8 +106,8 @@ export class ClientUser {
   }
 
   getUserState() {
-    let healthPercent =
-      (100 * this.userSprite.health) / this.userSprite.MAX_HEALTH;
+    let healthPercent = (100 * this.userSprite.health) /
+      this.userSprite.MAX_HEALTH;
     const packet = {
       type: "userState",
       userId: this.userId,
@@ -192,7 +167,7 @@ export class ClientUser {
       width,
       height,
       this.color,
-      this.gameOver ? "gray" : this.offsetCycle == 30 ? "orange" : "black"
+      this.gameOver ? "gray" : this.offsetCycle == 30 ? "orange" : "black",
     );
     context.font = "12px Helvetica";
     context.fillStyle = "white";
@@ -203,7 +178,7 @@ export class ClientUser {
           ? this.username.substring(0, 11)
           : this.username,
         30,
-        11
+        11,
       );
     }
     // TODO
@@ -233,7 +208,7 @@ export class ClientUser {
         34 + i * 21,
         29,
         imgWidth,
-        imgHeight - 2
+        imgHeight - 2,
       );
     }
     let n3 = width - 10;
@@ -302,7 +277,7 @@ export class ClientUser {
         8,
         8,
         ClientRoomManager.TEAM_COLORS[teamNum],
-        ClientRoomManager.TEAM_BG_COLORS[teamNum]
+        ClientRoomManager.TEAM_BG_COLORS[teamNum],
       );
     } else {
       WHUtil.drawBoundCircle(
@@ -311,7 +286,7 @@ export class ClientUser {
         y,
         10,
         ClientRoomManager.TEAM_COLORS[teamNum],
-        ClientRoomManager.TEAM_BG_COLORS[teamNum]
+        ClientRoomManager.TEAM_BG_COLORS[teamNum],
       );
     }
   }

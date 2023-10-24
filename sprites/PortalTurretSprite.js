@@ -1,32 +1,48 @@
+import { RotationalPolygon } from "../RotationalPolygon.js";
 import { WHUtil } from "../WHUtil.js";
 import { BulletSprite } from "./BulletSprite.js";
+import { PowerupSprite } from "./PowerupSprite.js";
 import { Sprite } from "./Sprite.js";
 
 export class PortalTurretSprite extends Sprite {
-  g_points;
-  g_turretPoints;
-  rPoly;
-  rTurretPoly;
-  shotDelay;
-  portal;
-  static TURRET_ORBIT_DISTANCE = 115;
   static TURRET_ATTACK_DISTANCE = 260;
   static TURRET_ATTACK_DELAY = 16;
   static TURRET_D_ANGLE = 1;
-  orbitAngle;
   static points = [
-    [-28, 0, 1],
-    [-7, -25, 0],
-    [30, -40, 1],
-    [15, -10, 0],
-    [15, 10, 0],
-    [30, 40, 1],
-    [-7, 25, 0],
+    { x: -28, y: 0 },
+    { x: -7, y: -25 },
+    { x: 30, y: -40 },
+    { x: 15, y: -10 },
+    { x: 15, y: 10 },
+    { x: 30, y: 40 },
+    { x: -7, y: 25 },
   ];
   static turretPoints = [
-    [0, -11],
-    [0, 11],
+    { x: 0, y: -11 },
+    { x: 0, y: 11 },
   ];
+  constructor(portal, game) {
+    super(portal.x, portal.y, game);
+    this.portal = portal;
+    this.game = game;
+    this.x = portal.x;
+    this.y = portal.y;
+    this.rotationalPolygon = new RotationalPolygon(PortalTurretSprite.points);
+    this.rTurretPoly = new RotationalPolygon(PortalTurretSprite.turretPoints);
+    this.calcOrbit();
+    this.init("trt", this.x, this.y, true);
+    super.spriteType = 1;
+    this.setHealth(50);
+    this.damage = 7;
+    this.shapeType = 1;
+    this.powerupType = 7;
+
+    this.shotDelay = PortalTurretSprite.TURRET_ATTACK_DELAY;
+    this.orbitAngle = undefined;
+
+    // TODO - debug why the angle is not set
+    this.radAngle = 0;
+  }
 
   behave() {
     super.behave();
@@ -39,10 +55,10 @@ export class PortalTurretSprite extends Sprite {
   }
 
   calcOrbit() {
-    this.orbitAngle = super.radAngle + 1.5707963267948966;
+    this.orbitAngle = this.radAngle + 1.5707963267948966;
     this.setLocation(
-      int(this.portal.x + 115 * Math.cos(this.orbitAngle)),
-      int(this.portal.y + 115 * Math.sin(this.orbitAngle))
+      this.portal.x + 115 * Math.cos(this.orbitAngle),
+      this.portal.y + 115 * Math.sin(this.orbitAngle),
     );
   }
 
@@ -51,46 +67,28 @@ export class PortalTurretSprite extends Sprite {
     this.calcOrbit();
   }
 
-  constructor(portal, game) {
-    super(0, 0, game);
-    this.x = 0;
-    this.y = 0;
-    this.game = game;
-    this.rPoly = new RotationalPolygon(PortalTurretSprite.g_points);
-    this.rTurretPoly = new RotationalPolygon(PortalTurretSprite.g_turretPoints);
-    this.portal = portal;
-    this.calcOrbit();
-    this.init("trt", this.x, this.y, true);
-    super.spriteType = 1;
-    this.setHealth(50, 7);
-    super.shapeType = 1;
-    super.polygon = this.rPoly.polygon;
-    super.powerupType = 7;
-  }
-
   drawSelf(context) {
     super.drawSelf(context);
     context.translate(this.x, this.y);
     for (let i = 0; i < this.rTurretPoly.polygon.npoints; i++) {
-      let x = this.rTurretPoly.poly.xpoints[i];
-      let y = this.rTurretPoly.poly.ypoints[i];
+      let x = this.rTurretPoly.polygon.xpoints[i];
+      let y = this.rTurretPoly.polygon.ypoints[i];
       context.fillStyle = this.color;
-      context.strokeStyle = this.color;
 
       context.beginPath();
       context.arc(x, y, 8, 0, 2 * Math.PI);
       context.fill();
 
       let n3 = WHUtil.findAngle(
-        Sprite.model.player.x,
-        Sprite.model.player.y,
-        n + this.x,
-        n2 + this.y
+        this.game.user.userSprite.x,
+        this.game.user.userSprite.y,
+        x + this.x,
+        y + this.y,
       );
       context.fillStyle = "black";
 
       context.beginPath();
-      // context.lineWidth = 1;
+      context.lineWidth = 1;
       context.arc(x, y, 8, -n3 - Math.PI / 9, (2 * Math.PI) / 9);
       context.fill();
     }
@@ -102,7 +100,7 @@ export class PortalTurretSprite extends Sprite {
         this.portal.x + 115 * Math.sin(this.orbitAngle + i * 0.1),
         3,
         0,
-        2 * Math.PI
+        2 * Math.PI,
       );
       context.fill();
     }
@@ -113,11 +111,11 @@ export class PortalTurretSprite extends Sprite {
       this.shotDelay--;
     }
     if (
-      this.bInDrawingRect &&
+      this.inDrawingRect &&
       this.shotDelay <= 0 &&
       WHUtil.distanceFrom(this, Sprite.model.player) < 260
     ) {
-      if (Sprite.model.player == null) {
+      if (this.game.user.userSprite == null) {
         return;
       }
       let calcLead = this.calcLead();
@@ -126,15 +124,16 @@ export class PortalTurretSprite extends Sprite {
         let bulletSprite = new BulletSprite(
           this.rTurretPoly.polygon.xpoints[i] + this.x,
           this.rTurretPoly.polygon.ypoints[i] + this.y,
+          this.game,
           1,
           10,
-          super.color,
-          1
+          this.color,
+          1,
         );
         bulletSprite.setSentByEnemy(super.slot, 7);
         bulletSprite.setVelocity(
           8 * WHUtil.scaleVector(calcLead.x, calcLead.y),
-          8 * WHUtil.scaleVector(calcLead.y, calcLead.x)
+          8 * WHUtil.scaleVector(calcLead.y, calcLead.x),
         );
         bulletSprite.addSelf();
       }
@@ -143,23 +142,22 @@ export class PortalTurretSprite extends Sprite {
 
   setCollided(collided) {
     super.setCollided(collided);
-    if (super.shouldRemoveSelf) {
+    if (this.shouldRemoveSelf) {
       this.killSelf(20, 10);
-      PowerupSprite.genPowerup(this.x, this.y).addSelf();
-      PowerupSprite.genPowerup(this.x, this.y).addSelf();
+      new PowerupSprite.genPowerup(this.x, this.y).addSelf();
+      new PowerupSprite.genPowerup(this.x, this.y).addSelf();
     }
   }
 
   setDegreeAngle(degreeAngle) {
     super.setDegreeAngle(degreeAngle);
-    this.rPoly.setAngle(super.radAngle);
-    this.rTurretPoly.setAngle(super.radAngle);
-    super.polygon = this.rPoly.polygon;
+    this.rotationalPolygon.setAngle(this.radAngle);
+    this.rTurretPoly.setAngle(this.radAngle);
   }
 
   getShapeRect() {
-    bounds = this.polygon.getBounds();
-    bounds.move(this.x - bounds.width / 2, this.y - bounds.height / 2);
+    let bounds = this.getPolygon().bounds;
+    bounds.setLocation(this.x - bounds.width / 2, this.y - bounds.height / 2);
     return bounds;
   }
 }

@@ -53,7 +53,8 @@ export class PowerupSprite extends Sprite {
     this.init("pup", x, y, true);
     this.spriteType = 1;
     this.shapeRect = new Rectangle(x - 17, y - 17, 34, 34);
-    this.setHealth(10, 0);
+    this.setHealth(10);
+    this.damage = 0;
     this.powerupType = powerupType;
     this.indestructible = true;
     this.colors = game.colors;

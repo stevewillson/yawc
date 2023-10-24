@@ -3,35 +3,20 @@ import { ClientUserManager } from "./ClientUserManager.js";
 import { Network } from "./Network.js";
 
 export class GameNetLogic {
-  userId;
-  roomId;
-
-  network;
-
-  gamePanel;
-
-  username;
-  host;
-  NOOP_DURATION;
-  htLoadedIcons;
-  htUnloadedIcons;
-  lastWhisperer;
-
-  // used to track the users and rooms clientside
-  clientUserManager;
-  clientRoomManager;
-
   constructor(gamePanel) {
-    this.htLoadedIcons = new Map();
-    this.htUnloadedIcons = new Map();
-
     this.gamePanel = gamePanel;
 
     this.icons = ["icon1", "icon2"];
 
     // create the client user and room managers
+    // used to track the users and rooms clientside
     this.clientUserManager = new ClientUserManager(this);
     this.clientRoomManager = new ClientRoomManager(this);
+
+    this.userId = undefined;
+    this.roomId = undefined;
+    this.lastWhisperer = undefined;
+    this.network = undefined;
   }
 
   // login
@@ -78,27 +63,41 @@ export class GameNetLogic {
     this.clientRoomManager.setRoomStatus(roomId, status, countdown);
 
     switch (status) {
-      case "delete": {
-        // remove the table if it should be deleted
-        this.clientRoomManager.removeRoom(roomId);
-      }
       case "playing": {
         if (this.roomId == roomId) {
           this.gamePanel.roomPanel.setInCountdown(false, countdown);
-          return;
         }
         break;
       }
+
       case "countdown": {
         if (this.roomId == roomId) {
           // play a "weapon firing" sound
           // GameBoard.playSound("snd_fire");
           // set the room in the countdown phase if it is the room we are in
           this.gamePanel.roomPanel.setInCountdown(true, countdown);
-          return;
         }
         break;
       }
+
+      // we also set that the game is over when receiving a "gameEnd" packet
+      // this is sent through a room status change
+      case "gameOver": {
+        if (this.roomId === roomId) {
+          // set the game status to gameOver
+          this.gamePanel.roomPanel.game.gameOver = true;
+        }
+        break;
+      }
+
+      case "delete": {
+        // remove the table if it should be deleted
+        this.clientRoomManager.removeRoom(roomId);
+        break;
+      }
+
+      default:
+        break;
     }
   }
 
@@ -199,7 +198,7 @@ export class GameNetLogic {
       // user has received a powerup
       case "receivePowerup":
       case "userState":
-      case "gameOver":
+      case "userDestroyed":
       case "gameEnd":
         this.gamePanel.roomPanel.game.handleGamePacket(packetJSON);
         break;

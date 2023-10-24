@@ -42,7 +42,7 @@ export class ClientRoomManager {
       // go through the userlist and add the user's to the room
       for (let i = 0; i < roomPacket.userIds.length; i++) {
         const user = this.gameNetLogic.clientUserManager.users.get(
-          roomPacket.userIds[i]
+          roomPacket.userIds[i],
         );
         if (user != undefined && user != null) {
           this.addUserToRoom(
@@ -50,7 +50,7 @@ export class ClientRoomManager {
             user.userId,
             i,
             user.shipType,
-            user.teamId
+            user.teamId,
           );
         }
       }
@@ -141,7 +141,7 @@ export class ClientRoomManager {
 
     // also set the html of the room?
     const roomSlotElement = document.getElementById(
-      `${user.roomId}-slot${user.slot}`
+      `${user.roomId}-slot${user.slot}`,
     );
     roomSlotElement.innerHTML = "Open Slot";
     // remove the background color from the element

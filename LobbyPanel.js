@@ -32,11 +32,11 @@ export class LobbyPanel {
     this.gameNetLogic = gamePanel.gameNetLogic;
     this.roomListPanel = new RoomListPanel(
       this.gamePanel,
-      this.gameNetLogic.clientRoomManager
+      this.gameNetLogic.clientRoomManager,
     );
     this.userListPanel = new UserListPanel(
       this.gamePanel,
-      this.gameNetLogic.clientUserManager
+      this.gameNetLogic.clientUserManager,
     );
     this.chatPanel = new ChatPanel(this.gamePanel);
   }

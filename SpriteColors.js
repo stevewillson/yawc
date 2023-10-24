@@ -22,7 +22,10 @@ export class SpriteColors {
       for (let j = 0; j < 20; j++) {
         let hue = this.types[i][0];
         let saturation = this.types[i][1];
-        let lighteness = 1 - j * 0.04;
+        // for the lighteness
+        // go between 75 and 25
+        // let lighteness = 1 - j * 0.04;
+        let lighteness = 0.75 - j * 0.02;
         this.colors[i][j] = `hsl(${hue}turn ${saturation * 100}% ${
           lighteness * 100
         }%)`;

@@ -1,24 +1,26 @@
+import { RotationalPolygon } from "../RotationalPolygon.js";
 import { WHUtil } from "../WHUtil.js";
 import { PowerupSprite } from "./PowerupSprite.js";
 import { Sprite } from "./Sprite.js";
 
 export class InflatorSprite extends Sprite {
-  inflationSize;
-  maxAttackDistance = 100;
-  perceivedSize;
-
   constructor(x, y, game) {
     super(x, y, game);
     this.x = x;
     this.y = y;
-    this.init("inf", x, y, true);
+    super.init("inf", x, y, true);
     this.spriteType = 1;
+
     this.polygon = WHUtil.symPolygon(8, 30, 0);
     this.shapeType = 1;
-    this.setHealth(30, 15);
+    super.setHealth(30);
+    this.damage = 15;
     this.perceivedSize = 20;
     this.powerupType = 10;
-    this.shapeRect = this.getShapeRect();
+
+    this.inflationSize = undefined;
+    this.perceivedSize = undefined;
+    this.maxAttackDistance = 100;
   }
 
   setCollided(collided) {
@@ -53,7 +55,7 @@ export class InflatorSprite extends Sprite {
   }
 
   getShapeRect() {
-    let bounds = this.polygon.getBounds();
+    let bounds = this.polygon.bounds;
     bounds.setLocation(this.x - bounds.width / 2, this.y - bounds.height / 2);
     return bounds;
   }

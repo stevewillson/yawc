@@ -17,6 +17,7 @@ export class ServerRoom {
   userIds;
   numSlots;
   gameOver;
+  winnerSlot;
 
   constructor(
     isRanked,
@@ -42,7 +43,7 @@ export class ServerRoom {
     this.gameOver = false;
 
     this.numSlots = isBigRoom ? 8 : 4;
-    // TODO - store users by userid
+    // store users by userid
     this.userIds = [];
     this.wins = [];
 

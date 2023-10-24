@@ -100,13 +100,13 @@ export class Server {
   }
 
   // b2 is set to 0
-  broadcastPowerup(roomId, powerupType, fromUserId, toUserId, sessionId, b2) {
+  broadcastPowerup(roomId, powerupType, fromUserId, toUserId, b2) {
     const room = this.roomManager.rooms.get(roomId);
     room.userIds.forEach((userId) => {
       if (userId != null) {
         const user = this.userManager.users.get(userId);
         const client = this.clients.get(user.clientId);
-        client.sendPowerup(powerupType, fromUserId, toUserId, sessionId, b2);
+        client.sendPowerup(powerupType, fromUserId, toUserId, b2);
       }
     });
   }
@@ -114,7 +114,7 @@ export class Server {
   broadcastUserState(
     roomId,
     userStateId,
-    // gameSession,
+    // ,
     slot,
     healthPercent,
     powerups,
@@ -127,7 +127,6 @@ export class Server {
         const client = this.clients.get(user.clientId);
         client.sendUserState(
           userStateId,
-          // gameSession,
           slot,
           healthPercent,
           powerups,
@@ -137,24 +136,24 @@ export class Server {
     });
   }
 
-  broadcastUserEvent(roomId, gameSession, eventString) {
+  broadcastUserEvent(roomId, eventString) {
     const room = this.roomManager.rooms.get(roomId);
     room.userIds.forEach((userId) => {
       if (userId != null) {
         const user = this.userManager.users.get(userId);
         const client = this.clients.get(user.clientId);
-        client.sendUserEvent(gameSession, eventString);
+        client.sendUserEvent(eventString);
       }
     });
   }
 
-  broadcastGameOver(roomId, gameSession, deceasedSlot, killerSlot) {
+  broadcastUserDestroyed(roomId, destroyedUserId, killerSlot) {
     const room = this.roomManager.rooms.get(roomId);
     room.userIds.forEach((userId) => {
       if (userId != null) {
         const user = this.userManager.users.get(userId);
         const client = this.clients.get(user.clientId);
-        client.sendGameOver(gameSession, deceasedSlot, killerSlot);
+        client.sendUserDestroyed(destroyedUserId, killerSlot);
       }
     });
   }

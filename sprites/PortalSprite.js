@@ -51,7 +51,7 @@ export class PortalSprite extends Sprite {
     this.currentDegrees;
     this.currentArcs;
     this.ARC_SPEED = 0.5;
-    this.genEnemy = false;
+    this.shouldGenEnemy = false;
     this.BASE_W = 30;
     this.MAX_W = 60;
     this.damageTaken = 0;
@@ -90,9 +90,9 @@ export class PortalSprite extends Sprite {
     if (!this.bWarpingIn) {
       this.setLocation(
         this.game.orbitDistance * Math.cos(this.currentArcs) +
-          this.game.worldCenter.x,
+          this.game.world.width / 2,
         this.game.orbitDistance * Math.sin(this.currentArcs) +
-          this.game.worldCenter.y
+          this.game.world.height / 2
       );
       this.currentDegrees += 0.5;
       this.currentDegrees %= 360;
@@ -101,8 +101,8 @@ export class PortalSprite extends Sprite {
     }
     if (this.warpDist < this.game.orbitDistance) {
       this.setLocation(
-        this.warpDist * Math.cos(this.currentArcs) + this.game.worldCenter.x,
-        this.warpDist * Math.sin(this.currentArcs) + this.game.worldCenter.y
+        this.warpDist * Math.cos(this.currentArcs) + this.game.world.width / 2,
+        this.warpDist * Math.sin(this.currentArcs) + this.game.world.height / 2
       );
       this.warpDist += Math.max(6, this.game.orbitDistance - this.warpDist) / 3;
       return;
@@ -231,7 +231,7 @@ export class PortalSprite extends Sprite {
   }
 
   setCollided(sprite) {
-    if (sprite.bIsBullet) {
+    if (sprite.isBullet) {
       sprite.shouldRemoveSelf = true;
       sprite.setCollided(this);
       this.damageTaken += sprite.damage;
@@ -241,7 +241,7 @@ export class PortalSprite extends Sprite {
         powerupSprite.addSelf();
         this.damageTaken = 0;
       }
-      if (sprite.bIsHeatSeeker) {
+      if (sprite.isHeatSeeker) {
         return;
       }
       let bulletSprite = sprite;
@@ -255,9 +255,7 @@ export class PortalSprite extends Sprite {
         this.game.usePowerup(
           bulletSprite.powerupType,
           bulletSprite.upgradeLevel,
-          this.user.userId,
-          this.game.sessionId,
-          this.game.gameId
+          this.user.userId
         );
       }
     }
@@ -280,10 +278,11 @@ export class PortalSprite extends Sprite {
   genNuke(x, y, userId) {
     // get the user's slot from the userId
     const user = this.game.gameNetLogic.clientUserManager.users.get(userId);
-    const nukeSprite = new NukeSprite(this.x, this.y, user.slot, this.game);
+    const nukeSprite = new NukeSprite(this.x, this.y, this.game);
+    nukeSprite.setUser(userId);
     nukeSprite.setVelocity(
-      (x - this.game.boardCenter.x) / 125,
-      (y - this.game.boardCenter.y) / 125
+      (x - this.game.board.width / 2) / 125,
+      (y - this.game.board.height / 2) / 125
     );
     nukeSprite.addSelf();
   }
@@ -296,11 +295,22 @@ export class PortalSprite extends Sprite {
   behave() {
     super.behave();
     this.setOrbit();
-    if (this.genEnemy) {
+    if (this.shouldGenEnemy) {
       // DEBUG - generate this type of enemy
       // new GunshipSprite(this.x, this.y, this.game).addSelf();
-      // this.genEnemy = false;
+      // this.shouldGenEnemy = false;
       // return;
+      let sprite;
+      sprite = new PortalTurretSprite(this, this.game);
+
+      // sprite.setUser(userId);
+      sprite.slot = 8;
+      sprite.color = this.game.colors.colors[sprite.slot][0];
+
+      sprite.setDegreeAngle(WHUtil.randInt(360));
+      sprite.addSelf();
+      this.shouldGenEnemy = false;
+      return;
       // END DEBUG
 
       switch (WHUtil.randInt(5)) {
@@ -319,8 +329,11 @@ export class PortalSprite extends Sprite {
           break;
         }
       }
-      this.genEnemy = false;
+      this.shouldGenEnemy = false;
     }
+
+    // DEBUG - generate a portal sprite
+    // this.powerupQ[0] = 7;
 
     // use the powerupCycleQ
     // iterate i from 0 to 29

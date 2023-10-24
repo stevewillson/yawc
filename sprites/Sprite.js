@@ -3,36 +3,6 @@ import { WHUtil } from "../WHUtil.js";
 import { Polygon } from "../Polygon.js";
 
 export class Sprite {
-  static REBOUND_COEFF = -0.5;
-
-  polygon;
-  name;
-  type;
-  shapeRect;
-
-  bZappable;
-
-  isInDrawingRect;
-  spriteType;
-  powerupType;
-
-  collisionType;
-  bIsBulthis;
-  bIsHeatSeeker;
-  setByUser;
-  shouldRemoveSelf;
-
-  maxThrust;
-  maxVelocity;
-  bUseHealth;
-  collidedObject;
-
-  thrust;
-  leadPoint;
-
-  MAX_HEALTH;
-  images;
-
   constructor(x, y, game) {
     /** @type {number} horizontal location */
     this.x = x;
@@ -45,6 +15,9 @@ export class Sprite {
     /** @type {number} slot for the sprite, defaults to 8 */
     this.slot = 8;
 
+    /** @type {color} set the color based off of the slot */
+    this.color = this.game.colors.colors[this.slot][0];
+
     /** @type {number} rotation degrees */
     this.dRotate = 0;
     /** @type {Boolean} is the sprite rotating */
@@ -55,6 +28,8 @@ export class Sprite {
 
     /** @type {Boolean} is the sprite bounded */
     this.bounded = false;
+
+    this.shapeRect = new Rectangle(this.x, this.y, 0, 0);
 
     // set up the shape rect for the sprite, use the x,y coordinates and then offset by the bounding box of the polygon
     // this.shapeRect;
@@ -83,21 +58,22 @@ export class Sprite {
     this.health = 1;
     this.damage = 1;
 
-    // this.heights;
-    // this.widths;
-    this.numImages = 0;
-    this.currentFrame = 0;
-    // this.cachedWidth;
-    // this.cachedHeight;
     this.shouldRemoveSelf = false;
 
+    // set initial values for variables
+    this.maxThrust = undefined;
+    this.thrust = undefined;
+
+    this.useHealth = false;
+    this.spriteType = undefined;
+    this.spriteName = undefined;
+
+    this.collidedObject = undefined;
+    this.rotationalPolygon = undefined;
+    this.leadPoint = undefined;
+
     // need to have a secure browser context to use this method
-
     this.spriteId = crypto.randomUUID();
-  }
-
-  getShapeRect() {
-    return this.shapeRect;
   }
 
   /**
@@ -136,11 +112,9 @@ export class Sprite {
     }
   }
 
-  handleCrash() {}
-
   reverseTrack() {
     const user = this.game.gameNetLogic.clientUserManager.users.get(
-      this.game.gameNetLogic.userId
+      this.game.gameNetLogic.userId,
     );
     realTrack(user.userSprite.x, user.userSprite.y, true);
   }
@@ -180,20 +154,23 @@ export class Sprite {
     this.setVelocity(vx, vy);
   }
 
+  /**
+   * Remove the sprite from the appropriate array
+   */
   removeSelf() {
     // remove sprites with a matching spriteId
     this.game.allSprites = this.game.allSprites.filter(
-      (el) => el.spriteId != this.spriteId
+      (el) => el.spriteId != this.spriteId,
     );
     switch (this.spriteType) {
       case 1:
         this.game.badGuys = this.game.badGuys.filter(
-          (el) => el.spriteId != this.spriteId
+          (el) => el.spriteId != this.spriteId,
         );
         break;
       case 2:
         this.game.goodGuys = this.game.goodGuys.filter(
-          (el) => el.spriteId != this.spriteId
+          (el) => el.spriteId != this.spriteId,
         );
         break;
     }
@@ -216,6 +193,12 @@ export class Sprite {
     this.vx *= decelAmount;
     this.vy *= decelAmount;
   }
+
+  // TODO - redefined by WallCrawlerSprite to make sure the wall
+  // crawlers change directions when they hit the sidewall
+  // also implemented by HeatSeekerMissile
+  handleCrash() {}
+
   /**
    * Change the sprite's location by the current velocity
    * @param {number} vx - x velocity
@@ -233,7 +216,7 @@ export class Sprite {
       // moving the shaperect, for use in collisions?
       this.shapeRect.setLocation(
         this.x - this.shapeRect.width / 2,
-        this.y - this.shapeRect.height / 2
+        this.y - this.shapeRect.height / 2,
       );
     } else {
       // if there is no shapeRect, create one around where the object is located
@@ -252,8 +235,12 @@ export class Sprite {
     this.move(this.vx, this.vy);
     this.spriteCycle++;
     if (
-      this.hasCollided ||
-      (!this.bounded && !this.inGlobalBounds(this.x, this.y))
+      this.hasCollided
+      // need to set the global bounds
+      // this caused the thrust to disappear when it was
+      // outside of the GlobalBounds
+      // ||
+      // (!this.bounded && !this.inGlobalBounds(this.x, this.y))
     ) {
       this.shouldRemoveSelf = true;
     }
@@ -269,44 +256,51 @@ export class Sprite {
     this.color = this.game.colors.colors[user.slot][0];
   }
 
+  /**
+   * check if two sprites collide
+   * @param {Object<Sprite>} sprite - use this sprite's shapeRect
+   * @param {Object<Sprite>} sprite2 - use this sprite's polygon
+   * @returns
+   */
   isRectPolyCollision(sprite, sprite2) {
     let shapeRect = sprite.shapeRect;
-    let poly = sprite2.polygon;
-    if (shapeRect == null || poly == null) {
+    let polygon = sprite2.getPolygon();
+    if (shapeRect == null || polygon == null) {
       return false;
     }
     let isCollision = false;
     if (sprite2.getShapeRect().intersects(shapeRect)) {
-      let polygon = new Polygon();
-      for (let i = 0; i < poly.npoints && !isCollision; i++) {
-        polygon.addPoint(
-          poly.xpoints[i] + sprite2.x,
-          poly.ypoints[i] + sprite2.y
+      let newPolygon = new Polygon();
+      for (let i = 0; i < polygon.npoints && !isCollision; i++) {
+        newPolygon.addPoint(
+          polygon.xpoints[i] + sprite2.x,
+          polygon.ypoints[i] + sprite2.y,
         );
         if (
           shapeRect.contains(
-            poly.xpoints[i] + sprite2.x,
-            poly.ypoints[i] + sprite2.y
+            polygon.xpoints[i] + sprite2.x,
+            polygon.ypoints[i] + sprite2.y,
           )
         ) {
-          isCollision = true;
+          return true;
         }
       }
-      if (!isCollision) {
-        isCollision =
-          polygon.contains(shapeRect.x, shapeRect.y) ||
-          polygon.contains(shapeRect.x + shapeRect.width, shapeRect.y) ||
-          polygon.contains(shapeRect.x, shapeRect.y + shapeRect.height) ||
-          polygon.contains(
-            shapeRect.x + shapeRect.width,
-            shapeRect.y + shapeRect.height
-          );
-      }
+      isCollision = newPolygon.contains(shapeRect.x, shapeRect.y) ||
+        newPolygon.contains(shapeRect.x + shapeRect.width, shapeRect.y) ||
+        newPolygon.contains(shapeRect.x, shapeRect.y + shapeRect.height) ||
+        newPolygon.contains(
+          shapeRect.x + shapeRect.width,
+          shapeRect.y + shapeRect.height,
+        );
     }
     return isCollision;
   }
 
-  // handle collisions based on the shape types of the two objects colliding
+  /**
+   * Check if this sprite is in collision with another sprite
+   * @param {Object<Sprite>} sprite
+   * @returns {Boolean} is the sprite in collision
+   */
   isCollision(sprite) {
     switch (sprite.shapeType + this.shapeType) {
       case 0: {
@@ -327,9 +321,13 @@ export class Sprite {
     }
   }
 
+  /**
+   * Calculate the point to aim at to lead a target
+   * @returns {Object<x:number,y:number>} the lead point location
+   */
   calcLead() {
     const user = this.game.gameNetLogic.clientUserManager.users.get(
-      this.game.gameNetLogic.userId
+      this.game.gameNetLogic.userId,
     );
     if (this.leadPoint == null || this.leadPoint === undefined) {
       this.leadPoint = { x: 0, y: 0 };
@@ -340,12 +338,12 @@ export class Sprite {
     return this.leadPoint;
   }
 
+  /**
+   * Rotate the sprite by the specified number of degrees
+   * @param {number} rotationDegrees
+   */
   rotate(rotationDegrees) {
     this.setDegreeAngle(this.angle + rotationDegrees);
-  }
-
-  getShapePoly() {
-    return this.polygon;
   }
 
   drawFlag(paramGraphics, paramColor, paramInt1, paramInt2) {
@@ -356,12 +354,19 @@ export class Sprite {
         paramInt1,
         paramInt2 + 7,
         paramInt1,
-        paramInt2 + 14
+        paramInt2 + 14,
       );
     }
   }
 
-  killSelf(paramInt1, paramInt2) {
+  /**
+   * Set to kill a sprite
+   * TODO - refactor to move the ExplosionSprite and
+   * ParticleSprite to another location
+   * @param {*} particles
+   * @param {*} maxVelocity
+   */
+  killSelf(particles, maxVelocity) {
     this.shouldRemoveSelf = true;
     // let explosionSprite = new ExplosionSprite(
     //   this.x, this.y,
@@ -369,7 +374,7 @@ export class Sprite {
     //   this.slot
     // );
     // explosionSprite.addSelf();
-    if (paramInt1 > 0) {
+    if (particles > 0) {
       // let particleSprite = new ParticleSprite(this.x, this.y);
       // particleSprite.particleInit(paramInt1, paramInt2);
       // particleSprite.addSelf();
@@ -377,7 +382,9 @@ export class Sprite {
   }
 
   drawSelf(context) {
-    let polygon = this.getShapePoly();
+    // handle the case where the sprite does not have a rotational polygon
+    // but just uses a polygon
+    const polygon = this.getPolygon();
 
     // set the color to draw
     if (this.color != null) {
@@ -420,19 +427,29 @@ export class Sprite {
     this.radAngle = this.angle * 0.017453292519943295;
   }
 
+  /**
+   * Set the location of the sprite in x,y
+   * @param {number} x
+   * @param {number} y
+   */
   setLocation(x, y) {
     this.x = x;
     this.y = y;
   }
 
-  setVelocity(x, y) {
-    this.vx = x;
-    this.vy = y;
+  /**
+   * Set the velocity of the sprite
+   * @param {number} vx
+   * @param {number} vy
+   */
+  setVelocity(vx, vy) {
+    this.vx = vx;
+    this.vy = vy;
   }
 
   realTrack(x, y, b) {
     const user = this.game.gameNetLogic.clientUserManager.users.get(
-      this.game.gameNetLogic.userId
+      this.game.gameNetLogic.userId,
     );
     if (user.userSprite.shouldRemoveSelf) {
       return;
@@ -457,11 +474,8 @@ export class Sprite {
     if (!this.indestructible) {
       this.hasCollided = true;
       this.collidedObject = collidedObject;
-      if (this.bUseHealth) {
+      if (this.useHealth) {
         this.changeHealth(-collidedObject.damage);
-        // send the userState with the updated health
-        this.game.sendState();
-
         if (this.health < 1) {
           this.shouldRemoveSelf = true;
         } else {
@@ -471,19 +485,35 @@ export class Sprite {
     }
   }
 
+  /**
+   * There may be two types of polygon for a sprite
+   * RotationalPolygon
+   * Polygon
+   * @returns {Object<Polygon>} that is a polygon representing the sprite
+   */
+  getPolygon() {
+    if (this.rotationalPolygon != undefined) {
+      return this.rotationalPolygon.polygon;
+    } else {
+      return this.polygon;
+    }
+  }
+
   isPolyCollision(sprite) {
     // get the polygon (not the RotationalPolygon)
-    let shapePoly = sprite.getShapePoly().polygon;
-    if (shapePoly == null || this.polygon == null) {
+    const shapePoly = sprite.getPolygon();
+    const thisPolygon = this.getPolygon();
+
+    if (shapePoly == null || thisPolygon == null) {
       return false;
     }
     let n = this.x - sprite.x;
     let n2 = this.y - sprite.y;
-    for (let i = 0; i < this.polygon.npoints; i++) {
+    for (let i = 0; i < thisPolygon.npoints; i++) {
       if (
         shapePoly.contains(
-          this.polygon.xpoints[i] - n,
-          this.polygon.ypoints[i] - n2
+          thisPolygon.xpoints[i] - n,
+          thisPolygon.ypoints[i] - n2,
         )
       ) {
         return true;
@@ -491,15 +521,19 @@ export class Sprite {
     }
     for (let j = 0; j < shapePoly.npoints; j++) {
       if (
-        this.polygon.contains(
+        thisPolygon.contains(
           shapePoly.xpoints[j] + n,
-          shapePoly.ypoints[j] + n2
+          shapePoly.ypoints[j] + n2,
         )
       ) {
         return true;
       }
     }
     return false;
+  }
+
+  getShapeRect() {
+    return this.shapeRect;
   }
 
   isRectCollision(sprite) {
@@ -535,35 +569,46 @@ export class Sprite {
     return false;
   }
 
-  setImages(paramArrayOfImage, paramInt) {
-    this.images = paramArrayOfImage;
-    this.numImages = paramInt;
-    this.cachedWidth = paramArrayOfImage[0].getWidth(null) / 2;
-    this.cachedHeight = paramArrayOfImage[0].getHeight(null) / 2;
-  }
-
+  /**
+   * Set the name, location, and whether the sprite is bounded
+   * @param {string} spriteName
+   * @param {number} x
+   * @param {number} y
+   * @param {Boolean} isBounded
+   */
   init(spriteName, x, y, isBounded) {
+    this.spriteName = spriteName;
     this.setLocation(x, y);
-    this.name = spriteName;
     this.bounded = isBounded;
   }
 
+  /**
+   * track the user's sprite
+   */
   track() {
     const user = this.game.gameNetLogic.clientUserManager.users.get(
-      this.game.gameNetLogic.userId
+      this.game.gameNetLogic.userId,
     );
     if (user.userSprite != null) {
       this.realTrack(user.userSprite.x, user.userSprite.y, false);
     }
   }
 
-  setHealth(health, damage) {
-    this.bUseHealth = true;
+  /**
+   * set the health to the number specified
+   * also sets the MAX_HEALTH to that number
+   * @param {number} health
+   */
+  setHealth(health) {
+    this.useHealth = true;
     this.health = health;
-    this.damage = damage;
-    this.MAX_HEALTH = this.health;
+    this.MAX_HEALTH = health;
   }
 
+  /**
+   * change the sprite's health by the amount specified
+   * @param {number} amount
+   */
   changeHealth(amount) {
     this.health += amount;
     if (this.health < 0) {

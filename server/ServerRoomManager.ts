@@ -81,7 +81,7 @@ export class ServerRoomManager {
     });
   }
 
-  numUsersAlive(roomId) {
+  numUsersAlive(roomId: string) {
     const userIds = this.rooms.get(roomId).userIds;
     let count = 0;
     userIds.forEach((userId) => {
@@ -95,7 +95,7 @@ export class ServerRoomManager {
     return count;
   }
 
-  numUsersAliveForTeam(roomId, teamId: number) {
+  numUsersAliveForTeam(roomId: string, teamId: number) {
     const userIds = this.rooms.get(roomId).userIds;
     let count = 0;
     userIds.forEach((userId) => {
@@ -130,6 +130,7 @@ export class ServerRoomManager {
         const user = this.userManager.users.get(userId);
         if (user.isAlive) {
           room.wins[user.slot]++;
+          room.winnerSlot = user.slot;
         }
       }
     });
@@ -187,8 +188,6 @@ export class ServerRoomManager {
         countdown,
       );
       countdown--;
-      // what is the TS equivalent for sleep?
-      // Thread.sleep(1000);
       // call to utility function to sleep
       await this.sleep(1000);
       if (
