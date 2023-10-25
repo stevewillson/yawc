@@ -38,17 +38,8 @@ export class PowerupSprite extends Sprite {
     "SEND ARTILLERY",
   ];
 
-  ctype;
-  powerupType;
-  x;
-  y;
-  game;
-
   constructor(x, y, powerupType, game) {
     super(x, y, game);
-    this.x = x;
-    this.y = y;
-    this.game = game;
     this.ctype = 4;
     this.init("pup", x, y, true);
     this.spriteType = 1;
@@ -73,7 +64,9 @@ export class PowerupSprite extends Sprite {
     // set background color
     // draw a flashing outline around the powerup
     // context.arc(this.x, this.y, 16, 0, 2 * Math.PI);
-    WHUtil.fillCenteredCircle(context, this.x, this.y, 18);
+    context.beginPath();
+    context.arc(this.x, this.y, 18, 0, 2 * Math.PI);
+    context.fill();
 
     // TODO - set the image background color to black
     let shiftedNumber = this.powerupType - 2;

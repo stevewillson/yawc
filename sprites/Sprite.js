@@ -71,6 +71,7 @@ export class Sprite {
     this.collidedObject = undefined;
     this.rotationalPolygon = undefined;
     this.leadPoint = undefined;
+    this.sentByUser = undefined;
 
     // need to have a secure browser context to use this method
     this.spriteId = crypto.randomUUID();
@@ -114,7 +115,7 @@ export class Sprite {
 
   reverseTrack() {
     const user = this.game.gameNetLogic.clientUserManager.users.get(
-      this.game.gameNetLogic.userId,
+      this.game.gameNetLogic.userId
     );
     realTrack(user.userSprite.x, user.userSprite.y, true);
   }
@@ -160,17 +161,17 @@ export class Sprite {
   removeSelf() {
     // remove sprites with a matching spriteId
     this.game.allSprites = this.game.allSprites.filter(
-      (el) => el.spriteId != this.spriteId,
+      (el) => el.spriteId != this.spriteId
     );
     switch (this.spriteType) {
       case 1:
         this.game.badGuys = this.game.badGuys.filter(
-          (el) => el.spriteId != this.spriteId,
+          (el) => el.spriteId != this.spriteId
         );
         break;
       case 2:
         this.game.goodGuys = this.game.goodGuys.filter(
-          (el) => el.spriteId != this.spriteId,
+          (el) => el.spriteId != this.spriteId
         );
         break;
     }
@@ -216,7 +217,7 @@ export class Sprite {
       // moving the shaperect, for use in collisions?
       this.shapeRect.setLocation(
         this.x - this.shapeRect.width / 2,
-        this.y - this.shapeRect.height / 2,
+        this.y - this.shapeRect.height / 2
       );
     } else {
       // if there is no shapeRect, create one around where the object is located
@@ -274,23 +275,24 @@ export class Sprite {
       for (let i = 0; i < polygon.npoints && !isCollision; i++) {
         newPolygon.addPoint(
           polygon.xpoints[i] + sprite2.x,
-          polygon.ypoints[i] + sprite2.y,
+          polygon.ypoints[i] + sprite2.y
         );
         if (
           shapeRect.contains(
             polygon.xpoints[i] + sprite2.x,
-            polygon.ypoints[i] + sprite2.y,
+            polygon.ypoints[i] + sprite2.y
           )
         ) {
           return true;
         }
       }
-      isCollision = newPolygon.contains(shapeRect.x, shapeRect.y) ||
+      isCollision =
+        newPolygon.contains(shapeRect.x, shapeRect.y) ||
         newPolygon.contains(shapeRect.x + shapeRect.width, shapeRect.y) ||
         newPolygon.contains(shapeRect.x, shapeRect.y + shapeRect.height) ||
         newPolygon.contains(
           shapeRect.x + shapeRect.width,
-          shapeRect.y + shapeRect.height,
+          shapeRect.y + shapeRect.height
         );
     }
     return isCollision;
@@ -327,7 +329,7 @@ export class Sprite {
    */
   calcLead() {
     const user = this.game.gameNetLogic.clientUserManager.users.get(
-      this.game.gameNetLogic.userId,
+      this.game.gameNetLogic.userId
     );
     if (this.leadPoint == null || this.leadPoint === undefined) {
       this.leadPoint = { x: 0, y: 0 };
@@ -346,16 +348,11 @@ export class Sprite {
     this.setDegreeAngle(this.angle + rotationDegrees);
   }
 
-  drawFlag(paramGraphics, paramColor, paramInt1, paramInt2) {
-    if (paramColor != null) {
-      paramGraphics.setColor(paramColor);
-      paramGraphics.fillRect(paramInt1, paramInt2, 10, 7);
-      paramGraphics.drawLine(
-        paramInt1,
-        paramInt2 + 7,
-        paramInt1,
-        paramInt2 + 14,
-      );
+  static drawFlag(context, color, x, y) {
+    if (color != null) {
+      context.setColor(color);
+      context.fillRect(x, y, 10, 7);
+      context.drawLine(x, y + 7, x, y + 14);
     }
   }
 
@@ -397,14 +394,17 @@ export class Sprite {
       polygon.drawPolygon(context);
       context.translate(-this.x, -this.y);
     }
-    // if (this.bSentByUser) {
-    //   drawFlag(
-    //     paramGraphics,
-    //     this.color,
-    //     this.shapeRect.x + this.shapeRect.width + 5,
-    //     this.shapeRect.y + this.shapeRect.height + 5
-    //   );
-    // }
+
+    this.shapeRect = this.getShapeRect();
+
+    if (this.sentByUser) {
+      Sprite.drawFlag(
+        context,
+        this.color,
+        this.shapeRect.x + this.shapeRect.width + 5,
+        this.shapeRect.y + this.shapeRect.height + 5
+      );
+    }
   }
 
   // calcTowards(paramInt1, paramInt2, paramDouble) {
@@ -449,7 +449,7 @@ export class Sprite {
 
   realTrack(x, y, b) {
     const user = this.game.gameNetLogic.clientUserManager.users.get(
-      this.game.gameNetLogic.userId,
+      this.game.gameNetLogic.userId
     );
     if (user.userSprite.shouldRemoveSelf) {
       return;
@@ -513,7 +513,7 @@ export class Sprite {
       if (
         shapePoly.contains(
           thisPolygon.xpoints[i] - n,
-          thisPolygon.ypoints[i] - n2,
+          thisPolygon.ypoints[i] - n2
         )
       ) {
         return true;
@@ -523,7 +523,7 @@ export class Sprite {
       if (
         thisPolygon.contains(
           shapePoly.xpoints[j] + n,
-          shapePoly.ypoints[j] + n2,
+          shapePoly.ypoints[j] + n2
         )
       ) {
         return true;
@@ -587,7 +587,7 @@ export class Sprite {
    */
   track() {
     const user = this.game.gameNetLogic.clientUserManager.users.get(
-      this.game.gameNetLogic.userId,
+      this.game.gameNetLogic.userId
     );
     if (user.userSprite != null) {
       this.realTrack(user.userSprite.x, user.userSprite.y, false);

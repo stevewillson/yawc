@@ -61,7 +61,9 @@ export class BulletSprite extends Sprite {
         this.game.colors.colors[super.slot][super.spriteCycle % 20];
       context.fillStyle =
         this.game.colors.colors[super.slot][super.spriteCycle % 20];
-      WHUtil.fillCenteredCircle(context, 0, 0, 7);
+      context.beginPath();
+      context.arc(0, 0, 7, 0, 2 * Math.PI);
+      context.fill();
 
       context.moveTo(0, 0);
       context.lineTo(this.offx, this.offy);
@@ -109,7 +111,7 @@ export class BulletSprite extends Sprite {
           -8,
           -5,
           imgWidth,
-          imgHeight - 2,
+          imgHeight - 2
         );
       }
 
@@ -124,8 +126,8 @@ export class BulletSprite extends Sprite {
     super.setCollided(collided);
     if (this.concussive) {
       let angle = WHUtil.findAngle(collided.x, collided.y, this.x, this.y);
-      collided.vx += 5 * Math.cos(angle * 0.017453292519943295);
-      collided.vy += 5 * Math.sin(angle * 0.017453292519943295);
+      collided.vx += 5 * Math.cos(angle * WHUtil.DTOR);
+      collided.vy += 5 * Math.sin(angle * WHUtil.DTOR);
     }
     if (this.shouldRemoveSelf) {
       if (this.isPowerup) {
@@ -133,7 +135,7 @@ export class BulletSprite extends Sprite {
           this.x,
           this.y,
           this.game,
-          this.game.slot,
+          this.game.slot
         );
         explosionSprite.setPowerupExplosion();
         explosionSprite.addSelf();
@@ -142,7 +144,7 @@ export class BulletSprite extends Sprite {
           this.x,
           this.y,
           this.game,
-          9,
+          9
         );
         explosionSprite2.RINGS = 2;
         explosionSprite2.addSelf();

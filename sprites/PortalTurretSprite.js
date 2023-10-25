@@ -1,3 +1,4 @@
+import { Rectangle } from "../Rectangle.js";
 import { RotationalPolygon } from "../RotationalPolygon.js";
 import { WHUtil } from "../WHUtil.js";
 import { BulletSprite } from "./BulletSprite.js";
@@ -24,9 +25,7 @@ export class PortalTurretSprite extends Sprite {
   constructor(portal, game) {
     super(portal.x, portal.y, game);
     this.portal = portal;
-    this.game = game;
-    this.x = portal.x;
-    this.y = portal.y;
+
     this.rotationalPolygon = new RotationalPolygon(PortalTurretSprite.points);
     this.rTurretPoly = new RotationalPolygon(PortalTurretSprite.turretPoints);
     this.calcOrbit();
@@ -37,11 +36,14 @@ export class PortalTurretSprite extends Sprite {
     this.shapeType = 1;
     this.powerupType = 7;
 
+    this.shapeRect = new Rectangle(portal.x - 10, portal.y - 10, 20, 20);
+
     this.shotDelay = PortalTurretSprite.TURRET_ATTACK_DELAY;
     this.orbitAngle = undefined;
 
     // TODO - debug why the angle is not set
     this.radAngle = 0;
+    this.inDrawingRect = undefined;
   }
 
   behave() {
@@ -58,12 +60,12 @@ export class PortalTurretSprite extends Sprite {
     this.orbitAngle = this.radAngle + 1.5707963267948966;
     this.setLocation(
       this.portal.x + 115 * Math.cos(this.orbitAngle),
-      this.portal.y + 115 * Math.sin(this.orbitAngle),
+      this.portal.y + 115 * Math.sin(this.orbitAngle)
     );
   }
 
   handleOrbit() {
-    this.setDegreeAngle(super.angle + 1);
+    this.setDegreeAngle(this.angle + 1);
     this.calcOrbit();
   }
 
@@ -83,7 +85,7 @@ export class PortalTurretSprite extends Sprite {
         this.game.user.userSprite.x,
         this.game.user.userSprite.y,
         x + this.x,
-        y + this.y,
+        y + this.y
       );
       context.fillStyle = "black";
 
@@ -100,7 +102,7 @@ export class PortalTurretSprite extends Sprite {
         this.portal.x + 115 * Math.sin(this.orbitAngle + i * 0.1),
         3,
         0,
-        2 * Math.PI,
+        2 * Math.PI
       );
       context.fill();
     }
@@ -113,7 +115,12 @@ export class PortalTurretSprite extends Sprite {
     if (
       this.inDrawingRect &&
       this.shotDelay <= 0 &&
-      WHUtil.distanceFrom(this, Sprite.model.player) < 260
+      WHUtil.distanceFrom(
+        this.x,
+        this.y,
+        this.game.user.userSprite.x,
+        this.game.user.userSprite.y
+      ) < 260
     ) {
       if (this.game.user.userSprite == null) {
         return;
@@ -128,12 +135,12 @@ export class PortalTurretSprite extends Sprite {
           1,
           10,
           this.color,
-          1,
+          1
         );
-        bulletSprite.setSentByEnemy(super.slot, 7);
+        bulletSprite.setSentByEnemy(this.slot, 7);
         bulletSprite.setVelocity(
           8 * WHUtil.scaleVector(calcLead.x, calcLead.y),
-          8 * WHUtil.scaleVector(calcLead.y, calcLead.x),
+          8 * WHUtil.scaleVector(calcLead.y, calcLead.x)
         );
         bulletSprite.addSelf();
       }
@@ -144,8 +151,8 @@ export class PortalTurretSprite extends Sprite {
     super.setCollided(collided);
     if (this.shouldRemoveSelf) {
       this.killSelf(20, 10);
-      new PowerupSprite.genPowerup(this.x, this.y).addSelf();
-      new PowerupSprite.genPowerup(this.x, this.y).addSelf();
+      PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
+      PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
     }
   }
 

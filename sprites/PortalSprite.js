@@ -2,11 +2,13 @@ import { Rectangle } from "../Rectangle.js";
 import { WHUtil } from "../WHUtil.js";
 import { GunshipSprite } from "./GunshipSprite.js";
 import { InflatorSprite } from "./InflatorSprite.js";
+import { MineLayerSprite } from "./MineLayerSprite.js";
 import { NukeSprite } from "./NukeSprite.js";
 import { PortalTurretSprite } from "./PortalTurretSprite.js";
 import { PowerupSprite } from "./PowerupSprite.js";
 import { Sprite } from "./Sprite.js";
 import { UFOSprite } from "./UFOSprite.js";
+import { WallCrawlerSprite } from "./WallCrawlerSprite.js";
 
 export class PortalSprite extends Sprite {
   constructor(n, user, game) {
@@ -125,9 +127,6 @@ export class PortalSprite extends Sprite {
       let spriteYLoc = y + WHUtil.randInt(70);
       let sprite = null;
 
-      // testing for generating a portal turret sprite
-      n3 = 7;
-
       switch (n3) {
         case 9: {
           sprite = new UFOSprite(spriteXLoc, spriteYLoc, this.game);
@@ -138,7 +137,7 @@ export class PortalSprite extends Sprite {
           break;
         }
         case 11: {
-          sprite = new MineLayerSprite(spriteXLoc, spriteYLoc);
+          sprite = new MineLayerSprite(spriteXLoc, spriteYLoc, this.game);
           break;
         }
         case 12: {
@@ -149,6 +148,7 @@ export class PortalSprite extends Sprite {
           sprite = new WallCrawlerSprite(
             spriteXLoc,
             spriteYLoc,
+            this.game,
             WHUtil.randInt(2) == 0
           );
           break;
@@ -183,6 +183,7 @@ export class PortalSprite extends Sprite {
         }
       }
       sprite.setUser(userId);
+      sprite.sentByUser = true;
       sprite.setDegreeAngle(WHUtil.randInt(360));
       sprite.addSelf();
     }
@@ -297,20 +298,13 @@ export class PortalSprite extends Sprite {
     this.setOrbit();
     if (this.shouldGenEnemy) {
       // DEBUG - generate this type of enemy
-      // new GunshipSprite(this.x, this.y, this.game).addSelf();
+      // let sprite = new MineLayerSprite(this.x, this.y, this.game);
+      // // sprite.setUser(userId);
+      // sprite.slot = 8;
+      // sprite.color = this.game.colors.colors[sprite.slot][0];
+      // sprite.addSelf();
       // this.shouldGenEnemy = false;
       // return;
-      let sprite;
-      sprite = new PortalTurretSprite(this, this.game);
-
-      // sprite.setUser(userId);
-      sprite.slot = 8;
-      sprite.color = this.game.colors.colors[sprite.slot][0];
-
-      sprite.setDegreeAngle(WHUtil.randInt(360));
-      sprite.addSelf();
-      this.shouldGenEnemy = false;
-      return;
       // END DEBUG
 
       switch (WHUtil.randInt(5)) {

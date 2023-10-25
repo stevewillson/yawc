@@ -627,7 +627,7 @@ export class UserSprite extends Sprite {
     }
     if (health != this.health) {
       this.strDamagedByUser = null;
-      if (collided.color != null && collided.bSentByUser) {
+      if (collided.color != null && collided.sentByUser) {
         // set the username for the damaging user
         let damagingUserId = this.game.room.getUserId(collided.slot);
         this.strDamagedByUser = this.game.room.getUser(
@@ -728,10 +728,6 @@ export class UserSprite extends Sprite {
     // undo the rotation
     this.rotationalPolygon.rotate(-90);
 
-    // console.log(
-    // `User: x: ${parseInt(this.x)} y: ${parseInt(this.y)}`
-    // );
-
     // paramGraphics.drawPolygon(this.drawPoly.xpoints, this.drawPoly.ypoints,
     //                           this.drawPoly.npoints);
     // if (this.isUnderEMPEffect) {
@@ -758,8 +754,11 @@ export class UserSprite extends Sprite {
     //   for (byte b = 0; b < this.trackingCannons; b++) {
     //     int j;
     //     paramGraphics.setColor(this.color);
-    //     WHUtil.fillCenteredCircle(paramGraphics, this.turretLocations[b][0],
-    //                               this.turretLocations[b][1], 5);
+    // context.beginPath();
+    // context.arc(this.turretLocations[b][0],
+    //                               this.turretLocations[b][1], 5, 0, 2 * Math.PI);
+    // context.fill();
+
     //     if (this.targetSprite == null) {
     //       j = (int)this.angle;
     //     } else {
@@ -768,9 +767,12 @@ export class UserSprite extends Sprite {
     //                                 this.y);
     //     }
     //     paramGraphics.setColor(Color.black);
-    //     WHUtil.fillCenteredArc(paramGraphics, this.turretLocations[b][0],
-    //                            this.turretLocations[b][1], 5, -j - 20, 40);
-    //   }
+    //
+    // context.beginPath();
+    // context.arc( this.turretLocations[b][0], this.turretLocations[b][1],
+    //   5, -j - 20 * (2*Math.PI/360), 40* (2*Math.PI/360))
+    //   context.fill();
+    // }
     // if (this.shieldCyclesLeft > 0) {
     //   Color color = Color.gray;
     //   if (this.shieldCyclesLeft > 40) {

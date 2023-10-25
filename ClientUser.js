@@ -106,8 +106,8 @@ export class ClientUser {
   }
 
   getUserState() {
-    let healthPercent = (100 * this.userSprite.health) /
-      this.userSprite.MAX_HEALTH;
+    let healthPercent =
+      (100 * this.userSprite.health) / this.userSprite.MAX_HEALTH;
     const packet = {
       type: "userState",
       userId: this.userId,
@@ -159,16 +159,14 @@ export class ClientUser {
 
   draw(context, width, height) {
     this.refresh = false;
-
-    WHUtil.drawBoundRect(
-      context,
-      0,
-      0,
-      width,
-      height,
-      this.color,
-      this.gameOver ? "gray" : this.offsetCycle == 30 ? "orange" : "black",
-    );
+    context.fillStyle = this.gameOver
+      ? "gray"
+      : this.offsetCycle == 30
+      ? "orange"
+      : "black";
+    context.fillRect(0, 0, width, height);
+    context.strokeStyle = this.color;
+    context.strokeRect(0, 0, width, height);
     context.font = "12px Helvetica";
     context.fillStyle = "white";
 
@@ -178,7 +176,7 @@ export class ClientUser {
           ? this.username.substring(0, 11)
           : this.username,
         30,
-        11,
+        11
       );
     }
     // TODO
@@ -208,7 +206,7 @@ export class ClientUser {
         34 + i * 21,
         29,
         imgWidth,
-        imgHeight - 2,
+        imgHeight - 2
       );
     }
     let n3 = width - 10;
@@ -270,15 +268,10 @@ export class ClientUser {
 
   static drawTeamShape(context, x, y, teamNum) {
     if (teamNum == 1) {
-      WHUtil.drawBoundRect(
-        context,
-        x,
-        y,
-        8,
-        8,
-        ClientRoomManager.TEAM_COLORS[teamNum],
-        ClientRoomManager.TEAM_BG_COLORS[teamNum],
-      );
+      context.fillStyle = ClientRoomManager.TEAM_BG_COLORS[teamNum];
+      context.fillRect(x, y, 8, 8);
+      context.strokeStyle = ClientRoomManager.TEAM_COLORS[teamNum];
+      context.strokeRect(x, y, 8, 8);
     } else {
       WHUtil.drawBoundCircle(
         context,
@@ -286,7 +279,7 @@ export class ClientUser {
         y,
         10,
         ClientRoomManager.TEAM_COLORS[teamNum],
-        ClientRoomManager.TEAM_BG_COLORS[teamNum],
+        ClientRoomManager.TEAM_BG_COLORS[teamNum]
       );
     }
   }

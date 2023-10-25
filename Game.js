@@ -542,7 +542,8 @@ export class Game {
     }
 
     // DEBUG patched for generating enemies
-    // genEnemyProb = 360;
+    // genEnemyProb = 100;
+    // END DEBUG
 
     // as the game goes up in seconds, the probability that an enemy will spawn increases
     if (WHUtil.randInt(genEnemyProb) == 1) {
@@ -570,19 +571,6 @@ export class Game {
       if (user.isPlaying() && user.portalSprite != null) {
         user.portalSprite.shouldGenEnemy = true;
       }
-
-      // generate an enemy to come out of a random user portal
-      // for (let i = 0; i < room.userIds.length; i++) {
-      //   if (room.userIds[i] != null) {
-      //     const user = this.gameNetLogic.clientUserManager.users.get(
-      //       room.userIds[i]
-      //     );
-      //     if (user.isPlaying() && user.portalSprite != null) {
-      //       user.portalSprite.genEnemy = true;
-      //       return;
-      //     }
-      //   }
-      // }
     }
   }
 
@@ -719,7 +707,13 @@ export class Game {
 
             // display shapeRects when in debug mode
             // if (this.isDebugMode) {
-            //   WHUtil.drawRect(context, sprite.shapeRect);
+            // context.beginPath();
+            // context.strokeRect(
+            //   sprite.shapeRect.x,
+            //   sprite.shapeRect.y,
+            //   sprite.shapeRect.width,
+            //   sprite.shapeRect.height
+            // );
             // }
           }
         }
@@ -782,13 +776,17 @@ export class Game {
         context.fillText(this.userMessages[n], 10, 20 * (n + 1));
       }
     }
-    //   if (this.teamID != 0) {
-    //     graphics.setFont(WormholeModel.fontTwelve);
-    //     graphics.setColor(CFSkin.TEACOLORS[this.teamID]);
-    //     graphics.drawString(CFSkin.TEANAMES[this.teamID] + " member", this.boardWidth - 135, 13);
-    // }
-    // graphics.setColor(Color.white);
-    // graphics.drawRect(0, 0, this.boardWidth - 1, this.boardHeight - 1);
+    if (user.teamId != 0) {
+      context.font = "12px helvetica";
+      context.fillStyle = ClientRoomManager.TEAM_COLORS[user.teamId];
+      context.fillText(
+        `${ClientRoomManager.TEAM_NAMES[user.teamId]} member`,
+        this.board.width - 135,
+        13
+      );
+    }
+    context.strokeStyle = "white";
+    context.strokeRect(0, 0, this.board.width - 1, this.board.height - 1);
   }
 
   /**
@@ -927,26 +925,12 @@ export class Game {
     this.starSize = [];
     this.numStars = numStars;
 
-    // let n3 = this.boardCenter.x - 40;
-    // let n4 = this.boardCenter.y - 40;
-
     for (let i = 0; i < this.numStars; i++) {
       this.star.push([
         WHUtil.randInt(this.world.width),
         WHUtil.randInt(this.world.height),
       ]);
 
-      // if (i < 35) {
-      //   // require that these stars are n3 < STARX < n3+80
-      //   // and n4 < STARY < n4+80
-      //   let starX = (WHUtil.randInt() % 79) + n3 + 1;
-      //   let starY = (WHUtil.randInt() % 79) + n4 + 1;
-
-      //   this.narrowStar.push({
-      //     x: starX,
-      //     y: starY,
-      //   });
-      // }
       this.narrowStar.push([
         WHUtil.randInt(this.world.width),
         WHUtil.randInt(this.world.height),
@@ -1130,9 +1114,13 @@ export class Game {
     );
     context.translate(0, -UserSprite.fighterData[fighterNumber][0]);
     if (UserSprite.fighterData[fighterNumber].trackingCannons >= 1) {
-      WHUtil.fillCenteredCircle(context, 0, 0, 5);
+      context.beginPath();
+      context.arc(0, 0, 5, 0, 2 * Math.PI);
+      context.fill();
       context.fillStyle = "black";
-      WHUtil.fillCenteredArc(context, 0, 0, 5, -20, 40);
+      context.beginPath();
+      context.arc(0, 0, 5, -Math.PI / 9, (2 * Math.PI) / 9);
+      context.fill();
     }
     context.translate(-x, -y);
   }
@@ -1225,7 +1213,6 @@ export class Game {
     // add a mouse listener to the canvas
     // light gray
     context.fillStyle = "#C0C0C0";
-    // graphics.fill3DRect(this.introX, this.introY, 410, 260, true);
     context.fillRect(
       this.introX,
       this.introY,
@@ -1322,15 +1309,8 @@ export class Game {
     }
 
     context.translate(this.introX + 75, this.introY + 180);
-    // //WHUtil.drawScaledPoly(graphics, PlayerSprite.g_polyShip[this.userShipType][this.currentFighterShade / 2 % 24], zoomInIntro);
-    // WHUtil.drawScaledPoly(graphics, PlayerSprite.g_polyShip[this.userShipType][this.currentFighterShade * 10 / PlayerSprite.DROTATE % PlayerSprite.NROTATIONS], zoomInIntro);
     const polygon = WHUtil.createPolygon(UserSprite.shipShapes[user.shipType]);
-    WHUtil.drawScaledPoly(
-      context,
-      polygon,
-      zoomInIntro
-      // UserSprite.fighterData[this.userShipType].shipScale
-    );
+    WHUtil.drawScaledPoly(context, polygon, zoomInIntro);
 
     // TODO - draw the rotating polygon
     // WHUtil.drawScaledPoly(
@@ -1437,7 +1417,6 @@ export class Game {
 
             if (user.userId != this.gameNetLogic.userId) {
               // don't add portals for teammates
-              // TODO - where is the teamId stored?
               if (room.isTeamRoom) {
                 if (user.teamId != thisUser.teamId) {
                   this.totalOpposingUsers++;
@@ -1508,7 +1487,6 @@ export class Game {
         break;
       }
 
-      // combine these two and check whether it is a team room
       case "gameEnd": {
         const isTeamRoom = gamePacket.isTeamRoom;
         const winnerSlot = gamePacket.winnerSlot;
@@ -1662,9 +1640,6 @@ export class Game {
   drawOtherBar(context, forceRefresh) {
     this.refreshOtherBar = false;
     if (forceRefresh) {
-      // get the other player's panels
-      // TODO
-      // graphics.setColor(this.pnlOtherPlayers.getBackground());
       context.strokeStyle = "black";
       context.fillStyle = "black";
       context.fillRect(0, 0, 144, 474);

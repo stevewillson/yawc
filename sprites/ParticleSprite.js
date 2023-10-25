@@ -6,19 +6,6 @@ export class ParticleSprite extends Sprite {
   static GSTATES = 12;
   static MAX_CYCLE = 40;
   static PARTICLES = 20;
-  location;
-  game;
-  x;
-  y;
-  shapeRect;
-  particles;
-  maxVelocity;
-  x;
-  y;
-  state;
-  dx;
-  dy;
-  spriteCycle;
 
   constructor(x, y, game) {
     super(x, y, game);
@@ -29,35 +16,43 @@ export class ParticleSprite extends Sprite {
     super.shapeRect = new Rectangle(x - 70, y - 70, 140, 140);
     super.spriteType = 0;
     this.spriteCycle = 0;
+
+    this.particles = undefined;
+    this.maxVelocity = undefined;
+    this.state = undefined;
+    this.xArr = undefined;
+    this.yArr = undefined;
+    this.dx = undefined;
+    this.dy = undefined;
   }
 
   drawSelf(context) {
     context.strokeStyle = "white";
     context.beginPath();
-    for (let i = 0; i < this.particles; ++i) {
+    for (let i = 0; i < this.particles; i++) {
       context.fillRect(
-        this.x[i],
-        this.y[i],
+        this.xArr[i],
+        this.yArr[i],
         12 - this.state[i],
-        12 - this.state[i],
+        12 - this.state[i]
       );
     }
     context.stroke();
   }
 
   particleInit(particles, maxVelocity) {
-    this.x = new Array(particles);
-    this.y = new Array(particles);
+    this.xArr = new Array(particles);
+    this.yArr = new Array(particles);
     this.particles = particles;
     this.maxVelocity = maxVelocity;
     this.state = new Array(particles);
     this.dx = new Array(particles);
     this.dy = new Array(particles);
     for (let i = 0; i < particles; i++) {
-      this.x[i] = this.x;
-      this.y[i] = this.y;
-      this.dx[i] = WHUtil.randInt() % maxVelocity;
-      this.dy[i] = WHUtil.randInt() % maxVelocity;
+      this.xArr[i] = this.x;
+      this.yArr[i] = this.y;
+      this.dx[i] = WHUtil.randInt(maxVelocity);
+      this.dy[i] = WHUtil.randInt(maxVelocity);
       this.state[i] = 0;
     }
   }
@@ -69,8 +64,8 @@ export class ParticleSprite extends Sprite {
     }
     for (let i = 0; i < this.particles; i++) {
       this.state[i]++;
-      this.x[i] += this.dx[i];
-      this.y[i] += this.dy[i];
+      this.xArr[i] += this.dx[i];
+      this.yArr[i] += this.dy[i];
     }
   }
 }

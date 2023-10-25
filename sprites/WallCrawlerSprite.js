@@ -41,7 +41,7 @@ export class WallCrawlerSprite extends Sprite {
     this.game = game;
     this.direction = 0;
     this.rotationalPolygon = new RotationalPolygon(
-      WallCrawlerSprite.drawPoints,
+      WallCrawlerSprite.drawPoints
     );
     if (b) {
       this.directionData = WallCrawlerSprite.c_directions;
@@ -49,7 +49,7 @@ export class WallCrawlerSprite extends Sprite {
       this.directionData = WallCrawlerSprite.cc_directions;
     }
     this.rotationalPolygon.setAngle(
-      this.directionData[this.direction][2] * 0.017453292519943295,
+      this.directionData[this.direction][2] * 0.017453292519943295
     );
     this.init("wc", x, y, false);
     this.spriteType = 1;
@@ -57,7 +57,7 @@ export class WallCrawlerSprite extends Sprite {
       x - 15,
       y - 30,
       WallCrawlerSprite.WC_WIDTH,
-      WallCrawlerSprite.WC_HEIGHT,
+      WallCrawlerSprite.WC_HEIGHT
     );
     this.setHealth(150);
     this.damage = 20;
@@ -74,18 +74,18 @@ export class WallCrawlerSprite extends Sprite {
         this.shapeRect.x,
         this.shapeRect.y,
         WallCrawlerSprite.WC_WIDTH,
-        WallCrawlerSprite.WC_HEIGHT,
+        WallCrawlerSprite.WC_HEIGHT
       );
     } else {
       this.shapeRect.reshape(
         this.shapeRect.x,
         this.shapeRect.y,
         WallCrawlerSprite.WC_HEIGHT,
-        WallCrawlerSprite.WC_WIDTH,
+        WallCrawlerSprite.WC_WIDTH
       );
     }
     this.rotationalPolygon.setAngle(
-      this.directionData[this.direction][2] * 0.017453292519943295,
+      this.directionData[this.direction][2] * WHUtil.DTOR
     );
     this.move(-this.vx, -this.vy);
     this.vx = this.directionData[this.direction][0];
@@ -102,15 +102,17 @@ export class WallCrawlerSprite extends Sprite {
     context.strokeStyle = this.game.colors.colors[this.slot][0];
     this.rotationalPolygon.polygon.drawPolygon(context);
     context.translate(1 - this.x, 1 - this.y);
+
     this.shapeRect = this.getShapeRect();
-    // if (this.bSentByUser) {
-    //   Sprite.drawFlag(
-    //     graphics,
-    //     this.color,
-    //     shapeRect.x + shapeRect.width + 5,
-    //     shapeRect.y + shapeRect.height + 5
-    //   );
-    // }
+
+    if (this.sentByUser) {
+      Sprite.drawFlag(
+        context,
+        this.color,
+        this.shapeRect.x + this.shapeRect.width + 5,
+        this.shapeRect.y + this.shapeRect.height + 5
+      );
+    }
   }
 
   setCollided(collided) {
@@ -135,7 +137,7 @@ export class WallCrawlerSprite extends Sprite {
         3,
         10,
         this.color,
-        1,
+        1
       );
 
       // TODO - find a way to use a computer
@@ -147,7 +149,7 @@ export class WallCrawlerSprite extends Sprite {
       let calcLead = this.calcLead();
       bulletSprite.setVelocity(
         6 * WHUtil.scaleVector(calcLead.x, calcLead.y),
-        6 * WHUtil.scaleVector(calcLead.y, calcLead.x),
+        6 * WHUtil.scaleVector(calcLead.y, calcLead.x)
       );
       bulletSprite.addSelf();
     }

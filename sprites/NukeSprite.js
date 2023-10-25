@@ -8,23 +8,6 @@ export class NukeSprite extends Sprite {
   static NUKE_SIZE = 40;
   static COUNTDOWN_TIME = 9;
 
-  shotAlready;
-  radius;
-  countdown;
-  dropTime;
-  mode;
-
-  addSelf() {
-    super.addSelf();
-    this.dropTime = window.performance.now();
-    this.game.flashScreenColor = this.game.colors.colors[this.slot][0];
-  }
-
-  isCollision(sprite) {
-    let distance = WHUtil.distanceFrom(this.x, this.y, sprite.x, sprite.y);
-    return distance <= this.radius && distance > this.radius - 50;
-  }
-
   constructor(x, y, game) {
     super(x, y, game);
     this.x = x;
@@ -38,6 +21,21 @@ export class NukeSprite extends Sprite {
     this.setHealth(100);
     this.damage = 0;
     this.powerupType = 14;
+
+    this.shotAlready = undefined;
+    this.countdown = undefined;
+    this.dropTime = undefined;
+  }
+
+  addSelf() {
+    super.addSelf();
+    this.dropTime = window.performance.now();
+    this.game.flashScreenColor = this.game.colors.colors[this.slot][0];
+  }
+
+  isCollision(sprite) {
+    let distance = WHUtil.distanceFrom(this.x, this.y, sprite.x, sprite.y);
+    return distance <= this.radius && distance > this.radius - 50;
   }
 
   drawSelf(context) {
@@ -66,14 +64,12 @@ export class NukeSprite extends Sprite {
         context.textAlign = "center";
         if (this.countdown >= 0) {
           context.fillText(
-            `${
-              this.countdown.toLocaleString("en-US", {
-                maximumFractionDigits: 2,
-                minimumFractionDigits: 2,
-              })
-            }`,
+            `${this.countdown.toLocaleString("en-US", {
+              maximumFractionDigits: 2,
+              minimumFractionDigits: 2,
+            })}`,
             this.x,
-            this.y + 6,
+            this.y + 6
           );
         }
         break;
@@ -128,17 +124,17 @@ export class NukeSprite extends Sprite {
           for (let i = 0; i < this.game.room.userIds.length; i++) {
             if (this.game.room.userIds[i] != null) {
               const user = this.game.gameNetLogic.clientUserManager.users.get(
-                this.game.room.userIds[i],
+                this.game.room.userIds[i]
               );
               if (
                 user.isPlaying() &&
                 user.portalSprite != null &&
                 WHUtil.distanceFrom(
-                    user.portalSprite.x,
-                    user.portalSprite.y,
-                    this.x,
-                    this.y,
-                  ) < 60
+                  user.portalSprite.x,
+                  user.portalSprite.y,
+                  this.x,
+                  this.y
+                ) < 60
               ) {
                 this.game.usePowerup(14, 0, user.userId);
                 this.killSelf();
@@ -156,7 +152,7 @@ export class NukeSprite extends Sprite {
           this.x - this.radius - 10,
           this.y - this.radius - 10,
           this.radius * 2 + 20,
-          this.radius * 2 + 20,
+          this.radius * 2 + 20
         );
         this.shouldRemoveSelf = this.radius > 1000;
         break;
