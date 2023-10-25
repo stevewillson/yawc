@@ -18,15 +18,19 @@ export class WHUtil {
     return Math.floor(Math.random() * number);
   }
 
+  static setColor(context, color) {
+    context.fillStyle = color;
+    context.strokeStyle = color;
+  }
+
   static createPolygon(points) {
     let x = [];
     let y = [];
-    points.forEach((point) => {
-      x.push(point.x);
-      y.push(point.y);
-    });
-    let polygon = new Polygon(x, y, points.length);
-    return polygon;
+    for (let i = 0; i < points.length; i++) {
+      x.push(points[i][0]);
+      y.push(points[i][1]);
+    }
+    return new Polygon(x, y, points.length);
   }
 
   static symPolygon(numPoints, radius, rotation) {

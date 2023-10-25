@@ -8,13 +8,17 @@ export class Polygon {
     this.updateBounds();
   }
 
+  copyPolygon() {
+    return new Polygon(this.xpoints, this.ypoints, this.npoints);
+  }
+
   updateBounds() {
     //calculate the bounds of the polygon
     this.bounds = new Rectangle(
       Math.min(...this.xpoints),
       Math.min(...this.ypoints),
       Math.max(...this.xpoints) - Math.min(...this.xpoints),
-      Math.max(...this.ypoints) - Math.min(...this.ypoints),
+      Math.max(...this.ypoints) - Math.min(...this.ypoints)
     );
   }
 

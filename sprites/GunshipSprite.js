@@ -9,22 +9,21 @@ export class GunshipSprite extends Sprite {
   static STRAFE = 1;
   static RETREAT = 2;
   static KAMIKAZE = 3;
-
   static points = [
-    { x: 40, y: 0 },
-    { x: 35, y: -6 },
-    { x: 25, y: -11 },
-    { x: 2, y: -15 },
-    { x: -25, y: -15 },
-    { x: -35, y: 0 },
-    { x: -25, y: 15 },
-    { x: 2, y: 15 },
-    { x: 25, y: 11 },
-    { x: 35, y: 6 },
+    [40, 0],
+    [35, -6],
+    [25, -11],
+    [2, -15],
+    [-25, -15],
+    [-35, 0],
+    [-25, 15],
+    [2, 15],
+    [25, 11],
+    [35, 6],
   ];
   static turretPoints = [
-    { x: 22, y: 0 },
-    { x: -16, y: 0 },
+    [22, 0],
+    [-16, 0],
   ];
 
   behave() {
@@ -39,26 +38,27 @@ export class GunshipSprite extends Sprite {
           2,
           10,
           this.color,
-          1,
+          1
         );
         bulletSprite.setSentByEnemy(this.slot, 12);
         let calcLead = this.calcLead();
         bulletSprite.setVelocity(
           6 * WHUtil.scaleVector(calcLead.x, calcLead.y),
-          6 * WHUtil.scaleVector(calcLead.y, calcLead.x),
+          6 * WHUtil.scaleVector(calcLead.y, calcLead.x)
         );
         bulletSprite.addSelf();
       }
     }
     switch (this.mode) {
       case 0: {
-        let n2 = (WHUtil.findAngle(
-          this.game.user.userSprite.x,
-          this.game.user.userSprite.y,
-          this.x,
-          this.y,
-        ) +
-          (this.rightSeeker ? 90 : -90)) *
+        let n2 =
+          (WHUtil.findAngle(
+            this.game.user.userSprite.x,
+            this.game.user.userSprite.y,
+            this.x,
+            this.y
+          ) +
+            (this.rightSeeker ? 90 : -90)) *
           0.017453292519943295;
         this.strafeOffsetX = 200 * Math.cos(n2);
         this.strafeOffsetY = 200 * Math.sin(n2);
@@ -142,7 +142,7 @@ export class GunshipSprite extends Sprite {
         this.game.user.userSprite.x,
         this.game.user.userSprite.y,
         x + this.x,
-        y + this.y,
+        y + this.y
       );
       context.fillStyle = this.color;
       context.beginPath();
@@ -153,7 +153,7 @@ export class GunshipSprite extends Sprite {
         8,
         gunAngle + Math.PI / 8,
         gunAngle - Math.PI / 8,
-        true,
+        true
       );
       context.lineTo(x, y);
       context.fill();

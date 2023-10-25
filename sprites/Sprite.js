@@ -117,7 +117,7 @@ export class Sprite {
     const user = this.game.gameNetLogic.clientUserManager.users.get(
       this.game.gameNetLogic.userId
     );
-    realTrack(user.userSprite.x, user.userSprite.y, true);
+    this.realTrack(user.userSprite.x, user.userSprite.y, true);
   }
 
   oob() {
@@ -253,8 +253,14 @@ export class Sprite {
    */
   setUser(userId) {
     const user = this.game.gameNetLogic.clientUserManager.users.get(userId);
-    this.slot = user.slot;
-    this.color = this.game.colors.colors[user.slot][0];
+    // if the user is null, use the userId as the slot number
+    if (user != null) {
+      this.slot = user.slot;
+      this.color = this.game.colors.colors[user.slot][0];
+    } else {
+      this.slot = userId;
+      this.color = this.game.colors.colors[user.slot][0];
+    }
   }
 
   /**

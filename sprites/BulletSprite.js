@@ -57,10 +57,10 @@ export class BulletSprite extends Sprite {
     if (this.concussive) {
       context.strokeStyle = this.internalColor;
       WHUtil.drawCenteredCircle(context, 0, 0, 10);
-      context.strokeStyle =
-        this.game.colors.colors[super.slot][super.spriteCycle % 20];
-      context.fillStyle =
-        this.game.colors.colors[super.slot][super.spriteCycle % 20];
+      WHUtil.setColor(
+        context,
+        this.game.colors.colors[this.slot][this.spriteCycle % 20]
+      );
       context.beginPath();
       context.arc(0, 0, 7, 0, 2 * Math.PI);
       context.fill();
@@ -86,6 +86,7 @@ export class BulletSprite extends Sprite {
 
       context.moveTo(0, -this.shapeRect.width);
       context.lineTo(0, this.shapeRect.width);
+      context.stroke();
 
       if (this.isPowerup) {
         WHUtil.drawCenteredCircle(context, 0, 0, 20);

@@ -10,17 +10,17 @@ export class PortalTurretSprite extends Sprite {
   static TURRET_ATTACK_DELAY = 16;
   static TURRET_D_ANGLE = 1;
   static points = [
-    { x: -28, y: 0 },
-    { x: -7, y: -25 },
-    { x: 30, y: -40 },
-    { x: 15, y: -10 },
-    { x: 15, y: 10 },
-    { x: 30, y: 40 },
-    { x: -7, y: 25 },
+    [-28, 0],
+    [-7, -25],
+    [30, -40],
+    [15, -10],
+    [15, 10],
+    [30, 40],
+    [-7, 25],
   ];
   static turretPoints = [
-    { x: 0, y: -11 },
-    { x: 0, y: 11 },
+    [0, -11],
+    [0, 11],
   ];
   constructor(portal, game) {
     super(portal.x, portal.y, game);

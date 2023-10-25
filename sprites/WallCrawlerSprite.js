@@ -9,18 +9,18 @@ export class WallCrawlerSprite extends Sprite {
   static WC_WIDTH = 30;
   static WC_HEIGHT = 60;
   static drawPoints = [
-    { x: -10, y: -16 },
-    { x: 0, y: -22 },
-    { x: 0, y: -30 },
-    { x: 12, y: -25 },
-    { x: 15, y: -20 },
-    { x: 8, y: -20 },
-    { x: 8, y: 20 },
-    { x: 15, y: 20 },
-    { x: 12, y: 25 },
-    { x: 0, y: 30 },
-    { x: 0, y: 22 },
-    { x: -10, y: 16 },
+    [-10, -16],
+    [0, -22],
+    [0, -30],
+    [12, -25],
+    [15, -20],
+    [8, -20],
+    [8, 20],
+    [15, 20],
+    [12, 25],
+    [0, 30],
+    [0, 22],
+    [-10, 16],
   ];
   static c_directions = [
     [4, 0, 90],

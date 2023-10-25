@@ -6,6 +6,11 @@ export class Rectangle {
     this.height = height;
   }
 
+  setBounds(x, y, width, height) {
+    this.setLocation(x, y);
+    this.setDimensions(width, height);
+  }
+
   setLocation(x, y) {
     this.x = x;
     this.y = y;

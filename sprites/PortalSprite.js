@@ -1,11 +1,16 @@
 import { Rectangle } from "../Rectangle.js";
 import { WHUtil } from "../WHUtil.js";
+import { ArtillerySprite } from "./ArtillerySprite.js";
+import { GhostPudSprite } from "./GhostPudSprite.js";
 import { GunshipSprite } from "./GunshipSprite.js";
 import { InflatorSprite } from "./InflatorSprite.js";
 import { MineLayerSprite } from "./MineLayerSprite.js";
+import { MineSprite } from "./MineSprite.js";
 import { NukeSprite } from "./NukeSprite.js";
+import { PortalBeamSprite } from "./PortalBeamSprite.js";
 import { PortalTurretSprite } from "./PortalTurretSprite.js";
 import { PowerupSprite } from "./PowerupSprite.js";
+import { ScarabSprite } from "./ScarabSprite.js";
 import { Sprite } from "./Sprite.js";
 import { UFOSprite } from "./UFOSprite.js";
 import { WallCrawlerSprite } from "./WallCrawlerSprite.js";
@@ -73,13 +78,12 @@ export class PortalSprite extends Sprite {
   /**
    * genMines
    */
-  genMines(n, n2, userId) {
+  genMines(x, y, userId) {
     let n3 = 0.4188790204786391;
     let n4 = 0;
 
     for (let i = 0; i < 15; i++) {
-      // TODO - implement MineSprite
-      let mineSprite = new MineSprite(n, n2);
+      let mineSprite = new MineSprite(x, y, this.game);
       mineSprite.vx = Math.cos(n4) * 6;
       mineSprite.vy = Math.sin(n4) * 6;
       mineSprite.setUser(userId);
@@ -154,7 +158,7 @@ export class PortalSprite extends Sprite {
           break;
         }
         case 13: {
-          sprite = new ScarabSprite(spriteXLoc, spriteYLoc, this);
+          sprite = new ScarabSprite(spriteXLoc, spriteYLoc, this.game, this);
           break;
         }
         case 16: {
@@ -170,11 +174,11 @@ export class PortalSprite extends Sprite {
           break;
         }
         case 18: {
-          sprite = new GhostPudSprite(this, b2);
+          sprite = new GhostPudSprite(this, b2, this.game);
           break;
         }
         case 19: {
-          sprite = new ArtillerySprite(spriteXLoc, spriteYLoc);
+          sprite = new ArtillerySprite(spriteXLoc, spriteYLoc, this.game);
           break;
         }
         default: {
@@ -298,7 +302,7 @@ export class PortalSprite extends Sprite {
     this.setOrbit();
     if (this.shouldGenEnemy) {
       // DEBUG - generate this type of enemy
-      // let sprite = new MineLayerSprite(this.x, this.y, this.game);
+      // let sprite = new GhostPudSprite(this, 0, this.game);
       // // sprite.setUser(userId);
       // sprite.slot = 8;
       // sprite.color = this.game.colors.colors[sprite.slot][0];
@@ -326,9 +330,6 @@ export class PortalSprite extends Sprite {
       this.shouldGenEnemy = false;
     }
 
-    // DEBUG - generate a portal sprite
-    // this.powerupQ[0] = 7;
-
     // use the powerupCycleQ
     // iterate i from 0 to 29
     // check that the
@@ -351,6 +352,10 @@ export class PortalSprite extends Sprite {
               heatSeekerMissile.rotate(WHUtil.randInt(360));
               heatSeekerMissile.doMaxThrust(heatSeekerMissile.maxThrust);
               heatSeekerMissile.addSelf();
+              // contains slot numbers or userIds
+              // TODO need to clean this up
+              // may need to create a 'computer' userId
+              // for the computer player
               heatSeekerMissile.setUser(this.powerupUserIdQ[i]);
             }
             continue;

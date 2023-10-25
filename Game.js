@@ -542,7 +542,7 @@ export class Game {
     }
 
     // DEBUG patched for generating enemies
-    // genEnemyProb = 100;
+    // genEnemyProb = 300;
     // END DEBUG
 
     // as the game goes up in seconds, the probability that an enemy will spawn increases
@@ -686,7 +686,13 @@ export class Game {
         this.incomingCycle--;
         context.font = "40px helvetica";
 
-        const fromSlot = room.getSlot(this.fromUserId);
+        let fromSlot = room.getSlot(this.fromUserId);
+        // the fromUserId may be a slot number
+        // after the lookup it will be null, just use that slot number
+        if (fromSlot == null) {
+          fromSlot = this.fromUserId;
+        }
+
         context.textAlign = "center";
         context.strokeStyle =
           this.colors.colors[fromSlot][this.currentShade++ % 20];
@@ -1098,15 +1104,9 @@ export class Game {
       context.strokeRect(-24, -24, 48, 48);
     }
     context.translate(0, UserSprite.fighterData[fighterNumber][0]);
-    // get the x and y points
-    let x_pts = [];
-    let y_pts = [];
-    for (let i = 0; i < UserSprite.shipShapes[fighterNumber].length; i++) {
-      x_pts.push(UserSprite.shipShapes[fighterNumber][i].x);
-      y_pts.push(UserSprite.shipShapes[fighterNumber][i].y);
-    }
-
-    const fighterPolygon = new Polygon(x_pts, y_pts, x_pts.length);
+    const fighterPolygon = WHUtil.createPolygon(
+      UserSprite.shipShapes[fighterNumber]
+    );
     WHUtil.drawScaledPoly(
       context,
       fighterPolygon,
@@ -1349,6 +1349,8 @@ export class Game {
     this.incomingCycle = 40;
     this.incomingIconCycle = 160;
     this.incomingWhoStack[this.incomingIconIndex] = fromUserId;
+    // check if the fromUserId is a slot number
+
     this.fromUserId = fromUserId;
     this.currentShade = 0;
     this.incomingTypeStack[this.incomingIconIndex] = powerupType;
