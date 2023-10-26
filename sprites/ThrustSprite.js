@@ -8,16 +8,14 @@ export class ThrustSprite extends Sprite {
 
   constructor(x, y, game) {
     super(x, y, game);
-    this.x = x;
-    this.y = y;
-    this.game = game;
     super.init("thrust", x, y, false);
     this.radius = 10;
     this.spriteType = 0;
     this.shapeRect = new Rectangle(x, y, 0, 0);
-    this.color = ThrustSprite.thrustColors[
-      WHUtil.randInt(ThrustSprite.thrustColors.length)
-    ];
+    this.color =
+      ThrustSprite.thrustColors[
+        WHUtil.randInt(ThrustSprite.thrustColors.length)
+      ];
   }
 
   drawSelf(context) {

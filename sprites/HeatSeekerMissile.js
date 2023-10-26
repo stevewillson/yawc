@@ -9,6 +9,25 @@ export class HeatSeekerMissile extends Sprite {
     [0, 5],
   ];
 
+  constructor(x, y, game) {
+    super(x, y, game);
+    this.init("hs", x, y, false);
+    this.dRotate = 16;
+    this.thrust = 0.1;
+    this.maxThrust = 7;
+    this.setHealth(1);
+    this.damage = 10;
+    this.shapeRect = new Rectangle(this.x, this.y, 10, 10);
+    this.spriteType = 1;
+    this.rotate(0);
+    this.powerupType = 6;
+    const user = this.game.gameNetLogic.clientUserManager.users.get(
+      this.game.gameNetLogic.userId
+    );
+    this.trackingSprite = user.userSprite;
+    this.rotationalPolygon = new RotationalPolygon(HeatSeekerMissile.points);
+  }
+
   setGood(trackingX, trackingY, delayTime) {
     this.spriteType = 2;
     this.trackingSprite = undefined;
@@ -35,28 +54,6 @@ export class HeatSeekerMissile extends Sprite {
 
   handleCrash() {
     this.killSelf(10, 15);
-  }
-
-  constructor(x, y, game) {
-    super(x, y, game);
-    this.x = x;
-    this.y = y;
-    this.game = game;
-    this.init("hs", x, y, false);
-    this.dRotate = 16;
-    this.thrust = 0.1;
-    this.maxThrust = 7;
-    this.setHealth(1);
-    this.damage = 10;
-    this.shapeRect = new Rectangle(this.x, this.y, 10, 10);
-    this.spriteType = 1;
-    this.rotate(0);
-    this.powerupType = 6;
-    const user = this.game.gameNetLogic.clientUserManager.users.get(
-      this.game.gameNetLogic.userId,
-    );
-    this.trackingSprite = user.userSprite;
-    this.rotationalPolygon = new RotationalPolygon(HeatSeekerMissile.points);
   }
 
   drawSelf(context) {

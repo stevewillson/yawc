@@ -9,9 +9,6 @@ export class ParticleSprite extends Sprite {
 
   constructor(x, y, game) {
     super(x, y, game);
-    this.x = x;
-    this.y = y;
-    this.game = game;
     super.init("particles", x, y, true);
     super.shapeRect = new Rectangle(x - 70, y - 70, 140, 140);
     super.spriteType = 0;

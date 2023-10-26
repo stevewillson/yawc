@@ -15,9 +15,6 @@ export class BulletSprite extends Sprite {
 
   constructor(x, y, game, bulletDamage, bulletSize, internalColor, spriteType) {
     super(x, y, game);
-    this.x = x;
-    this.y = y;
-    this.game = game;
     super.init("blt", x, y, true);
     this.shapeRect = new Rectangle(x - 5, y - 5, bulletSize, bulletSize);
     this.spriteType = spriteType;
@@ -27,9 +24,9 @@ export class BulletSprite extends Sprite {
     this.isBullet = true;
     if (this.spriteType == 2) {
       this.color = this.game.color;
-      this.bCountTowardsQuota = true;
+      this.countTowardsQuota = true;
     } else {
-      this.bCountTowardsQuota = false;
+      this.countTowardsQuota = false;
     }
     this.spriteCycle = 0;
 
@@ -45,7 +42,7 @@ export class BulletSprite extends Sprite {
 
   addSelf() {
     super.addSelf();
-    if (this.bCountTowardsQuota) {
+    if (this.countTowardsQuota) {
       this.game.nBullets++;
     }
   }
@@ -165,7 +162,7 @@ export class BulletSprite extends Sprite {
 
   removeSelf() {
     super.removeSelf();
-    if (this.bCountTowardsQuota) {
+    if (this.countTowardsQuota) {
       this.game.nBullets--;
     }
   }

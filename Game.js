@@ -537,13 +537,8 @@ export class Game {
       genEnemyProb = 500;
     } else if (gameTimeSeconds < 40) {
       // don't generate enemies in the first 40 seconds of the game
-      // DEBUG - commented out for debugging
       return;
     }
-
-    // DEBUG patched for generating enemies
-    // genEnemyProb = 300;
-    // END DEBUG
 
     // as the game goes up in seconds, the probability that an enemy will spawn increases
     if (WHUtil.randInt(genEnemyProb) == 1) {
@@ -888,6 +883,15 @@ export class Game {
       this.world.height / 2,
       this.orbitDistance
     );
+  }
+
+  drawEnemyTeamShape(context, x, y) {
+    const user = this.gameNetLogic.clientUserManager.users.get(
+      this.gameNetLogic.userId
+    );
+    if (user.teamId != 0) {
+      user.drawTeamShape(context, x, y, 3 - user.teamId);
+    }
   }
 
   /**
@@ -1364,9 +1368,7 @@ export class Game {
     // stream.writeByte(107);
     const packet = {
       type: "sendPowerup",
-      // powerupType,
-      // TODO - only send nukes
-      powerupType: 14,
+      powerupType,
       toUserId,
       upgradeLevel,
     };

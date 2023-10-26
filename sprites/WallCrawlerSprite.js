@@ -36,9 +36,7 @@ export class WallCrawlerSprite extends Sprite {
   ];
   constructor(x, y, game, b) {
     super(x, y, game);
-    this.x = x;
-    this.y = y;
-    this.game = game;
+    this.init("wc", x, y, false);
     this.direction = 0;
     this.rotationalPolygon = new RotationalPolygon(
       WallCrawlerSprite.drawPoints
@@ -51,7 +49,6 @@ export class WallCrawlerSprite extends Sprite {
     this.rotationalPolygon.setAngle(
       this.directionData[this.direction][2] * 0.017453292519943295
     );
-    this.init("wc", x, y, false);
     this.spriteType = 1;
     this.shapeRect = new Rectangle(
       x - 15,

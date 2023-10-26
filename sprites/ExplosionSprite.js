@@ -5,9 +5,6 @@ import { Sprite } from "./Sprite.js";
 export class ExplosionSprite extends Sprite {
   constructor(x, y, game, colorType = 0) {
     super(x, y, game);
-    this.x = x;
-    this.y = y;
-    this.game = game;
     this.RINGS = 6;
     this.init("explosion", x, y, true);
     this.spriteType = 0;

@@ -26,6 +26,29 @@ export class GunshipSprite extends Sprite {
     [-16, 0],
   ];
 
+  constructor(x, y, game) {
+    super(x, y, game);
+    this.init("gs", x, y, true);
+    // start in track mode
+    this.mode = 3;
+    this.rotationalPolygon = new RotationalPolygon(GunshipSprite.points);
+    this.rTurretPoly = new RotationalPolygon(GunshipSprite.turretPoints);
+    this.spriteType = 1;
+    this.setHealth(50);
+    this.damage = 10;
+    this.shapeType = 1;
+    this.rightSeeker = WHUtil.randInt(2) == 0;
+    this.dRotate = 2;
+    this.thrust = 0.25;
+    this.maxThrust = 4;
+    this.powerupType = 12;
+    this.color = this.game.colors.colors[this.slot][0];
+    this.rightSeeker = undefined;
+    this.strafeOffsetX = undefined;
+    this.strafeOffsetY = undefined;
+    this.retreatCounter = undefined;
+  }
+
   behave() {
     super.behave();
     let n = WHUtil.distanceFrom(this, this.game.user.userSprite);
@@ -99,36 +122,6 @@ export class GunshipSprite extends Sprite {
         this.track();
       }
     }
-  }
-
-  constructor(x, y, game) {
-    super(x, y, game);
-    this.x = x;
-    this.y = y;
-    this.game = game;
-    // start in track mode
-    this.mode = 3;
-    this.rotationalPolygon = new RotationalPolygon(GunshipSprite.points);
-    this.rTurretPoly = new RotationalPolygon(GunshipSprite.turretPoints);
-    // this.polygon = this.rotationalPolygon.polygon;
-
-    this.init("gs", x, y, true);
-    this.spriteType = 1;
-    this.setHealth(50);
-    this.damage = 10;
-    this.shapeType = 1;
-    this.rightSeeker = WHUtil.randInt(2) == 0;
-    this.dRotate = 2;
-    this.thrust = 0.25;
-    this.maxThrust = 4;
-    this.powerupType = 12;
-
-    this.color = this.game.colors.colors[this.slot][0];
-
-    this.rightSeeker = undefined;
-    this.strafeOffsetX = undefined;
-    this.strafeOffsetY = undefined;
-    this.retreatCounter = undefined;
   }
 
   drawSelf(context) {

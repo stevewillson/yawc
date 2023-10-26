@@ -37,7 +37,7 @@ export class GhostPudSprite extends Sprite {
   constructor(portalSprite, n, game) {
     super(0, 0, game);
     this.init("gp", portalSprite.x, portalSprite.y, true);
-    this.bZappable = true;
+    this.zappable = true;
     this.setHealth(1);
     this.spriteType = 1;
     this.damage = 1;

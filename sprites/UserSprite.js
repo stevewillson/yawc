@@ -423,13 +423,10 @@ export class UserSprite extends Sprite {
 
   constructor(x, y, shipSelect, game) {
     super(x, y, game);
-    this.x = x;
-    this.y = y;
-    this.game = game;
+    this.init("user", x, y, true);
     this.user = this.game.gameNetLogic.clientUserManager.users.get(
       this.game.gameNetLogic.userId
     );
-    this.init("user", x, y, true);
     this.shipSelect = shipSelect;
     this.rotationalPolygon = new RotationalPolygon(
       UserSprite.shipShapes[shipSelect]
@@ -452,10 +449,6 @@ export class UserSprite extends Sprite {
 
     // set ship parameters based on the fighterData
     this.setHealth(UserSprite.fighterData[shipSelect].health);
-
-    // DEBUG - set to a low health
-    // this.setHealth(1);
-    // END DEBUG
     this.damage = 1000000;
 
     // upgrade the ship's cannon
@@ -892,7 +885,7 @@ export class UserSprite extends Sprite {
   activateEMP() {
     this.isUnderEMPEffect = true;
     this.cyclesLeftUnderEMP = 150;
-    this.empType = WHUtil.randInt() % 3;
+    this.empType = WHUtil.randInt(3);
   }
 
   // called every cycle to execute the behavior of the user's ship

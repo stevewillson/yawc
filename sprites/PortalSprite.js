@@ -1,8 +1,10 @@
 import { Rectangle } from "../Rectangle.js";
 import { WHUtil } from "../WHUtil.js";
 import { ArtillerySprite } from "./ArtillerySprite.js";
+import { EMPSprite } from "./EMPSprite.js";
 import { GhostPudSprite } from "./GhostPudSprite.js";
 import { GunshipSprite } from "./GunshipSprite.js";
+import { HeatSeekerMissile } from "./HeatSeekerMissile.js";
 import { InflatorSprite } from "./InflatorSprite.js";
 import { MineLayerSprite } from "./MineLayerSprite.js";
 import { MineSprite } from "./MineSprite.js";
@@ -16,63 +18,36 @@ import { UFOSprite } from "./UFOSprite.js";
 import { WallCrawlerSprite } from "./WallCrawlerSprite.js";
 
 export class PortalSprite extends Sprite {
+  static ARC_SPEED = 0.5;
+  static BASE_W = 30;
+  static MAX_W = 60;
+  static MAX_TAKEN = 150;
+  static NMISSILES = 12;
+  static NMINES = 15;
+  static MINE_VEL = 6;
+  static NUMPOWERUPQ = 30;
+  static POWERUP_DELAY = 30;
+
   constructor(n, user, game) {
-    // start portalsprite at location
-    // 0,0
     super(0, 0, game);
+    this.init("wh", this.x, this.y, true);
     this.outgoingPowerups = [];
-    // arrays with 30 elements
-    // this.powerupQ = new Array(30);
-    // this.powerupUpgradeQ = new Array(30);
-    // this.powerupCycleQ = new Array(30);
-    // this.powerupUserIdQ = new Array(30);
-
-    this.powerupQ = [];
-    this.powerupUpgradeQ = [];
-    this.powerupCycleQ = [];
-    this.powerupUserIdQ = [];
-
-    // initialize arrays
-    for (let i = 0; i < 30; i++) {
-      this.powerupQ.push(0);
-      this.powerupUpgradeQ.push(0);
-      this.powerupCycleQ.push(0);
-      this.powerupUserIdQ.push("");
-    }
-
+    this.powerupMap = new Map();
     this.currentDegrees = n;
     this.currentArcs = this.currentDegrees * 0.017453292519943295;
     this.setOrbit();
-    this.init("wh", this.x, this.y, true);
     this.spriteType = 1;
-
     this.shapeRect = new Rectangle(this.x - 60, this.y - 30, 120, 60);
-
-    this.viewingRect = new Rectangle(100, 130);
     this.indestructible = true;
     this.damage = 0;
+    this.damageTaken = 0;
     this.user = user;
     this.color = this.user.color;
     this.slot = this.user.slot;
-
-    this.currentDegrees;
-    this.currentArcs;
-    this.ARC_SPEED = 0.5;
     this.shouldGenEnemy = false;
-    this.BASE_W = 30;
-    this.MAX_W = 60;
-    this.damageTaken = 0;
-    this.MAX_TAKEN = 150;
-    this.outgoingPowerups;
-    this.NMISSILES = 12;
-    this.NMINES = 15;
-    this.MINE_VEL = 6;
-    this.NUMPOWERUPQ = 30;
-    this.POWERUP_DELAY = 30;
-    this.viewingRect;
     this.warpDx;
     this.warpDist;
-    this.bWarpingIn;
+    this.warpingIn;
   }
 
   /**
@@ -93,7 +68,7 @@ export class PortalSprite extends Sprite {
   }
 
   setOrbit() {
-    if (!this.bWarpingIn) {
+    if (!this.warpingIn) {
       this.setLocation(
         this.game.orbitDistance * Math.cos(this.currentArcs) +
           this.game.world.width / 2,
@@ -113,7 +88,7 @@ export class PortalSprite extends Sprite {
       this.warpDist += Math.max(6, this.game.orbitDistance - this.warpDist) / 3;
       return;
     }
-    this.bWarpingIn = false;
+    this.warpingIn = false;
   }
 
   /**
@@ -170,7 +145,7 @@ export class PortalSprite extends Sprite {
           break;
         }
         case 17: {
-          sprite = new EMPSprite(this);
+          sprite = new EMPSprite(this, this.game);
           break;
         }
         case 18: {
@@ -210,29 +185,39 @@ export class PortalSprite extends Sprite {
     context.fillText(`${this.user.username}'s WORMHOLE`, this.x, this.y + 80);
     context.stroke();
 
-    // Sprite.model.drawEnemyTeamShape(
-    //   graphics,
-    //   this.x - 70,
-    //   this.y + 70
-    // );
+    this.game.drawEnemyTeamShape(context, this.x - 70, this.y + 70);
 
-    // TODO - where does this draw the bulletSprite?
-    // vOutgoingPowerups is a vector of BulletSprites
-    // for (let i = this.vOutgoingPowerups.size() - 1; i >= 0; --i) {
-    //   let bulletSprite = this.vOutgoingPowerups.elementAt(i);
-    //   bulletSprite.setLocation(bulletSprite.x * 0.95, bulletSprite.y * 0.95);
-    //   graphics.drawImage(
-    //     WormholeModel.getImages("img_smallpowerups")[
-    //       PowerupSprite.convertToSmallImage(bulletSprite.powerupType)
-    //     ],
-    //     this.x + bulletSprite.x - 8,
-    //     this.y + bulletSprite.y - 5,
-    //     null
-    //   );
-    //   if (bulletSprite.spriteCycle++ > 9) {
-    //     this.vOutgoingPowerups.removeElementAt(i);
-    //   }
-    // }
+    // draw the bullet powerups going into the portal
+    for (let i = this.outgoingPowerups.length - 1; i >= 0; i--) {
+      let bulletSprite = this.outgoingPowerups[i];
+      bulletSprite.setLocation(bulletSprite.x * 0.95, bulletSprite.y * 0.95);
+
+      const img = document.getElementById("smallPowerupImages");
+      const imgWidth = 21;
+      const imgHeight = 17;
+      let shiftedNumber = bulletSprite.powerupType - 6;
+      let powerupNumber;
+      if (shiftedNumber <= 0) {
+        powerupNumber = 0;
+      } else {
+        powerupNumber = shiftedNumber;
+      }
+      context.drawImage(
+        img,
+        powerupNumber + powerupNumber * imgWidth + 1,
+        1,
+        imgWidth,
+        imgHeight - 2,
+        this.x + bulletSprite.x - 8,
+        this.y + bulletSprite.y - 5,
+        imgWidth,
+        imgHeight - 2
+      );
+
+      if (bulletSprite.spriteCycle++ > 9) {
+        this.outgoingPowerups.splice(i, 1);
+      }
+    }
   }
 
   setCollided(sprite) {
@@ -267,17 +252,11 @@ export class PortalSprite extends Sprite {
   }
 
   genBadPowerupEffect(powerupType, fromUserId, b2) {
-    let n2 = 0;
-    while (this.powerupCycleQ[n2] != 0) {
-      if (++n2 >= 30) {
-        return;
-      }
-    }
-    this.powerupCycleQ[n2] = this.spriteCycle + 30;
-    // b2 is used to set the powerupUpgradeQ
-    this.powerupUpgradeQ[n2] = b2;
-    this.powerupQ[n2] = powerupType;
-    this.powerupUserIdQ[n2] = fromUserId;
+    this.powerupMap.set(this.spriteCycle + 30, {
+      upgrade: b2,
+      powerupType,
+      fromUserId,
+    });
   }
 
   genNuke(x, y, userId) {
@@ -292,25 +271,10 @@ export class PortalSprite extends Sprite {
     nukeSprite.addSelf();
   }
 
-  // inViewingRect(rectangle) {
-  //   this.viewingRect.move(this.shapeRect.x, this.shapeRect.y);
-  //   return rectangle.intersects(this.viewingRect);
-  // }
-
   behave() {
     super.behave();
     this.setOrbit();
     if (this.shouldGenEnemy) {
-      // DEBUG - generate this type of enemy
-      // let sprite = new GhostPudSprite(this, 0, this.game);
-      // // sprite.setUser(userId);
-      // sprite.slot = 8;
-      // sprite.color = this.game.colors.colors[sprite.slot][0];
-      // sprite.addSelf();
-      // this.shouldGenEnemy = false;
-      // return;
-      // END DEBUG
-
       switch (WHUtil.randInt(5)) {
         case 0:
         case 1: {
@@ -330,24 +294,20 @@ export class PortalSprite extends Sprite {
       this.shouldGenEnemy = false;
     }
 
-    // use the powerupCycleQ
-    // iterate i from 0 to 29
-    // check that the
-    for (let i = 0; i < 30; i++) {
-      if (
-        this.powerupCycleQ[i] != 0 &&
-        this.powerupCycleQ[i] < this.spriteCycle
-      ) {
-        this.powerupCycleQ[i] = 0;
-        switch (this.powerupQ[i]) {
+    // check the powerups in the map
+    this.powerupMap.forEach((value, key, map) => {
+      if (key < this.spriteCycle) {
+        // remove the entry from the map
+        switch (value.powerupType) {
           default: {
-            continue;
+            break;
           }
           case 6: {
-            for (n2 = 0; n2 < 12; n2++) {
+            for (let n2 = 0; n2 < 12; n2++) {
               let heatSeekerMissile = new HeatSeekerMissile(
                 this.x + WHUtil.randInt(50),
-                this.y + WHUtil.randInt(50)
+                this.y + WHUtil.randInt(50),
+                this.game
               );
               heatSeekerMissile.rotate(WHUtil.randInt(360));
               heatSeekerMissile.doMaxThrust(heatSeekerMissile.maxThrust);
@@ -356,13 +316,13 @@ export class PortalSprite extends Sprite {
               // TODO need to clean this up
               // may need to create a 'computer' userId
               // for the computer player
-              heatSeekerMissile.setUser(this.powerupUserIdQ[i]);
+              heatSeekerMissile.setUser(value.fromUserId);
             }
-            continue;
+            break;
           }
           case 8: {
-            this.genMines(this.x, this.y, this.powerupUserIdQ[i]);
-            continue;
+            this.genMines(this.x, this.y, value.fromUserId);
+            break;
           }
           case 7:
           case 9:
@@ -376,24 +336,27 @@ export class PortalSprite extends Sprite {
           case 18:
           case 19: {
             this.genEnemy(
-              this.location,
-              this.powerupQ[i],
-              this.powerupUserIdQ[i],
-              this.powerupUpgradeQ[i]
+              this.x,
+              this.y,
+              value.powerupType,
+              value.fromUserId,
+              value.upgrade
             );
-            continue;
+            break;
           }
           case 14: {
-            this.genNuke(this.x, this.y, this.powerupUserIdQ[i]);
-            continue;
+            this.genNuke(this.x, this.y, value.fromUserId);
+            break;
           }
         }
+        // remove the entry from the map
+        map.delete(key);
       }
-    }
+    });
   }
 
   setWarpingIn() {
-    this.bWarpingIn = true;
+    this.warpingIn = true;
     this.warpDist = 0;
     this.warpDx = this.game.orbitDistance / 30;
   }

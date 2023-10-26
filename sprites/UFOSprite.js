@@ -10,9 +10,6 @@ import { Sprite } from "./Sprite.js";
 export class UFOSprite extends Sprite {
   constructor(x, y, game) {
     super(x, y, game);
-    this.x = x;
-    this.y = y;
-    this.game = game;
     super.init("ufo", x, y, true);
     this.spriteType = 1;
 
@@ -24,7 +21,7 @@ export class UFOSprite extends Sprite {
       x - this.ufoW / 2,
       y - this.ufoH / 2,
       this.ufoW,
-      this.ufoH,
+      this.ufoH
     );
     super.setHealth(40);
     this.damage = 20;
@@ -56,7 +53,7 @@ export class UFOSprite extends Sprite {
       this.ufoH * 0.6,
       0,
       0,
-      2 * Math.PI,
+      2 * Math.PI
     );
     context.fill();
     context.stroke();
@@ -70,7 +67,7 @@ export class UFOSprite extends Sprite {
       this.ufoH * 0.6,
       0,
       0,
-      2 * Math.PI,
+      2 * Math.PI
     );
     context.stroke();
   }
@@ -92,7 +89,7 @@ export class UFOSprite extends Sprite {
         let heatSeekerMissile = new HeatSeekerMissile(
           this.x,
           this.y,
-          this.game,
+          this.game
         );
         heatSeekerMissile.addSelf();
         heatSeekerMissile.setDegreeAngle(i * 120);

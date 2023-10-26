@@ -6,6 +6,7 @@ export class Sprite {
   constructor(x, y, game) {
     /** @type {number} horizontal location */
     this.x = x;
+
     /** @type {number} vertical location */
     this.y = y;
 
@@ -20,6 +21,7 @@ export class Sprite {
 
     /** @type {number} rotation degrees */
     this.dRotate = 0;
+
     /** @type {Boolean} is the sprite rotating */
     this.isRotating = false;
 
@@ -31,24 +33,14 @@ export class Sprite {
 
     this.shapeRect = new Rectangle(this.x, this.y, 0, 0);
 
-    // set up the shape rect for the sprite, use the x,y coordinates and then offset by the bounding box of the polygon
-    // this.shapeRect;
-    // this.boundingRect = new Rectangle(
-    //   0,
-    //   0,
-    //   game.world.width,
-    //   game.world.height
-    // );
-
     /** @type {number} shape type, used for collisions */
     this.shapeType = 0;
-    this.dVector = [];
 
     //initialize the angle and the radAngle for the ship
     this.angle = 0;
     this.radAngle = 0;
 
-    // the velocity of the ship
+    // the velocity of the sprite
     this.vx = 0;
     this.vy = 0;
 
@@ -60,18 +52,7 @@ export class Sprite {
 
     this.shouldRemoveSelf = false;
 
-    // set initial values for variables
-    this.maxThrust = undefined;
-    this.thrust = undefined;
-
     this.useHealth = false;
-    this.spriteType = undefined;
-    this.spriteName = undefined;
-
-    this.collidedObject = undefined;
-    this.rotationalPolygon = undefined;
-    this.leadPoint = undefined;
-    this.sentByUser = undefined;
 
     // need to have a secure browser context to use this method
     this.spriteId = crypto.randomUUID();
@@ -176,13 +157,6 @@ export class Sprite {
         break;
     }
   }
-
-  // moveTowards(paramInt1, paramInt2, paramDouble) {
-  //   calcTowards(paramInt1, paramInt2, paramDouble);
-  //   this.vx = this.dVector[0];
-  //   this.vy = this.dVector[1];
-  //   move(this.vx, this.vy);
-  // }
 
   decel(decelAmount) {
     if (Math.abs(this.vx) < 0.05) {
@@ -356,9 +330,12 @@ export class Sprite {
 
   static drawFlag(context, color, x, y) {
     if (color != null) {
-      context.setColor(color);
+      WHUtil.setColor(context, color);
       context.fillRect(x, y, 10, 7);
-      context.drawLine(x, y + 7, x, y + 14);
+      context.beginPath();
+      context.moveTo(x, y + 7);
+      context.lineTo(x, y + 14);
+      context.stroke();
     }
   }
 
@@ -385,10 +362,7 @@ export class Sprite {
   }
 
   drawSelf(context) {
-    // handle the case where the sprite does not have a rotational polygon
-    // but just uses a polygon
     const polygon = this.getPolygon();
-
     // set the color to draw
     if (this.color != null) {
       context.strokeStyle = this.color;
@@ -400,9 +374,7 @@ export class Sprite {
       polygon.drawPolygon(context);
       context.translate(-this.x, -this.y);
     }
-
     this.shapeRect = this.getShapeRect();
-
     if (this.sentByUser) {
       Sprite.drawFlag(
         context,
@@ -412,14 +384,6 @@ export class Sprite {
       );
     }
   }
-
-  // calcTowards(paramInt1, paramInt2, paramDouble) {
-  //   let d1 = paramInt1 - this.x;
-  //   let d2 = paramInt2 - this.y;
-  //   let d3 = Math.hypot(d1, d2);
-  //   this.dVector[0] = (paramDouble * d1) / d3;
-  //   this.dVector[1] = (paramDouble * d2) / d3;
-  // }
 
   // used to set up the global bounds for the map - consider moving this to the game constructor
   // setGlobalBounds(width, height) {

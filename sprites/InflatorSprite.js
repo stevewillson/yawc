@@ -6,11 +6,8 @@ import { Sprite } from "./Sprite.js";
 export class InflatorSprite extends Sprite {
   constructor(x, y, game) {
     super(x, y, game);
-    this.x = x;
-    this.y = y;
     super.init("inf", x, y, true);
     this.spriteType = 1;
-
     this.polygon = WHUtil.symPolygon(8, 30, 0);
     this.shapeType = 1;
     super.setHealth(30);

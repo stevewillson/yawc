@@ -10,11 +10,9 @@ export class NukeSprite extends Sprite {
 
   constructor(x, y, game) {
     super(x, y, game);
-    this.x = x;
-    this.y = y;
+    this.init("nuke", x, y, true);
     this.radius = 10;
     this.mode = "countdown";
-    super.init("nuke", x, y, true);
     this.shapeRect = new Rectangle(x - 20, y - 20, 40, 40);
     this.spriteType = 1;
     this.indestructible = false;
@@ -101,7 +99,7 @@ export class NukeSprite extends Sprite {
       return;
     }
     if (!this.shouldRemoveSelf) {
-      this.bShotAlready = true;
+      this.shotAlready = true;
       this.vx += collided.vx / 4;
       this.vy += collided.vy / 4;
       return;
@@ -119,7 +117,7 @@ export class NukeSprite extends Sprite {
           this.mode = "detonate";
           return;
         }
-        if (this.bShotAlready) {
+        if (this.shotAlready) {
           // implement shooting a nuke into another player's portal
           for (let i = 0; i < this.game.room.userIds.length; i++) {
             if (this.game.room.userIds[i] != null) {

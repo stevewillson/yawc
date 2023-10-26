@@ -42,7 +42,7 @@ export class WHUtil {
     return polygon;
   }
 
-  drawTarget(context, xOffset, yOffset) {
+  static drawTarget(context, xOffset, yOffset) {
     for (let i = 0; i < WHUtil.target.length; i++) {
       context.moveTo(
         xOffset + WHUtil.target[i][0],

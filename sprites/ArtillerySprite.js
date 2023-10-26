@@ -31,8 +31,8 @@ export class ArtillerySprite extends Sprite {
 
   constructor(x, y, game) {
     super(x, y, game);
-    this.rPoly = new RotationalPolygon(ArtillerySprite.points);
     this.init("art", this.x, this.y, false);
+    this.rPoly = new RotationalPolygon(ArtillerySprite.points);
     this.userSprite = this.game.user.userSprite;
     this.setHealth(10, 5);
     this.shapeRect = new Rectangle(this.x - 20, this.y - 20, 40, 40);
