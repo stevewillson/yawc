@@ -641,7 +641,7 @@ export class Game {
       if (
         sprite != null &&
         sprite.inDrawingRect &&
-        (!sprite.indestructible || sprite.isZappable)
+        (!sprite.indestructible || sprite.zappable)
       ) {
         sprite.killSelf();
       }

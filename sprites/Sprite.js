@@ -38,7 +38,6 @@ export class Sprite {
 
     //initialize the angle and the radAngle for the ship
     this.angle = 0;
-    this.radAngle = 0;
 
     // the velocity of the sprite
     this.vx = 0;
@@ -233,7 +232,7 @@ export class Sprite {
       this.color = this.game.colors.colors[user.slot][0];
     } else {
       this.slot = userId;
-      this.color = this.game.colors.colors[user.slot][0];
+      this.color = this.game.colors.colors[this.slot][0];
     }
   }
 

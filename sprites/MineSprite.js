@@ -10,14 +10,17 @@ export class MineSprite extends Sprite {
   constructor(x, y, game) {
     super(x, y, game);
     this.init("mns", x, y, true);
-    this.spriteType = 1;
     this.shapeRect = new Rectangle(this.x - 15, this.y - 15, 30, 30);
-    this.indestructible = true;
+
+    this.spriteType = 1;
+    this.shapeType = 0;
+
     this.setHealth(10);
     this.damage = 0;
+
     this.powerupType = 8;
-    this.shrapnel = undefined;
-    this.currentShade = undefined;
+
+    this.indestructible = true;
   }
 
   drawSelf(context) {
@@ -61,7 +64,8 @@ export class MineSprite extends Sprite {
     super.behave();
     if (this.spriteCycle == 40) {
       this.indestructible = false;
-      this.setHealth(5, 20);
+      this.setHealth(5);
+      this.damage = 20;
       this.vx = 0;
       this.vy = 0;
     }

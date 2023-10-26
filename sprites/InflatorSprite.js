@@ -1,4 +1,3 @@
-import { RotationalPolygon } from "../RotationalPolygon.js";
 import { WHUtil } from "../WHUtil.js";
 import { PowerupSprite } from "./PowerupSprite.js";
 import { Sprite } from "./Sprite.js";
@@ -6,17 +5,18 @@ import { Sprite } from "./Sprite.js";
 export class InflatorSprite extends Sprite {
   constructor(x, y, game) {
     super(x, y, game);
-    super.init("inf", x, y, true);
-    this.spriteType = 1;
+    this.init("inf", x, y, true);
     this.polygon = WHUtil.symPolygon(8, 30, 0);
+
+    this.spriteType = 1;
     this.shapeType = 1;
-    super.setHealth(30);
+
+    this.setHealth(30);
     this.damage = 15;
-    this.perceivedSize = 20;
+
     this.powerupType = 10;
 
-    this.inflationSize = undefined;
-    this.perceivedSize = undefined;
+    this.perceivedSize = 20;
     this.maxAttackDistance = 100;
   }
 

@@ -15,11 +15,14 @@ export class MineLayerSprite extends Sprite {
   constructor(x, y, game) {
     super(x, y, game);
     this.init("ml", x, y, true);
-    this.spriteType = 1;
     this.polygon = WHUtil.symPolygon(8, 35, 0);
+
+    this.spriteType = 1;
     this.shapeType = 1;
+
     this.setHealth(50);
     this.damage = 10;
+
     this.powerupType = 11;
     this.directionalCycles = WHUtil.randInt(150);
   }
@@ -69,8 +72,9 @@ export class MineLayerSprite extends Sprite {
     if (this.spriteCycle % 50 == 0) {
       let mineSprite = new MineSprite(this.x, this.y, this.game);
       // get the user in the slot
-      const user = this.game.user;
-      mineSprite.setUser(user.userId);
+      // const user = this.game.user;
+      // get the user that sent the mine layer
+      mineSprite.setUser(this.slot);
       mineSprite.spriteCycle = 20;
       mineSprite.addSelf();
     }
