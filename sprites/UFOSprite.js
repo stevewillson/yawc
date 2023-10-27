@@ -38,6 +38,7 @@ export class UFOSprite extends Sprite {
 
   drawSelf(context) {
     context.strokeStyle = this.color;
+    context.lineWidth = 1;
     context.beginPath();
     context.ellipse(this.x, this.y, this.ufoW, this.ufoH, 0, 0, 2 * Math.PI);
     context.stroke();

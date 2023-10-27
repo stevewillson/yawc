@@ -887,6 +887,7 @@ export class Game {
    */
   drawBorder(context) {
     // draw the outer border box
+    context.lineWidth = 1;
     context.beginPath();
     for (let i = 0; i < this.borderShades.length; i++) {
       context.strokeStyle = this.borderShades[i];
