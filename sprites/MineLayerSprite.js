@@ -29,6 +29,7 @@ export class MineLayerSprite extends Sprite {
 
   drawSelf(context) {
     context.fillStyle = this.color;
+    context.lineWidth = 1;
 
     WHUtil.drawCenteredCircle(context, this.x, this.y, 30);
     context.fillStyle =

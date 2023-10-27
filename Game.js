@@ -1,6 +1,5 @@
 import { ClientRoomManager } from "./ClientRoomManager.js";
 import { ClientUser } from "./ClientUser.js";
-import { Polygon } from "./Polygon.js";
 import { Rectangle } from "./Rectangle.js";
 import { SpriteColors } from "./SpriteColors.js";
 import { WHUtil } from "./WHUtil.js";
@@ -73,6 +72,10 @@ export class Game {
     this.context = undefined;
 
     this.cycle = undefined;
+
+    this.refreshAll = true;
+    this.refreshOtherBar = true;
+    this.refreshUserBar = true;
 
     // only use key handlers when the game is in focus?
     // key press handlers
@@ -429,9 +432,6 @@ export class Game {
     this.msPassed = timeStamp - this.msPrev;
 
     if (this.msPassed > this.msPerFrame) {
-      // insert silence audio clip here
-      // GameBoard.playSound((AudioClip)g_mediaTable.get("snd_silence"));
-
       // return;
 
       /**
@@ -835,6 +835,7 @@ export class Game {
             let n13 = n7 * Math.sin(n9) + this.viewport.height / 2;
 
             context.strokeStyle = user.color;
+            context.lineWidth = 1;
             context.beginPath();
             context.moveTo(n5, n6);
             context.lineTo(
@@ -943,6 +944,7 @@ export class Game {
     let n2 = n + 30;
     context.fillStyle = this.color;
     context.strokeStyle = this.color;
+    context.lineWidth = 1;
 
     context.beginPath();
     context.roundRect(50, n, this.board.width - 100, 100, 30);
@@ -1007,8 +1009,9 @@ export class Game {
           for (let n3 = this.orbitDistance / 35, j = 0; j < n3 - 1; j++) {
             let n4 = boardCenterX + (n / n3) * j;
             let n5 = boardCenterX + (n2 / n3) * j;
-            context.fillStyle = ClientRoomManager.TEAM_COLORS[b];
-            context.strokeStyle = ClientRoomManager.TEAM_COLORS[b];
+
+            context.lineWidth = 1;
+            WHUtil.setColor(context, ClientRoomManager.TEAM_COLORS[b]);
             if (b == 1) {
               context.strokeRect(n4, n5, 8, 8);
             } else {
@@ -1230,6 +1233,7 @@ export class Game {
     context.fillStyle = "gray";
     context.fillRect(this.intro_shipX, this.intro_shipY, 400, 50);
 
+    context.lineWidth = 1;
     context.strokeStyle = this.color;
     context.strokeRect(this.intro_shipX, this.intro_shipY, 400, 50);
 
@@ -1606,8 +1610,8 @@ export class Game {
   }
 
   drawTeamButton(context, s, color, color2, n, n2, n3, n4) {
-    context.strokeStyle = color;
-    context.fillStyle = color;
+    WHUtil.setColor(context, color);
+    context.lineWidth = 1;
     context.roundRect(n + 1, n2, n4 - 2 - n, 15, n3, n3);
     context.fill();
 
@@ -1724,9 +1728,10 @@ export class Game {
     context.strokeStyle = user.color;
     context.strokeRect(0, 0, 429, 48);
     context.font = "12px helvetica";
+    context.lineWidth = 1;
+
     if (user.userSprite != null) {
-      context.fillStyle = "white";
-      context.strokeStyle = "white";
+      WHUtil.setColor(context, "white");
       context.fillText(this.gameNetLogic.username, 7, 10);
 
       const yOffset = 19;
@@ -1745,13 +1750,13 @@ export class Game {
     }
     let n2 = 370;
     let n3 = n2 - 10;
-    context.strokeStyle = "white";
+    WHUtil.setColor(context, "white");
+
     context.beginPath();
     context.moveTo(n3, 0);
     context.lineTo(n3, 90);
     context.stroke();
 
-    context.fillStyle = "white";
     context.fillText("History", n2, 12);
     context.fillText(`Wins: ${user.wins}`, n2, 28);
     context.fillText(`Kills: ${user.kills}`, n2, 42);

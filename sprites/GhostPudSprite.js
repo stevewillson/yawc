@@ -60,6 +60,8 @@ export class GhostPudSprite extends Sprite {
     context.translate(this.x, this.y);
     WHUtil.setColor(context, "white");
 
+    context.lineWidth = 1;
+
     WHUtil.drawCenteredCircle(context, 0, 0, 8);
     if (this.directionalCycle > 0) {
       context.moveTo(-3, -3);

@@ -1,4 +1,5 @@
 import { Rectangle } from "../Rectangle.js";
+import { WHUtil } from "../WHUtil.js";
 import { Sprite } from "./Sprite.js";
 
 export class MineSprite extends Sprite {
@@ -23,10 +24,11 @@ export class MineSprite extends Sprite {
   }
 
   drawSelf(context) {
-    context.strokeStyle =
-      this.game.colors.colors[this.slot][this.spriteCycle % 20];
-    context.fillStyle =
-      this.game.colors.colors[this.slot][this.spriteCycle % 20];
+    context.lineWidth = 1;
+    WHUtil.setColor(
+      context,
+      this.game.colors.colors[this.slot][this.spriteCycle % 20]
+    );
 
     context.translate(this.x, this.y);
     context.beginPath();

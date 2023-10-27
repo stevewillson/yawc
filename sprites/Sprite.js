@@ -348,6 +348,7 @@ export class Sprite {
   static drawFlag(context, color, x, y) {
     if (color != null) {
       WHUtil.setColor(context, color);
+      context.lineWidth = 1;
       context.fillRect(x, y, 10, 7);
       context.beginPath();
       context.moveTo(x, y + 7);

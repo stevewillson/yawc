@@ -63,6 +63,7 @@ export class PortalBeamSprite extends Sprite {
     let y = 1200 * Math.sin(this.attackAngle);
     context.translate(this.portal.x, this.portal.y);
     let spriteCycle = this.spriteCycle;
+    context.lineWidth = 1;
     for (let i = 0; i < 10; i++) {
       if (this.stage != 0) {
         WHUtil.setColor(

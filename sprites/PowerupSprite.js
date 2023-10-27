@@ -94,6 +94,9 @@ export class PowerupSprite extends Sprite {
     context.lineWidth = 4;
     context.arc(this.x, this.y, 16, 0, 2 * Math.PI);
     context.stroke();
+
+    // reset the lineWidth to 1
+    context.lineWidth = 1;
   }
 
   behave() {
@@ -108,7 +111,7 @@ export class PowerupSprite extends Sprite {
   }
 
   givePowerupTo(userSprite) {
-    // GameBoard.playSound("snd_powerup");
+    new Audio("./sound/magic.mp3").play();
     switch (this.powerupType) {
       case 0: {
         userSprite.upgradeShot();

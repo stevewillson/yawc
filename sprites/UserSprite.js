@@ -503,7 +503,8 @@ export class UserSprite extends Sprite {
     const polygon = WHUtil.createPolygon(
       UserSprite.shipShapes[this.shipSelect]
     );
-    // const polygon = this.getPolygon();
+
+    context.lineWidth = 1;
 
     context.strokeStyle = this.color;
     context.fillStyle = this.color;
@@ -639,11 +640,10 @@ export class UserSprite extends Sprite {
   }
 
   fireBullet() {
+    new Audio("./sound/fire.mp3").play();
     if (this.numShots == 1) {
-      // GameBoard.playSound("snd_fire");
       this.fireBulletAngle(this.radAngle);
     } else if (this.numShots == 2) {
-      // GameBoard.playSound("snd_fire");
       this.fireBulletAngle(this.radAngle - 0.05);
       this.fireBulletAngle(this.radAngle + 0.05);
     }
@@ -778,15 +778,13 @@ export class UserSprite extends Sprite {
     //   }
     // }
     if (this.health < this.MAX_HEALTH / 3) {
-      context.fillStyle = "red";
-      context.strokeStyle = "red";
+      WHUtil.setColor(context, "red");
     } else if (this.health < (2 / 3) * this.MAX_HEALTH) {
-      context.fillStyle = "yellow";
-      context.strokeStyle = "yellow";
+      WHUtil.setColor(context, "yellow");
     } else {
-      context.fillStyle = "green";
-      context.strokeStyle = "green";
+      WHUtil.setColor(context, "green");
     }
+    context.lineWidth = 1;
     let i = 20 * (this.health / this.MAX_HEALTH);
     context.beginPath();
     context.strokeRect(18, 18, 5, 20);
@@ -830,18 +828,17 @@ export class UserSprite extends Sprite {
   handleThrust() {
     this.thrustOn = true;
     this.doMaxThrust(this.thrust);
-    // GameBoard.playSound(
-    // play the audio file for the thrusters
-    // (AudioClip)WormholeModel.g_mediaTable.get("snd_thrust"));
-    // in sound/thrust.mp3
-    // }
+
+    new Audio("./sound/thrust.mp3").play();
   }
 
   firePowerup() {
     if (this.user.numPowerups > 0) {
       let x = Math.cos(this.radAngle) * 12 + this.x;
       let y = Math.sin(this.radAngle) * 12 + this.y;
-      // GameBoard.playSound("snd_fire");
+
+      new Audio("./sound/fire.mp3").play();
+
       this.game.refreshUserBar = true;
       this.user.numPowerups--;
       const bulletSprite = new BulletSprite(

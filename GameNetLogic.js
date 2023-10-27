@@ -72,8 +72,8 @@ export class GameNetLogic {
 
       case "countdown": {
         if (this.roomId == roomId) {
-          // play a "weapon firing" sound
-          // GameBoard.playSound("snd_fire");
+          // play a "weapon firing"
+          new Audio("./sound/fire.mp3").play();
           // set the room in the countdown phase if it is the room we are in
           this.gamePanel.roomPanel.setInCountdown(true, countdown);
         }

@@ -138,6 +138,8 @@ export class GunshipSprite extends Sprite {
         y + this.y
       );
       context.fillStyle = this.color;
+      context.lineWidth = 1;
+
       context.beginPath();
       context.moveTo(x, y);
       context.arc(

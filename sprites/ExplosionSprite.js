@@ -12,8 +12,8 @@ export class ExplosionSprite extends Sprite {
     this.spriteType = 0;
 
     this.slotNumber = slotNumber;
-    // TODO - explosion sound
-    // GameBoard.playSound("snd_explosion");
+
+    new Audio("./sound/explosion.mp3").play();
   }
 
   drawSelf(context) {

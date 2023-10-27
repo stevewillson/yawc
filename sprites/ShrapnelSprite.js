@@ -29,6 +29,7 @@ export class ShrapnelSprite extends Sprite {
   }
 
   drawSelf(context) {
+    context.lineWidth = 1;
     context.strokeStyle = this.color;
     for (let i = 0; i < this.shrapnel; i++) {
       let x = (this.len[i] * Math.cos(this.angle[i])) / 2;

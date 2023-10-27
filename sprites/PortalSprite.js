@@ -46,6 +46,7 @@ export class PortalSprite extends Sprite {
   }
 
   drawSelf(context) {
+    context.lineWidth = 1;
     for (let i = 30; i < 60; i++) {
       context.strokeStyle =
         this.game.colors.colors[this.slot][(this.spriteCycle + i) % 20];
