@@ -640,7 +640,9 @@ export class UserSprite extends Sprite {
   }
 
   fireBullet() {
-    new Audio("./sound/fire.mp3").play();
+    if (this.game.gameNetLogic.soundOn) {
+      this.game.fireSound.play();
+    }
     if (this.numShots == 1) {
       this.fireBulletAngle(this.radAngle);
     } else if (this.numShots == 2) {
@@ -829,7 +831,9 @@ export class UserSprite extends Sprite {
     this.thrustOn = true;
     this.doMaxThrust(this.thrust);
 
-    new Audio("./sound/thrust.mp3").play();
+    if (this.game.gameNetLogic.soundOn) {
+      this.game.thrustSound.play();
+    }
   }
 
   firePowerup() {
@@ -837,7 +841,9 @@ export class UserSprite extends Sprite {
       let x = Math.cos(this.radAngle) * 12 + this.x;
       let y = Math.sin(this.radAngle) * 12 + this.y;
 
-      new Audio("./sound/fire.mp3").play();
+      if (this.game.gameNetLogic.soundOn) {
+        this.game.fireSound.play();
+      }
 
       this.game.refreshUserBar = true;
       this.user.numPowerups--;

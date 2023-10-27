@@ -27,8 +27,6 @@ export class Game {
       fKey: false,
     };
 
-    this.soundOn = true;
-
     this.colors = new SpriteColors();
 
     this.novaInfo = [];
@@ -76,6 +74,12 @@ export class Game {
     this.refreshAll = true;
     this.refreshOtherBar = true;
     this.refreshUserBar = true;
+
+    // load audio files
+    this.fireSound = new Audio("./sound/fire.mp3");
+    this.explosionSound = new Audio("./sound/explosion.mp3");
+    this.powerupSound = new Audio("./sound/magic.mp3");
+    this.thrustSound = new Audio("./sound/thrust.mp3");
 
     // only use key handlers when the game is in focus?
     // key press handlers
@@ -488,10 +492,6 @@ export class Game {
     this.frames++;
 
     window.requestAnimationFrame(this.gameLoop.bind(this));
-  }
-
-  playSound(paramAudioClip) {
-    if (paramAudioClip != null && soundOn) paramAudioClip.play();
   }
 
   // add users to the room when someone joins the room

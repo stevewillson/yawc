@@ -111,7 +111,9 @@ export class PowerupSprite extends Sprite {
   }
 
   givePowerupTo(userSprite) {
-    new Audio("./sound/magic.mp3").play();
+    if (this.game.gameNetLogic.soundOn) {
+      this.game.powerupSound.play();
+    }
     switch (this.powerupType) {
       case 0: {
         userSprite.upgradeShot();

@@ -17,6 +17,19 @@ export class GameNetLogic {
     this.roomId = undefined;
     this.lastWhisperer = undefined;
     this.network = undefined;
+
+    this.soundOn = true;
+  }
+
+  toggleSound() {
+    this.soundOn = !this.soundOn;
+    // get teh room panel's toggleSound button
+    const toggleSoundButton = document.getElementById("toggleSoundButton");
+    if (this.soundOn) {
+      toggleSoundButton.innerText = "Sound off";
+    } else {
+      toggleSoundButton.innerText = "Sound on";
+    }
   }
 
   // login
@@ -73,7 +86,10 @@ export class GameNetLogic {
       case "countdown": {
         if (this.roomId == roomId) {
           // play a "weapon firing"
-          new Audio("./sound/fire.mp3").play();
+          if (this.gamePanel.roomPanel.game.gameNetLogic.soundOn) {
+            this.gamePanel.roomPanel.game.fireSound.play();
+          }
+
           // set the room in the countdown phase if it is the room we are in
           this.gamePanel.roomPanel.setInCountdown(true, countdown);
         }

@@ -94,17 +94,18 @@ export class RoomPanel {
 
     // need to get the room id for the current user?
     const user = this.gamePanel.gameNetLogic.clientUserManager.users.get(
-      this.gamePanel.gameNetLogic.userId,
+      this.gamePanel.gameNetLogic.userId
     );
 
     startGameButton.onclick = () =>
       this.gamePanel.gameNetLogic.network.startGame(user.roomId);
 
     const toggleSoundButton = document.createElement("button");
-    toggleSoundButton.innerText = "Sound on";
+    toggleSoundButton.innerText = "Sound off";
+    toggleSoundButton.id = "toggleSoundButton";
     toggleSoundButton.className = "roomButton";
 
-    // toggleSoundButton.onclick = () => toggleSound();
+    toggleSoundButton.onclick = () => this.gamePanel.gameNetLogic.toggleSound();
 
     const instructionsButton = document.createElement("button");
     instructionsButton.innerText = "Instructions & Tips";
