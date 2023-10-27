@@ -18,32 +18,30 @@ export class ArtillerySprite extends Sprite {
     [5, -20],
     [5, -23],
   ];
-  static FIRING_DELAY = 60;
-  static FIRING_RATE = 5;
-  static TELEPORT_THRESHHOLD = 50;
-  static TELEPORT_TIME = 45;
-  static MODE_WARPING_IN = 0;
-  static MODE_TRACKING = 1;
-  static MODE_FIRING = 2;
-  static MODE_TELEPORTING = 3;
-  static BASE_WIDTH = 8;
-  static BASE_HEIGHT = 20;
 
   constructor(x, y, game) {
     super(x, y, game);
     this.init("art", this.x, this.y, false);
-    this.rPoly = new RotationalPolygon(ArtillerySprite.points);
-    this.userSprite = this.game.user.userSprite;
-    this.setHealth(10, 5);
     this.shapeRect = new Rectangle(this.x - 20, this.y - 20, 40, 40);
+
+    /** @type {number} specified good or bad sprite */
     this.spriteType = 1;
+
+    /** sets the health and the damage the sprite causes */
+    this.setHealth(10);
+    this.damage = 5;
+
+    /** @type {number} specify the powerup type for the sprite */
     this.powerupType = 19;
+
+    this.rPoly = new RotationalPolygon(ArtillerySprite.points);
+
+    this.userSprite = this.game.user.userSprite;
+
     this.mode = 3;
     this.teleportationCounter = 45;
     this.shotsFiredThisRound = 0;
     this.framesDrawn = 0;
-    this.teleportationCounter = 0;
-    this.setVelocity(0, 0);
   }
 
   drawSelf(context) {

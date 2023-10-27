@@ -3,37 +3,24 @@ import { WHUtil } from "../WHUtil.js";
 import { Sprite } from "./Sprite.js";
 
 export class NukeSprite extends Sprite {
-  static D_RADIUS = 30;
-  static MAX_RADIUS = 1000;
-  static NUKE_SIZE = 40;
-  static COUNTDOWN_TIME = 9;
-
   constructor(x, y, game) {
     super(x, y, game);
     this.init("nuke", x, y, true);
-    this.radius = 10;
-    this.mode = "countdown";
     this.shapeRect = new Rectangle(x - 20, y - 20, 40, 40);
+
     this.spriteType = 1;
-    this.indestructible = false;
+
     this.setHealth(100);
     this.damage = 0;
+
     this.powerupType = 14;
 
+    this.radius = 10;
+    this.mode = "countdown";
+    this.indestructible = false;
     this.shotAlready = undefined;
     this.countdown = undefined;
     this.dropTime = undefined;
-  }
-
-  addSelf() {
-    super.addSelf();
-    this.dropTime = window.performance.now();
-    this.game.flashScreenColor = this.game.colors.colors[this.slot][0];
-  }
-
-  isCollision(sprite) {
-    let distance = WHUtil.distanceFrom(this.x, this.y, sprite.x, sprite.y);
-    return distance <= this.radius && distance > this.radius - 50;
   }
 
   drawSelf(context) {
@@ -87,26 +74,6 @@ export class NukeSprite extends Sprite {
     }
   }
 
-  setCollided(collided) {
-    super.setCollided(collided);
-    if (collided == this.game.user.userSprite) {
-      this.game.flashScreenColor = this.game.colors.colors[this.slot][0];
-      this.shouldRemoveSelf = false;
-      this.mode = "detonate";
-      let angle = WHUtil.findAngle(collided.x, collided.y, this.x, this.y);
-      collided.vx += 2 * Math.cos(angle * 0.017453292519943295);
-      collided.vy += 2 * Math.sin(angle * 0.017453292519943295);
-      return;
-    }
-    if (!this.shouldRemoveSelf) {
-      this.shotAlready = true;
-      this.vx += collided.vx / 4;
-      this.vy += collided.vy / 4;
-      return;
-    }
-    this.killSelf();
-  }
-
   behave() {
     super.behave();
     switch (this.mode) {
@@ -156,5 +123,36 @@ export class NukeSprite extends Sprite {
         break;
       }
     }
+  }
+
+  addSelf() {
+    super.addSelf();
+    this.dropTime = window.performance.now();
+    this.game.flashScreenColor = this.game.colors.colors[this.slot][0];
+  }
+
+  isCollision(sprite) {
+    let distance = WHUtil.distanceFrom(this.x, this.y, sprite.x, sprite.y);
+    return distance <= this.radius && distance > this.radius - 50;
+  }
+
+  setCollided(collided) {
+    super.setCollided(collided);
+    if (collided == this.game.user.userSprite) {
+      this.game.flashScreenColor = this.game.colors.colors[this.slot][0];
+      this.shouldRemoveSelf = false;
+      this.mode = "detonate";
+      let angle = WHUtil.findAngle(collided.x, collided.y, this.x, this.y);
+      collided.vx += 2 * Math.cos(angle * 0.017453292519943295);
+      collided.vy += 2 * Math.sin(angle * 0.017453292519943295);
+      return;
+    }
+    if (!this.shouldRemoveSelf) {
+      this.shotAlready = true;
+      this.vx += collided.vx / 4;
+      this.vy += collided.vy / 4;
+      return;
+    }
+    this.killSelf();
   }
 }

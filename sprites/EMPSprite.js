@@ -2,17 +2,12 @@ import { WHUtil } from "../WHUtil.js";
 import { Sprite } from "./Sprite.js";
 
 export class EMPSprite extends Sprite {
-  static EMP_FORMING_DURATION = 65;
-  static EMP_FLASH_RADIUS = 320;
-  static EMP_FLASH_D_RADIUS = 8;
-  static EMP_FORMING = 0;
-  static EMP_BURSTING = 1;
-  static EMP_FADING = 2;
-
   constructor(portal, game) {
     super(0, 0, game);
     this.init("emp", game.user.userSprite.x, game.user.userSprite.y, true);
+
     this.spriteType = 0;
+
     this.portal = portal;
     this.distX = this.portal.x - game.user.userSprite.x;
     this.distY = this.portal.y - game.user.userSprite.y;
@@ -68,10 +63,6 @@ export class EMPSprite extends Sprite {
     context.translate(-this.x, -this.y);
   }
 
-  inViewingRect() {
-    return true;
-  }
-
   behave() {
     super.behave();
     switch (this.stage) {
@@ -115,5 +106,9 @@ export class EMPSprite extends Sprite {
         break;
       }
     }
+  }
+
+  inViewingRect() {
+    return true;
   }
 }

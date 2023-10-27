@@ -13,7 +13,6 @@ export class MineSprite extends Sprite {
     this.shapeRect = new Rectangle(this.x - 15, this.y - 15, 30, 30);
 
     this.spriteType = 1;
-    this.shapeType = 0;
 
     this.setHealth(10);
     this.damage = 0;

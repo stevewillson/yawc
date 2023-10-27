@@ -424,32 +424,37 @@ export class UserSprite extends Sprite {
   constructor(x, y, shipSelect, game) {
     super(x, y, game);
     this.init("user", x, y, true);
+
+    // sprite type - 1 - badGuy
+    // sprite type - 2 - goodGuy
+    this.spriteType = 2;
+    this.shapeType = 1;
+
+    // set ship parameters based on the fighterData
+    this.setHealth(UserSprite.fighterData[shipSelect].health);
+    this.damage = 1000000;
+
+    this.rPoly = new RotationalPolygon(UserSprite.shipShapes[shipSelect]);
+    // rotate the ship so that it is facing north
+    this.rotate(0);
+    this.shapeRect = this.getShapeRect();
+
     this.user = this.game.gameNetLogic.clientUserManager.users.get(
       this.game.gameNetLogic.userId
     );
     this.shipSelect = shipSelect;
-    this.rotationalPolygon = new RotationalPolygon(
-      UserSprite.shipShapes[shipSelect]
-    );
-    this.shapeRect = this.getShapeRect();
 
     // set the shot, thrust, and retro upgrade status
     this.thrustUpgradeStatus = 0;
     this.shotUpgrade = 0;
-
     this.maxShotUpgrade = false;
     this.maxThrustUpgrade = false;
-
     // set the ship's basic parameters
     this.dRotate = UserSprite.fighterData[shipSelect].dRotate;
     this.maxThrust = UserSprite.fighterData[shipSelect].maxThrust;
     this.thrust = UserSprite.fighterData[shipSelect].thrust;
     this.trackingFiringRate =
       UserSprite.fighterData[shipSelect].trackingFiringRate;
-
-    // set ship parameters based on the fighterData
-    this.setHealth(UserSprite.fighterData[shipSelect].health);
-    this.damage = 1000000;
 
     // upgrade the ship's cannon
     this.setShot(0);
@@ -486,22 +491,10 @@ export class UserSprite extends Sprite {
     this.fireSecondaryWeapon = false;
 
     this.lastShotCycle = 0;
-
-    this.bulletDamage = 10;
     this.heatSeekerRounds = 3;
-
     this.killedBy = "";
-
-    // sprite type - 1 - badGuy
-    // sprite type - 2 - goodGuy
-    this.spriteType = 2;
-    this.shapeType = 1;
-
     this.damagingPowerup = undefined;
     this.strDamagedByUser = undefined;
-
-    // rotate the ship so that it is facing north
-    this.rotate(0);
   }
 
   drawPermanentPowerups(context) {
@@ -712,16 +705,16 @@ export class UserSprite extends Sprite {
     // }
 
     // rotate the model 90 degrees?
-    this.rotationalPolygon.rotate(90);
+    this.rPoly.rotate(90);
 
     // draw the user polygon
-    this.rotationalPolygon.polygon.drawPolygon(
+    this.rPoly.polygon.drawPolygon(
       context,
       this.game.colors.colors[this.user.slot][0]
     );
 
     // undo the rotation
-    this.rotationalPolygon.rotate(-90);
+    this.rPoly.rotate(-90);
 
     // paramGraphics.drawPolygon(this.drawPoly.xpoints, this.drawPoly.ypoints,
     //                           this.drawPoly.npoints);
@@ -811,7 +804,7 @@ export class UserSprite extends Sprite {
 
   rotate(degrees) {
     super.rotate(degrees);
-    this.rotationalPolygon.rotate(degrees);
+    this.rPoly.rotate(degrees);
   }
 
   drawOneThrust(angle, offset) {
@@ -1023,7 +1016,7 @@ export class UserSprite extends Sprite {
 
   // get a shapeRect that is centered around the current location of the object with the bounds
   getShapeRect() {
-    let bounds = this.rotationalPolygon.polygon.bounds;
+    let bounds = this.rPoly.polygon.bounds;
     bounds.setLocation(this.x - bounds.width / 2, this.y - bounds.height / 2);
     return bounds;
   }

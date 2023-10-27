@@ -20,14 +20,6 @@ export class InflatorSprite extends Sprite {
     this.maxAttackDistance = 100;
   }
 
-  setCollided(collided) {
-    super.setCollided(collided);
-    if (this.health < 8 || this.shouldRemoveSelf) {
-      this.killSelf();
-      PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
-    }
-  }
-
   behave() {
     super.behave();
     if (this.perceivedSize != this.health) {
@@ -48,6 +40,14 @@ export class InflatorSprite extends Sprite {
       this.perceivedSize++;
       this.health++;
       this.polygon = WHUtil.symPolygon(8, 10 + this.perceivedSize, 15);
+    }
+  }
+
+  setCollided(collided) {
+    super.setCollided(collided);
+    if (this.health < 8 || this.shouldRemoveSelf) {
+      this.killSelf();
+      PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
     }
   }
 

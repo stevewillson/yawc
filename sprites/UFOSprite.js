@@ -11,8 +11,6 @@ export class UFOSprite extends Sprite {
   constructor(x, y, game) {
     super(x, y, game);
     super.init("ufo", x, y, true);
-    this.spriteType = 1;
-
     this.ufoW = 60;
     this.ufoH = 26;
     this.ufoW2 = 30;
@@ -23,15 +21,19 @@ export class UFOSprite extends Sprite {
       this.ufoW,
       this.ufoH
     );
+
+    this.spriteType = 1;
+
     super.setHealth(40);
     this.damage = 20;
+
+    this.powerupType = 9;
+
     this.currentColor = 0;
     this.color = this.game.colors.colors[this.slot][0];
-
     this.dRotate = 30;
     this.thrust = 0.2;
     this.maxThrust = 5;
-    this.powerupType = 9;
   }
 
   drawSelf(context) {

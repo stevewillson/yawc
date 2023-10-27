@@ -57,6 +57,52 @@ export class Sprite {
     this.spriteId = crypto.randomUUID();
   }
 
+  drawSelf(context) {
+    const polygon = this.getPolygon();
+    // set the color to draw
+    if (this.color != null) {
+      context.strokeStyle = this.color;
+    } else {
+      context.strokeStyle = "green";
+    }
+    if (polygon != null) {
+      context.translate(this.x, this.y);
+      polygon.drawPolygon(context);
+      context.translate(-this.x, -this.y);
+    }
+    this.shapeRect = this.getShapeRect();
+    if (this.sentByUser) {
+      Sprite.drawFlag(
+        context,
+        this.color,
+        this.shapeRect.x + this.shapeRect.width + 5,
+        this.shapeRect.y + this.shapeRect.height + 5
+      );
+    }
+  }
+
+  /**
+   * execute the default behavior for the sprite
+   * move the sprite according to its current velocity
+   * advance the sprite cycle
+   * if it has collided or it's not bounded and it's not in the global bounds
+   * then set that the sprite should remove itself
+   */
+  behave() {
+    this.move(this.vx, this.vy);
+    this.spriteCycle++;
+    if (
+      this.hasCollided
+      // need to set the global bounds
+      // this caused the thrust to disappear when it was
+      // outside of the GlobalBounds
+      // ||
+      // (!this.bounded && !this.inGlobalBounds(this.x, this.y))
+    ) {
+      this.shouldRemoveSelf = true;
+    }
+  }
+
   /**
    * Add the sprite to the appropriate array
    * 0 - neutral
@@ -65,11 +111,27 @@ export class Sprite {
    */
   addSelf() {
     if (this.spriteType == 1) {
-      this.game.badGuys.push(this);
+      this.game.badGuys.set(this.spriteId, this);
     } else if (this.spriteType == 2) {
-      this.game.goodGuys.push(this);
+      this.game.goodGuys.set(this.spriteId, this);
     }
-    this.game.allSprites.push(this);
+    this.game.allSprites.set(this.spriteId, this);
+  }
+
+  /**
+   * Remove the sprite from the appropriate array
+   */
+  removeSelf() {
+    // remove sprites with a matching spriteId
+    this.game.allSprites.delete(this.spriteId);
+    switch (this.spriteType) {
+      case 1:
+        this.game.badGuys.delete(this.spriteId);
+        break;
+      case 2:
+        this.game.goodGuys.delete(this.spriteId);
+        break;
+    }
   }
 
   distanceFrom(sprite) {
@@ -135,28 +197,6 @@ export class Sprite {
     this.setVelocity(vx, vy);
   }
 
-  /**
-   * Remove the sprite from the appropriate array
-   */
-  removeSelf() {
-    // remove sprites with a matching spriteId
-    this.game.allSprites = this.game.allSprites.filter(
-      (el) => el.spriteId != this.spriteId
-    );
-    switch (this.spriteType) {
-      case 1:
-        this.game.badGuys = this.game.badGuys.filter(
-          (el) => el.spriteId != this.spriteId
-        );
-        break;
-      case 2:
-        this.game.goodGuys = this.game.goodGuys.filter(
-          (el) => el.spriteId != this.spriteId
-        );
-        break;
-    }
-  }
-
   decel(decelAmount) {
     if (Math.abs(this.vx) < 0.05) {
       this.vx = 0;
@@ -195,28 +235,6 @@ export class Sprite {
     } else {
       // if there is no shapeRect, create one around where the object is located
       this.shapeRect = new Rectangle(this.x, this.y, 0, 0);
-    }
-  }
-
-  /**
-   * execute the default behavior for the sprite
-   * move the sprite according to its current velocity
-   * advance the sprite cycle
-   * if it has collided or it's not bounded and it's not in the global bounds
-   * then set that the sprite should remove itself
-   */
-  behave() {
-    this.move(this.vx, this.vy);
-    this.spriteCycle++;
-    if (
-      this.hasCollided
-      // need to set the global bounds
-      // this caused the thrust to disappear when it was
-      // outside of the GlobalBounds
-      // ||
-      // (!this.bounded && !this.inGlobalBounds(this.x, this.y))
-    ) {
-      this.shouldRemoveSelf = true;
     }
   }
 
@@ -354,33 +372,8 @@ export class Sprite {
     // );
     // explosionSprite.addSelf();
     if (particles > 0) {
-      // let particleSprite = new ParticleSprite(this.x, this.y);
-      // particleSprite.particleInit(paramInt1, paramInt2);
+      // let particleSprite = new ParticleSprite(this.x, this.y, this.game, paramInt1, paramInt2);
       // particleSprite.addSelf();
-    }
-  }
-
-  drawSelf(context) {
-    const polygon = this.getPolygon();
-    // set the color to draw
-    if (this.color != null) {
-      context.strokeStyle = this.color;
-    } else {
-      context.strokeStyle = "green";
-    }
-    if (polygon != null) {
-      context.translate(this.x, this.y);
-      polygon.drawPolygon(context);
-      context.translate(-this.x, -this.y);
-    }
-    this.shapeRect = this.getShapeRect();
-    if (this.sentByUser) {
-      Sprite.drawFlag(
-        context,
-        this.color,
-        this.shapeRect.x + this.shapeRect.width + 5,
-        this.shapeRect.y + this.shapeRect.height + 5
-      );
     }
   }
 
@@ -461,8 +454,8 @@ export class Sprite {
    * @returns {Object<Polygon>} that is a polygon representing the sprite
    */
   getPolygon() {
-    if (this.rotationalPolygon != undefined) {
-      return this.rotationalPolygon.polygon;
+    if (this.rPoly != undefined) {
+      return this.rPoly.polygon;
     } else {
       return this.polygon;
     }

@@ -1,7 +1,8 @@
+import { RotationalPolygon } from "../RotationalPolygon.js";
 import { WHUtil } from "../WHUtil.js";
 import { PowerupSprite } from "./PowerupSprite.js";
 import { Sprite } from "./Sprite.js";
-import { RotationalPolygon } from "../RotationalPolygon.js";
+
 export class ScarabSprite extends Sprite {
   static points = [
     [35, 18],
@@ -63,18 +64,23 @@ export class ScarabSprite extends Sprite {
 
   constructor(x, y, game, portalSprite) {
     super(x, y, game);
-    this.rPoly = new RotationalPolygon(ScarabSprite.points);
     this.init("scb", x, y, true);
-    this.portalSprite = portalSprite;
+
+    this.spriteType = 1;
     this.shapeType = 1;
+
+    this.setHealth(20);
+    this.damage = 5;
+
+    this.powerupType = 13;
+
+    this.rPoly = new RotationalPolygon(ScarabSprite.points);
+
+    this.portalSprite = portalSprite;
     this.dRotate = 20.0;
     this.thrust = 0.3;
     this.maxThrust = 5.0;
-    this.spriteType = 1;
-    this.setHealth(20);
-    this.damage = 5;
     this.rDrawPoly = new Array(ScarabSprite.drawPoints.length);
-    // this.rDrawPoly = new RotationalPolygon[ScarabSprite.drawPoints.length]();
     for (let i = 0; i < ScarabSprite.drawPoints.length; ++i) {
       this.rDrawPoly[i] = new RotationalPolygon(ScarabSprite.drawPoints[i]);
     }
@@ -83,16 +89,9 @@ export class ScarabSprite extends Sprite {
     } else {
       this.trackingSprite = undefined;
     }
-    this.powerupType = 13;
 
     this.gotPowerup = undefined;
     this.storedSprite = undefined;
-  }
-
-  getShapeRect() {
-    const bounds = this.polygon.bounds;
-    bounds.setLocation(this.x - bounds.width / 2, this.y - bounds.height / 2);
-    return bounds;
   }
 
   drawSelf(context) {
@@ -106,52 +105,6 @@ export class ScarabSprite extends Sprite {
       polygon.drawPolygon(context);
     }
     context.translate(-this.x, -this.y);
-  }
-
-  setCollided(collided) {
-    super.setCollided(collided);
-    if (this.shouldRemoveSelf) {
-      if (this.gotPowerup) {
-        this.storedSprite.spriteCycle = 0;
-        this.storedSprite.indestructible = true;
-        this.storedSprite.shouldRemoveSelf = false;
-        this.storedSprite.addSelf();
-      }
-      PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
-    }
-  }
-
-  findClosestPowerup() {
-    let n = 5000;
-    let powerupSprite = null;
-    for (let i = 0; i < this.game.badGuys.length; i++) {
-      let sprite = this.game.badGuys[i];
-      if (sprite != null && sprite instanceof PowerupSprite) {
-        let powerupSprite2 = sprite;
-        if (powerupSprite2.powerupType > 6) {
-          let distance = WHUtil.distanceFrom(
-            this.x,
-            this.y,
-            powerupSprite2.x,
-            powerupSprite2.y
-          );
-          if (distance < n) {
-            powerupSprite = powerupSprite2;
-            n = distance;
-          }
-        }
-      }
-    }
-    return powerupSprite;
-  }
-
-  setDegreeAngle(degreeAngle) {
-    super.setDegreeAngle(degreeAngle);
-    this.rPoly.setAngle(this.radAngle);
-    for (let i = 0; i < ScarabSprite.drawPoints.length; i++) {
-      this.rDrawPoly[i].setAngle(this.radAngle);
-    }
-    this.polygon = this.rPoly.polygon;
   }
 
   behave() {
@@ -203,5 +156,56 @@ export class ScarabSprite extends Sprite {
       this.storedSprite.setLocation(this.x, this.y);
       this.storedSprite.shouldRemoveSelf = true;
     }
+  }
+
+  getShapeRect() {
+    const bounds = this.polygon.bounds;
+    bounds.setLocation(this.x - bounds.width / 2, this.y - bounds.height / 2);
+    return bounds;
+  }
+
+  setCollided(collided) {
+    super.setCollided(collided);
+    if (this.shouldRemoveSelf) {
+      if (this.gotPowerup) {
+        this.storedSprite.spriteCycle = 0;
+        this.storedSprite.indestructible = true;
+        this.storedSprite.shouldRemoveSelf = false;
+        this.storedSprite.addSelf();
+      }
+      PowerupSprite.genPowerup(this.x, this.y, this.game).addSelf();
+    }
+  }
+
+  findClosestPowerup() {
+    let n = 5000;
+    let powerupSprite = null;
+    this.game.badGuys.forEach((sprite) => {
+      if (sprite instanceof PowerupSprite) {
+        let powerupSprite2 = sprite;
+        if (powerupSprite2.powerupType > 6) {
+          let distance = WHUtil.distanceFrom(
+            this.x,
+            this.y,
+            powerupSprite2.x,
+            powerupSprite2.y
+          );
+          if (distance < n) {
+            powerupSprite = powerupSprite2;
+            n = distance;
+          }
+        }
+      }
+    });
+    return powerupSprite;
+  }
+
+  setDegreeAngle(degreeAngle) {
+    super.setDegreeAngle(degreeAngle);
+    this.rPoly.setAngle(this.radAngle);
+    for (let i = 0; i < ScarabSprite.drawPoints.length; i++) {
+      this.rDrawPoly[i].setAngle(this.radAngle);
+    }
+    this.polygon = this.rPoly.polygon;
   }
 }

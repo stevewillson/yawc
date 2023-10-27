@@ -38,9 +38,9 @@ export class Game {
     this.borderShades = new Array(6);
 
     // sprite arrays
-    this.allSprites = [];
-    this.badGuys = [];
-    this.goodGuys = [];
+    this.allSprites = new Map();
+    this.badGuys = new Map();
+    this.goodGuys = new Map();
 
     // track the total number of bullets here
     this.nBullets = 0;
@@ -317,9 +317,9 @@ export class Game {
     this.refreshUserBar = true;
 
     // clear sprite arrays
-    this.allSprites = [];
-    this.badGuys = [];
-    this.goodGuys = [];
+    this.allSprites = new Map();
+    this.badGuys = new Map();
+    this.goodGuys = new Map();
 
     this.orbitDistance = 240;
     let n;
@@ -507,16 +507,13 @@ export class Game {
    */
   doBehavior() {
     // loop through all the sprites and remove or do the behavior
-    for (let i = 0; i < this.allSprites.length; i++) {
-      let sprite = this.allSprites[i];
-      if (sprite != null) {
-        if (sprite.shouldRemoveSelf) {
-          sprite.removeSelf();
-        } else {
-          sprite.behave();
-        }
+    this.allSprites.forEach((sprite) => {
+      if (sprite.shouldRemoveSelf) {
+        sprite.removeSelf();
+      } else {
+        sprite.behave();
       }
-    }
+    });
 
     // checks the user message queue and removes messages are past due
     if (
@@ -571,23 +568,18 @@ export class Game {
 
   // check for collisions between good/bad sprites
   doCollisions() {
-    for (let i = 0; i < this.badGuys.length; i++) {
-      let spriteA = this.badGuys[i];
-      if (spriteA != null) {
-        for (let j = 0; j < this.goodGuys.length; j++) {
-          let spriteB = this.goodGuys[j];
-          if (
-            spriteB != null &&
-            !spriteA.hasCollided &&
-            !spriteB.hasCollided &&
-            spriteA.isCollision(spriteB)
-          ) {
-            spriteB.setCollided(spriteA);
-            spriteA.setCollided(spriteB);
-          }
+    this.badGuys.forEach((spriteA) => {
+      this.goodGuys.forEach((spriteB) => {
+        if (
+          !spriteA.hasCollided &&
+          !spriteB.hasCollided &&
+          spriteA.isCollision(spriteB)
+        ) {
+          spriteB.setCollided(spriteA);
+          spriteA.setCollided(spriteB);
         }
-      }
-    }
+      });
+    });
   }
 
   /**
@@ -636,16 +628,11 @@ export class Game {
   // remove all the zappable sprites on the screen
   clearScreen() {
     this.flashScreenColor = "white";
-    for (let i = 0; i < this.badGuys.length; i++) {
-      let sprite = this.badGuys[i];
-      if (
-        sprite != null &&
-        sprite.inDrawingRect &&
-        (!sprite.indestructible || sprite.zappable)
-      ) {
+    this.badGuys.forEach((sprite) => {
+      if (sprite.inView && (!sprite.indestructible || sprite.zappable)) {
         sprite.killSelf();
       }
-    }
+    });
   }
 
   // draw the Game to the canvas
@@ -702,8 +689,8 @@ export class Game {
       this.allSprites.forEach((sprite) => {
         if (sprite != null) {
           // check if the sprite is in the viewportRect
-          sprite.inDrawingRect = sprite.inViewingRect(viewportRect);
-          if (sprite.inDrawingRect) {
+          sprite.inView = sprite.inViewingRect(viewportRect);
+          if (sprite.inView) {
             sprite.drawSelf(context);
 
             // display shapeRects when in debug mode
@@ -1436,13 +1423,12 @@ export class Game {
             if (shouldAddPortal) {
               let portalSprite = new PortalSprite(
                 n * (360 / this.totalOpposingUsers),
-                user,
-                this
+                this,
+                user
               );
               n++;
               user.portalSprite = portalSprite;
               portalSprite.addSelf();
-              portalSprite.setWarpingIn();
             } else {
               user.portalSprite = null;
             }

@@ -5,14 +5,13 @@ export class StringSprite extends Sprite {
   static MAX_CYCLE = 100;
   constructor(x, y, string, game) {
     super(x, y, game);
-    this.x = x;
-    this.y = y;
-    this.string = string;
-    this.game = game;
-    this.color = "white";
     this.init(string, x, y, true);
-    this.spriteType = 0;
     this.shapeRect = new Rectangle(x, y, 20, 100);
+
+    this.spriteType = 0;
+
+    this.string = string;
+    this.color = "white";
   }
 
   drawSelf(context) {

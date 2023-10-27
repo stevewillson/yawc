@@ -6,9 +6,7 @@ import { PowerupSprite } from "./PowerupSprite.js";
 import { Sprite } from "./Sprite.js";
 
 export class PortalTurretSprite extends Sprite {
-  static TURRET_ATTACK_DISTANCE = 260;
   static TURRET_ATTACK_DELAY = 16;
-  static TURRET_D_ANGLE = 1;
   static points = [
     [-28, 0],
     [-7, -25],
@@ -24,48 +22,24 @@ export class PortalTurretSprite extends Sprite {
   ];
   constructor(portal, game) {
     super(portal.x, portal.y, game);
-    this.portal = portal;
-
-    this.rotationalPolygon = new RotationalPolygon(PortalTurretSprite.points);
-    this.rTurretPoly = new RotationalPolygon(PortalTurretSprite.turretPoints);
-    this.calcOrbit();
     this.init("trt", this.x, this.y, true);
-    super.spriteType = 1;
-    this.setHealth(50);
-    this.damage = 7;
-    this.shapeType = 1;
-    this.powerupType = 7;
-
     this.shapeRect = new Rectangle(portal.x - 10, portal.y - 10, 20, 20);
 
+    this.spriteType = 1;
+    this.shapeType = 1;
+
+    this.setHealth(50);
+    this.damage = 7;
+
+    this.powerupType = 7;
+
+    this.rPoly = new RotationalPolygon(PortalTurretSprite.points);
+    this.rTurretPoly = new RotationalPolygon(PortalTurretSprite.turretPoints);
     this.shotDelay = PortalTurretSprite.TURRET_ATTACK_DELAY;
-    this.orbitAngle = undefined;
-
-    // TODO - debug why the angle is not set
+    this.portal = portal;
     this.radAngle = 0;
-    this.inDrawingRect = undefined;
-  }
-
-  behave() {
-    super.behave();
-    if (this.portal.shouldRemoveSelf) {
-      this.killSelf(this.x, this.y);
-      return;
-    }
-    this.handleOrbit();
-    this.handleShot();
-  }
-
-  calcOrbit() {
-    this.orbitAngle = this.radAngle + 1.5707963267948966;
-    this.setLocation(
-      this.portal.x + 115 * Math.cos(this.orbitAngle),
-      this.portal.y + 115 * Math.sin(this.orbitAngle)
-    );
-  }
-
-  handleOrbit() {
-    this.setDegreeAngle(this.angle + 1);
+    this.orbitAngle = undefined;
+    this.inView = undefined;
     this.calcOrbit();
   }
 
@@ -108,12 +82,35 @@ export class PortalTurretSprite extends Sprite {
     }
   }
 
+  behave() {
+    super.behave();
+    if (this.portal.shouldRemoveSelf) {
+      this.killSelf(this.x, this.y);
+      return;
+    }
+    this.handleOrbit();
+    this.handleShot();
+  }
+
+  calcOrbit() {
+    this.orbitAngle = this.radAngle + 1.5707963267948966;
+    this.setLocation(
+      this.portal.x + 115 * Math.cos(this.orbitAngle),
+      this.portal.y + 115 * Math.sin(this.orbitAngle)
+    );
+  }
+
+  handleOrbit() {
+    this.setDegreeAngle(this.angle + 1);
+    this.calcOrbit();
+  }
+
   handleShot() {
     if (this.shotDelay > 0) {
       this.shotDelay--;
     }
     if (
-      this.inDrawingRect &&
+      this.inView &&
       this.shotDelay <= 0 &&
       WHUtil.distanceFrom(
         this.x,
@@ -158,7 +155,7 @@ export class PortalTurretSprite extends Sprite {
 
   setDegreeAngle(degreeAngle) {
     super.setDegreeAngle(degreeAngle);
-    this.rotationalPolygon.setAngle(this.radAngle);
+    this.rPoly.setAngle(this.radAngle);
     this.rTurretPoly.setAngle(this.radAngle);
   }
 

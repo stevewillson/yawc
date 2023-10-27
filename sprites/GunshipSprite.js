@@ -5,10 +5,6 @@ import { PowerupSprite } from "./PowerupSprite.js";
 import { Sprite } from "./Sprite.js";
 
 export class GunshipSprite extends Sprite {
-  static START_STRAFE = 0;
-  static STRAFE = 1;
-  static RETREAT = 2;
-  static KAMIKAZE = 3;
   static points = [
     [40, 0],
     [35, -6],
@@ -29,30 +25,34 @@ export class GunshipSprite extends Sprite {
   constructor(x, y, game) {
     super(x, y, game);
     this.init("gs", x, y, true);
-    // start in track mode
-    this.mode = 3;
-    this.rotationalPolygon = new RotationalPolygon(GunshipSprite.points);
-    this.rTurretPoly = new RotationalPolygon(GunshipSprite.turretPoints);
+
     this.spriteType = 1;
+    this.shapeType = 1;
+
     this.setHealth(50);
     this.damage = 10;
-    this.shapeType = 1;
+
+    this.powerupType = 12;
+
+    this.rPoly = new RotationalPolygon(GunshipSprite.points);
+    this.rTurretPoly = new RotationalPolygon(GunshipSprite.turretPoints);
+
+    // start in track mode
+    this.mode = 3;
     this.rightSeeker = WHUtil.randInt(2) == 0;
     this.dRotate = 2;
     this.thrust = 0.25;
     this.maxThrust = 4;
-    this.powerupType = 12;
     this.color = this.game.colors.colors[this.slot][0];
-    this.rightSeeker = undefined;
-    this.strafeOffsetX = undefined;
-    this.strafeOffsetY = undefined;
-    this.retreatCounter = undefined;
+    this.strafeOffsetX = 0;
+    this.strafeOffsetY = 0;
+    this.retreatCounter = 0;
   }
 
   behave() {
     super.behave();
     let n = WHUtil.distanceFrom(this, this.game.user.userSprite);
-    if (this.spriteCycle % 40 == 0 && this.inDrawingRect) {
+    if (this.spriteCycle % 40 == 0 && this.inView) {
       for (let i = 0; i < GunshipSprite.turretPoints.length; i++) {
         let bulletSprite = new BulletSprite(
           this.rTurretPoly.polygon.xpoints[i] + this.x,
@@ -170,12 +170,12 @@ export class GunshipSprite extends Sprite {
 
   setDegreeAngle(degreeAngle) {
     super.setDegreeAngle(degreeAngle);
-    this.rotationalPolygon.setAngle(this.radAngle);
+    this.rPoly.setAngle(this.radAngle);
     this.rTurretPoly.setAngle(this.radAngle);
   }
 
   getShapeRect() {
-    let bounds = this.rotationalPolygon.polygon.bounds;
+    let bounds = this.rPoly.polygon.bounds;
     bounds.setLocation(this.x - bounds.width / 2, this.y - bounds.height / 2);
     return bounds;
   }

@@ -1,19 +1,15 @@
-// import { Rectangle } from "../Rectangle.js";
 import { WHUtil } from "../WHUtil.js";
 import { Sprite } from "./Sprite.js";
 
 export class ShrapnelSprite extends Sprite {
-  static MAX_CYCLE = 200;
-
   constructor(x, y, game, n3, color, shrapnel = 10) {
     super(x, y, game);
-    this.game = game;
     this.init("shrapnel", x, y, false);
-    this.shrapnel = shrapnel;
-    this.spriteType = 0;
-    // super.shapeRect = new Rectangle(0, 0);
-    this.color = color;
 
+    this.spriteType = 0;
+
+    this.shrapnel = shrapnel;
+    this.color = color;
     this.xArr = new Array(shrapnel);
     this.yArr = new Array(shrapnel);
     this.dx = new Array(shrapnel);
@@ -50,7 +46,7 @@ export class ShrapnelSprite extends Sprite {
       this.shouldRemoveSelf = true;
       return;
     }
-    for (let i = 0; i < this.shrapnel; ++i) {
+    for (let i = 0; i < this.shrapnel; i++) {
       this.angle[i] += this.rotation[i];
       this.xArr[i] += this.dx[i] - WHUtil.randInt(1);
       this.yArr[i] += this.dy[i] - WHUtil.randInt(1);

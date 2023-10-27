@@ -5,38 +5,30 @@ import { ParticleSprite } from "./ParticleSprite.js";
 import { Sprite } from "./Sprite.js";
 
 export class BulletSprite extends Sprite {
-  // tracked in Game now
-  // nBullets;
-  static BULLETSIZE = 10;
-  static INNER_BULLETSIZE = 8;
-  static INNER_BOX = 3;
-  static INNER_BOX_SIZE = 6;
-  static CONCUSSIVE_RECOIL = 5;
-
   constructor(x, y, game, bulletDamage, bulletSize, internalColor, spriteType) {
     super(x, y, game);
     super.init("blt", x, y, true);
     this.shapeRect = new Rectangle(x - 5, y - 5, bulletSize, bulletSize);
+
     this.spriteType = spriteType;
-    this.internalColor = internalColor;
-    this.setHealth(1);
-    this.damage = bulletDamage;
-    this.isBullet = true;
     if (this.spriteType == 2) {
       this.color = this.game.color;
       this.countTowardsQuota = true;
     } else {
       this.countTowardsQuota = false;
     }
-    this.spriteCycle = 0;
 
-    this.isPowerup = undefined;
+    this.setHealth(1);
+    this.damage = bulletDamage;
+
+    this.powerupType = undefined;
+
+    this.internalColor = internalColor;
+    this.isBullet = true;
+    this.isPowerup = false;
     this.offx = undefined;
     this.offy = undefined;
-    this.upgradeLevel = undefined;
-    this.internalColor = undefined;
     this.powerupShipType = undefined;
-
     this.concussive = false;
   }
 
@@ -50,6 +42,8 @@ export class BulletSprite extends Sprite {
   drawSelf(context) {
     context.strokeStyle = this.internalColor;
     context.translate(this.x, this.y);
+
+    context.lineWidth = 1;
 
     if (this.concussive) {
       context.strokeStyle = this.internalColor;
@@ -147,8 +141,7 @@ export class BulletSprite extends Sprite {
         explosionSprite2.RINGS = 2;
         explosionSprite2.addSelf();
       }
-      let particleSprite = new ParticleSprite(this.x, this.y, this.game);
-      particleSprite.particleInit(8, 5);
+      let particleSprite = new ParticleSprite(this.x, this.y, this.game, 8, 5);
       particleSprite.addSelf();
     }
   }

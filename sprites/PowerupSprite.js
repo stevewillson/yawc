@@ -38,15 +38,19 @@ export class PowerupSprite extends Sprite {
     "SEND ARTILLERY",
   ];
 
-  constructor(x, y, powerupType, game) {
+  constructor(x, y, game, powerupType) {
     super(x, y, game);
-    this.ctype = 4;
     this.init("pup", x, y, true);
-    this.spriteType = 1;
     this.shapeRect = new Rectangle(x - 17, y - 17, 34, 34);
+
+    this.spriteType = 1;
+
     this.setHealth(10);
     this.damage = 0;
+
     this.powerupType = powerupType;
+
+    this.ctype = 4;
     this.indestructible = true;
     this.colors = game.colors;
 
@@ -56,17 +60,10 @@ export class PowerupSprite extends Sprite {
   }
 
   drawSelf(context) {
-    context.strokeStyle = this.colors.colors[this.ctype][this.spriteCycle % 20];
-    context.fillStyle = this.colors.colors[this.ctype][this.spriteCycle % 20];
-
-    // TODO - draw a flashing circle around the sprite
-    // Is this a PNG issue?
-    // set background color
-    // draw a flashing outline around the powerup
-    // context.arc(this.x, this.y, 16, 0, 2 * Math.PI);
-    context.beginPath();
-    context.arc(this.x, this.y, 18, 0, 2 * Math.PI);
-    context.fill();
+    WHUtil.setColor(
+      context,
+      this.colors.colors[this.ctype][this.spriteCycle % 20]
+    );
 
     // TODO - set the image background color to black
     let shiftedNumber = this.powerupType - 2;
@@ -92,6 +89,22 @@ export class PowerupSprite extends Sprite {
       imgWidth,
       imgHeight - 2
     );
+
+    context.beginPath();
+    context.lineWidth = 4;
+    context.arc(this.x, this.y, 16, 0, 2 * Math.PI);
+    context.stroke();
+  }
+
+  behave() {
+    super.behave();
+    if (this.spriteCycle > 20) {
+      if (this.spriteCycle > 1200) {
+        this.shouldRemoveSelf = true;
+      }
+      this.ctype = 5;
+      this.indestructible = false;
+    }
   }
 
   givePowerupTo(userSprite) {
@@ -146,21 +159,16 @@ export class PowerupSprite extends Sprite {
       if (collided == user.userSprite) {
         this.givePowerupTo(user.userSprite);
         // add a string to show that the user got a powerup
-        const stringSprite = new StringSprite(
+        new StringSprite(
           this.x,
           this.y,
           PowerupSprite.names[this.powerupType],
           this.game
-        );
-        stringSprite.addSelf();
+        ).addSelf();
         return;
       }
-      const explosionSprite = new ExplosionSprite(this.x, this.y, this.game);
-      explosionSprite.addSelf();
-
-      const particleSprite = new ParticleSprite(this.x, this.y, this.game);
-      particleSprite.particleInit(20, 10);
-      particleSprite.addSelf();
+      new ExplosionSprite(this.x, this.y, this.game).addSelf();
+      new ParticleSprite(this.x, this.y, this.game, 20, 10).addSelf();
     }
   }
 
@@ -232,19 +240,8 @@ export class PowerupSprite extends Sprite {
         powerupType = 6 + WHUtil.randInt(powerupRandNum);
       }
     }
-    let powerupSprite = new PowerupSprite(x, y, powerupType, game);
+    let powerupSprite = new PowerupSprite(x, y, game, powerupType);
     powerupSprite.setVelocity(WHUtil.randInt(10), WHUtil.randInt(10));
     return powerupSprite;
-  }
-
-  behave() {
-    super.behave();
-    if (this.spriteCycle > 20) {
-      if (this.spriteCycle > 1200) {
-        this.shouldRemoveSelf = true;
-      }
-      this.ctype = 5;
-      super.indestructible = false;
-    }
   }
 }

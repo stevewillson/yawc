@@ -4,16 +4,6 @@ import { WHUtil } from "../WHUtil.js";
 import { Sprite } from "./Sprite.js";
 
 export class GhostPudSprite extends Sprite {
-  static GP_TOTAL_SIZE = 40;
-  static GP_HALF_SIZE = 20;
-  static MAX_DIRECTION_DURATION = 130;
-  static BUFFER_ZONE = 40;
-  static atomRingShape;
-  static GP_ANGLE = 15;
-  static GP_INIT_VELOCITY = 14;
-  static GP_PUNTABLE_WINDOW = 80;
-  static GP_INNER_SIZE = 8;
-  static GP_OUTER_SIZE = 11;
   static atomRingShape = [
     [0, -10],
     [20, -9],
@@ -37,28 +27,32 @@ export class GhostPudSprite extends Sprite {
   constructor(portalSprite, n, game) {
     super(0, 0, game);
     this.init("gp", portalSprite.x, portalSprite.y, true);
-    this.zappable = true;
-    this.setHealth(1);
-    this.spriteType = 1;
-    this.damage = 1;
-    this.indestructible = true;
     this.shapeRect = new Rectangle(this.x - 20, this.y - 20, 40, 40);
+
+    this.spriteType = 1;
+
+    this.setHealth(1);
+    this.damage = 1;
+
+    this.powerupType = 18;
+
+    this.polyAtoms = [];
+    let constructPolygon = new RotationalPolygon(GhostPudSprite.atomRingShape);
+    this.polyAtoms.push(constructPolygon.polygon.copyPolygon());
+    constructPolygon.rotate(60);
+    this.polyAtoms.push(constructPolygon.polygon.copyPolygon());
+    constructPolygon.rotate(60);
+    this.polyAtoms.push(constructPolygon.polygon.copyPolygon());
+
+    this.indestructible = true;
+    this.zappable = true;
+    this.shotDelay = undefined;
+
+    this.radAngle = 0;
     this.color = portalSprite.color;
     this.setDegreeAngle(portalSprite.currentDegrees + (n == 0 ? 15 : -15));
     this.vx = 14 * Math.cos(this.radAngle);
     this.vy = 14 * Math.sin(this.radAngle);
-    this.polyAtoms = [];
-    let constructPolygon = new RotationalPolygon(GhostPudSprite.atomRingShape);
-    constructPolygon.rotate(0);
-    this.polyAtoms.push(constructPolygon.polygon.copyPolygon());
-    constructPolygon.rotate(60);
-    this.polyAtoms.push(constructPolygon.polygon.copyPolygon());
-    constructPolygon.rotate(60);
-    this.polyAtoms.push(constructPolygon.polygon.copyPolygon());
-
-    this.powerupType = 18;
-
-    this.shotDelay = undefined;
     this.directionalCycle = 0;
   }
 
@@ -124,17 +118,6 @@ export class GhostPudSprite extends Sprite {
     context.translate(-this.x, -this.y);
   }
 
-  setCollided(collided) {
-    super.setCollided(collided);
-    if (collided != this.game.user.userSprite) {
-      this.directionalCycle = 130;
-      this.shotDelay = 80;
-      this.setVelocity(this.vx + collided.vx / 4, this.vy + collided.vx / 4);
-      this.vx = WHUtil.randInt(3);
-      this.vy = WHUtil.randInt(3);
-    }
-  }
-
   // TODO - the sprites drift to the upper left corner of the board
   behave() {
     super.behave();
@@ -187,6 +170,15 @@ export class GhostPudSprite extends Sprite {
           }
         }
       }
+    }
+  }
+
+  setCollided(collided) {
+    super.setCollided(collided);
+    if (collided != this.game.user.userSprite) {
+      this.directionalCycle = 130;
+      this.shotDelay = 80;
+      this.setVelocity(this.vx + collided.vx / 4, this.vy + collided.vy / 4);
     }
   }
 }

@@ -1,6 +1,5 @@
 export class SpriteColors {
-  colors;
-  types = [
+  static types = [
     [0.1667, 1],
     [0.5, 1],
     [1, 1],
@@ -20,8 +19,8 @@ export class SpriteColors {
     for (let i = 0; i < 11; i++) {
       this.colors[i] = new Array(20);
       for (let j = 0; j < 20; j++) {
-        let hue = this.types[i][0];
-        let saturation = this.types[i][1];
+        let hue = SpriteColors.types[i][0];
+        let saturation = SpriteColors.types[i][1];
         // for the lighteness
         // go between 75 and 25
         // let lighteness = 1 - j * 0.04;

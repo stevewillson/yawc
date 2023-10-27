@@ -13,11 +13,6 @@ export class PortalBeamSprite extends Sprite {
   constructor(portal, game) {
     super(0, 0, game);
     this.init("beam", 0, 0, true);
-    this.portal = portal;
-    this.setHealth(10);
-    this.damage = 1;
-    this.spriteType = 1;
-    this.indestructible = true;
     this.userSprite = this.game.user.userSprite;
     this.shapeRect = new Rectangle(
       this.userSprite.x - 20,
@@ -25,6 +20,16 @@ export class PortalBeamSprite extends Sprite {
       40,
       40
     );
+
+    this.spriteType = 1;
+
+    this.setHealth(10);
+    this.damage = 1;
+
+    this.powerupType = 16;
+
+    this.portal = portal;
+    this.indestructible = true;
     this.color = portal.color;
     this.slot = portal.slot;
     let n;
@@ -41,65 +46,48 @@ export class PortalBeamSprite extends Sprite {
         this.userSprite.x - this.portal.x
       ) + n;
     this.beamRad = 20;
-    this.powerupType = 16;
-
     this.stage = 0;
     this.timeLeft = 1;
     this.formation = 0;
   }
 
   drawSelf(context) {
-    context.fillStyle = this.userSprite.color;
-    context.strokeStyle = this.userSprite.color;
+    WHUtil.setColor(context, this.userSprite.color);
     if (this.stage == 0) {
-      context.fillStyle =
-        this.game.colors.colors[this.slot][
-          Math.max(0, 19 - this.timeLeft * 20)
-        ];
-      context.strokeStyle =
-        this.game.colors.colors[this.slot][
-          Math.max(0, 19 - this.timeLeft * 20)
-        ];
+      WHUtil.setColor(
+        context,
+        this.game.colors.colors[this.slot][Math.max(0, 19 - this.timeLeft * 20)]
+      );
     }
-    let n = 1200 * Math.cos(this.attackAngle);
-    let n2 = 1200 * Math.sin(this.attackAngle);
+    let x = 1200 * Math.cos(this.attackAngle);
+    let y = 1200 * Math.sin(this.attackAngle);
     context.translate(this.portal.x, this.portal.y);
     let spriteCycle = this.spriteCycle;
-    for (let n3 = 0; n3 < 10; n3++) {
+    for (let i = 0; i < 10; i++) {
       if (this.stage != 0) {
-        context.fillStyle =
-          this.game.colors.colors[this.slot][(n3 + this.spriteCycle) % 20];
-        context.strokeStyle =
-          this.game.colors.colors[this.slot][(n3 + this.spriteCycle) % 20];
+        WHUtil.setColor(
+          context,
+          this.game.colors.colors[this.slot][(i + this.spriteCycle) % 20]
+        );
       }
       spriteCycle += 36;
-      let n4 =
+      let xOff =
         2 *
         this.beamRad *
         this.timeLeft *
         Math.cos(spriteCycle * 0.017453292519943295);
-      let n5 =
+      let yOff =
         this.beamRad *
         this.timeLeft *
         Math.sin(spriteCycle * 0.017453292519943295);
       context.beginPath();
       //   context.lineWidth = this.beamRad;
       // what thickness should the line be?
-      context.moveTo(n4, n5);
-      context.lineTo(n4 + n, n5 + n2);
+      context.moveTo(xOff, yOff);
+      context.lineTo(xOff + x, yOff + y);
       context.stroke();
     }
     context.translate(-this.portal.x, -this.portal.y);
-  }
-
-  setCollided(sprite) {
-    if (sprite == this.userSprite) {
-      this.beamRad--;
-    }
-  }
-
-  inViewingRect() {
-    return true;
   }
 
   behave() {
@@ -130,5 +118,15 @@ export class PortalBeamSprite extends Sprite {
         this.shouldRemoveSelf = true;
       }
     }
+  }
+
+  setCollided(sprite) {
+    if (sprite == this.userSprite) {
+      this.beamRad--;
+    }
+  }
+
+  inViewingRect() {
+    return true;
   }
 }
