@@ -35,7 +35,7 @@ export class ParticleSprite extends Sprite {
         this.xArr[i],
         this.yArr[i],
         12 - this.state[i],
-        12 - this.state[i]
+        12 - this.state[i],
       );
     }
   }

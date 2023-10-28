@@ -14,10 +14,9 @@ export class ThrustSprite extends Sprite {
     this.spriteType = 0;
 
     this.radius = 10;
-    this.color =
-      ThrustSprite.thrustColors[
-        WHUtil.randInt(ThrustSprite.thrustColors.length)
-      ];
+    this.color = ThrustSprite.thrustColors[
+      WHUtil.randInt(ThrustSprite.thrustColors.length)
+    ];
   }
 
   drawSelf(context) {

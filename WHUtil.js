@@ -46,11 +46,11 @@ export class WHUtil {
     for (let i = 0; i < WHUtil.target.length; i++) {
       context.moveTo(
         xOffset + WHUtil.target[i][0],
-        yOffset + WHUtil.target[i][1]
+        yOffset + WHUtil.target[i][1],
       );
       context.lineTo(
         xOffset + WHUtil.target[i][2],
-        yOffset + WHUtil.target[i][3]
+        yOffset + WHUtil.target[i][3],
       );
     }
   }

@@ -41,10 +41,10 @@ export class RotationalPolygon {
     this.currentAngle = angle;
     this.currentAngle %= 360;
     for (let i = 0; i < this.npoints; i++) {
-      this.xpoints[i] =
-        Math.cos(this.angles[i] + this.currentAngle) * this.distances[i];
-      this.ypoints[i] =
-        Math.sin(this.angles[i] + this.currentAngle) * this.distances[i];
+      this.xpoints[i] = Math.cos(this.angles[i] + this.currentAngle) *
+        this.distances[i];
+      this.ypoints[i] = Math.sin(this.angles[i] + this.currentAngle) *
+        this.distances[i];
     }
 
     // update the polygon with the new points

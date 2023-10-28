@@ -12,8 +12,6 @@ export class ServerUser {
   isAlive;
 
   constructor(clientId, username) {
-    // TODO don't store the client on the user
-    // this.client = client;
     this.username = username;
     this.icons = [];
     this.roomId = null;

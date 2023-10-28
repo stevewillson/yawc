@@ -27,7 +27,7 @@ export class MineSprite extends Sprite {
     context.lineWidth = 1;
     WHUtil.setColor(
       context,
-      this.game.colors.colors[this.slot][this.spriteCycle % 20]
+      this.game.colors.colors[this.slot][this.spriteCycle % 20],
     );
 
     context.translate(this.x, this.y);

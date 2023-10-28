@@ -111,7 +111,7 @@ export class RoomPanel {
     instructionsButton.innerText = "Instructions & Tips";
     instructionsButton.className = "roomButton";
 
-    // instructionsButton.onclick = () => showInstructions();
+    //instructionsButton.onclick = () => showInstructions();
 
     const leaveRoomButton = document.createElement("button");
     leaveRoomButton.innerText = "Leave Room";

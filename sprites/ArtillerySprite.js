@@ -93,7 +93,7 @@ export class ArtillerySprite extends Sprite {
   behave() {
     super.behave();
     this.setDegreeAngle(
-      WHUtil.findAngle(this.userSprite.x, this.userSprite.y, this.x, this.y)
+      WHUtil.findAngle(this.userSprite.x, this.userSprite.y, this.x, this.y),
     );
     if (this.mode != 3 && this.framesDrawn > 50) {
       this.mode = 3;
@@ -130,14 +130,14 @@ export class ArtillerySprite extends Sprite {
             2,
             10,
             this.color,
-            1
+            1,
           );
           bulletSprite.setSentByEnemy(this.slot, 19);
           bulletSprite.concussive = true;
           let calcLead = this.calcLead();
           bulletSprite.setVelocity(
             8 * WHUtil.scaleVector(calcLead.x, calcLead.y),
-            8 * WHUtil.scaleVector(calcLead.y, calcLead.x)
+            8 * WHUtil.scaleVector(calcLead.y, calcLead.x),
           );
           bulletSprite.addSelf();
           return;
@@ -148,7 +148,7 @@ export class ArtillerySprite extends Sprite {
         if (this.teleportationCounter-- <= 0) {
           this.setLocation(
             WHUtil.randInt(this.game.board.width),
-            WHUtil.randInt(this.game.board.height)
+            WHUtil.randInt(this.game.board.height),
           );
           this.framesDrawn = 0;
           this.mode = 0;

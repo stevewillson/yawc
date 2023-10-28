@@ -89,7 +89,7 @@ export class PortalSprite extends Sprite {
         this.x + bulletSprite.x - 8,
         this.y + bulletSprite.y - 5,
         imgWidth,
-        imgHeight - 2
+        imgHeight - 2,
       );
 
       if (bulletSprite.spriteCycle++ > 9) {
@@ -146,7 +146,7 @@ export class PortalSprite extends Sprite {
               this,
               value.powerupType,
               value.fromUserId,
-              value.upgrade
+              value.upgrade,
             );
             break;
           }
@@ -155,7 +155,7 @@ export class PortalSprite extends Sprite {
               this.x,
               this.y,
               this.game,
-              value.fromUserId
+              value.fromUserId,
             );
             break;
           }
@@ -180,7 +180,7 @@ export class PortalSprite extends Sprite {
         this.game.orbitDistance * Math.cos(this.currentArcs) +
           this.game.world.width / 2,
         this.game.orbitDistance * Math.sin(this.currentArcs) +
-          this.game.world.height / 2
+          this.game.world.height / 2,
       );
       this.currentDegrees += 0.5;
       this.currentDegrees %= 360;
@@ -190,7 +190,7 @@ export class PortalSprite extends Sprite {
     if (this.warpDist < this.game.orbitDistance) {
       this.setLocation(
         this.warpDist * Math.cos(this.currentArcs) + this.game.world.width / 2,
-        this.warpDist * Math.sin(this.currentArcs) + this.game.world.height / 2
+        this.warpDist * Math.sin(this.currentArcs) + this.game.world.height / 2,
       );
       this.warpDist += Math.max(6, this.game.orbitDistance - this.warpDist) / 3;
       return;
@@ -235,7 +235,7 @@ export class PortalSprite extends Sprite {
             spriteXLoc,
             spriteYLoc,
             game,
-            WHUtil.randInt(2) == 0
+            WHUtil.randInt(2) == 0,
           );
           break;
         }
@@ -294,13 +294,13 @@ export class PortalSprite extends Sprite {
         this.outgoingPowerups.push(bulletSprite);
         bulletSprite.setLocation(
           bulletSprite.x - this.x,
-          bulletSprite.y - this.y
+          bulletSprite.y - this.y,
         );
         bulletSprite.spriteCycle = 0;
         this.game.usePowerup(
           bulletSprite.powerupType,
           bulletSprite.upgradeLevel,
-          this.user.userId
+          this.user.userId,
         );
       }
     }
@@ -319,7 +319,7 @@ export class PortalSprite extends Sprite {
       let heatSeekerMissile = new HeatSeekerMissile(
         x + WHUtil.randInt(50),
         y + WHUtil.randInt(50),
-        game
+        game,
       );
       heatSeekerMissile.rotate(WHUtil.randInt(360));
       heatSeekerMissile.doMaxThrust(heatSeekerMissile.maxThrust);
@@ -354,7 +354,7 @@ export class PortalSprite extends Sprite {
     nukeSprite.setUser(userId);
     nukeSprite.setVelocity(
       (x - this.game.board.width / 2) / 125,
-      (y - this.game.board.height / 2) / 125
+      (y - this.game.board.height / 2) / 125,
     );
     nukeSprite.addSelf();
   }

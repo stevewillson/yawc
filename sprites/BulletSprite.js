@@ -50,7 +50,7 @@ export class BulletSprite extends Sprite {
       WHUtil.drawCenteredCircle(context, 0, 0, 10);
       WHUtil.setColor(
         context,
-        this.game.colors.colors[this.slot][this.spriteCycle % 20]
+        this.game.colors.colors[this.slot][this.spriteCycle % 20],
       );
       context.beginPath();
       context.arc(0, 0, 7, 0, 2 * Math.PI);
@@ -103,7 +103,7 @@ export class BulletSprite extends Sprite {
           -8,
           -5,
           imgWidth,
-          imgHeight - 2
+          imgHeight - 2,
         );
       }
 
@@ -127,7 +127,7 @@ export class BulletSprite extends Sprite {
           this.x,
           this.y,
           this.game,
-          this.game.slot
+          this.game.slot,
         );
         explosionSprite.setPowerupExplosion();
         explosionSprite.addSelf();
@@ -136,7 +136,7 @@ export class BulletSprite extends Sprite {
           this.x,
           this.y,
           this.game,
-          9
+          9,
         );
         explosionSprite2.RINGS = 2;
         explosionSprite2.addSelf();

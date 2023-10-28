@@ -121,7 +121,7 @@ export class ScarabSprite extends Sprite {
           this.portalSprite.x,
           this.portalSprite.y,
           this.x,
-          this.y
+          this.y,
         ) < 40
       ) {
         // change to use the slot rather than the userId
@@ -129,7 +129,7 @@ export class ScarabSprite extends Sprite {
           this.portalSprite,
           this.storedSprite.powerupType,
           this.slot,
-          0
+          0,
         );
         this.killSelf(5, 5);
       }
@@ -147,7 +147,7 @@ export class ScarabSprite extends Sprite {
         this.realTrack(
           this.trackingSprite.x + this.trackingSprite.vx * 10,
           this.trackingSprite.y + this.trackingSprite.vy * 10,
-          false
+          false,
         );
         return;
       }
@@ -188,7 +188,7 @@ export class ScarabSprite extends Sprite {
             this.x,
             this.y,
             powerupSprite2.x,
-            powerupSprite2.y
+            powerupSprite2.y,
           );
           if (distance < n) {
             powerupSprite = powerupSprite2;

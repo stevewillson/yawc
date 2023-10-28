@@ -49,10 +49,10 @@ export class Game {
 
     // shortcuts for the game's room and user
     this.room = this.gameNetLogic.clientRoomManager.getRoomById(
-      this.gameNetLogic.roomId
+      this.gameNetLogic.roomId,
     );
     this.user = this.gameNetLogic.clientUserManager.users.get(
-      this.gameNetLogic.userId
+      this.gameNetLogic.userId,
     );
 
     this.currentFighterShade = 0;
@@ -130,7 +130,7 @@ export class Game {
     this.canvas.addEventListener(
       "mousedown",
       this.processClick.bind(this),
-      false
+      false,
     );
 
     this.userStatusCanvas = document.getElementById("UserStatusCanvas");
@@ -164,7 +164,7 @@ export class Game {
   update() {
     // console.log("gameloop updating");
     const user = this.gameNetLogic.clientUserManager.users.get(
-      this.gameNetLogic.userId
+      this.gameNetLogic.userId,
     );
 
     if (this.input.right) {
@@ -204,7 +204,7 @@ export class Game {
       this.drawIntro(this.context);
 
       const room = this.gameNetLogic.clientRoomManager.getRoomById(
-        this.gameNetLogic.roomId
+        this.gameNetLogic.roomId,
       );
 
       if (room != null) {
@@ -281,14 +281,14 @@ export class Game {
       (this.board.width - this.viewport.width) / 2,
       (this.board.height - this.viewport.height) / 2,
       this.viewport.width,
-      this.viewport.height
+      this.viewport.height,
     );
 
     this.globalBoundingRect = new Rectangle(
       0,
       0,
       this.board.width,
-      this.board.height
+      this.board.height,
     );
 
     // set position for the welcome screen elements
@@ -316,7 +316,7 @@ export class Game {
 
     // reset powerups
     const room = this.gameNetLogic.clientRoomManager.getRoomById(
-      this.gameNetLogic.roomId
+      this.gameNetLogic.roomId,
     );
     room.resetPowerups();
 
@@ -380,14 +380,14 @@ export class Game {
     // create a new user that starts at the center of the board
     // with the specified ship type
     const user = this.gameNetLogic.clientUserManager.users.get(
-      this.gameNetLogic.userId
+      this.gameNetLogic.userId,
     );
     // move this to the joinRoom area?
     user.userSprite = new UserSprite(
       this.board.width / 2,
       this.board.height / 2,
       this.userShipType,
-      this
+      this,
     );
 
     user.userSprite.addSelf();
@@ -424,7 +424,7 @@ export class Game {
 
     // get the room and check if it should be removed
     const room = this.gameNetLogic.clientRoomManager.getRoomById(
-      this.gameNetLogic.roomId
+      this.gameNetLogic.roomId,
     );
 
     if (room.shouldRemove) {
@@ -546,17 +546,17 @@ export class Game {
       // let userInfo = this.users[(j + b) % this.users.length];
 
       const room = this.gameNetLogic.clientRoomManager.getRoomById(
-        this.gameNetLogic.roomId
+        this.gameNetLogic.roomId,
       );
 
       // remove this user's userId
       let userIds = room.userIds.filter(
-        (userId) => userId != null && userId != this.gameNetLogic.userId
+        (userId) => userId != null && userId != this.gameNetLogic.userId,
       );
 
       // get a random user
       const user = this.gameNetLogic.clientUserManager.users.get(
-        userIds[WHUtil.randInt(userIds.length)]
+        userIds[WHUtil.randInt(userIds.length)],
       );
 
       // set that random user's portal to generate an enemy
@@ -589,12 +589,12 @@ export class Game {
    */
   checkSidebar() {
     const room = this.gameNetLogic.clientRoomManager.getRoomById(
-      this.gameNetLogic.roomId
+      this.gameNetLogic.roomId,
     );
     for (let i = 0; i < room.userIds.length; i++) {
       if (room.userIds[i] != null) {
         const user = this.gameNetLogic.clientUserManager.users.get(
-          room.userIds[i]
+          room.userIds[i],
         );
         if (user.timeoutAttacks()) {
           this.refreshOtherBar = true;
@@ -608,12 +608,12 @@ export class Game {
       this.teamId = b;
     } else {
       const room = this.gameNetLogic.clientRoomManager.getRoomById(
-        this.gameNetLogic.roomId
+        this.gameNetLogic.roomId,
       );
       for (let i = 0; i < room.userIds.length; ++i) {
         if (room.userIds[i] != null) {
           const user = this.gameNetLogic.clientUserManager.users.get(
-            room.userIds[i]
+            room.userIds[i],
           );
           if (user.username == s) {
             user.teamId = b;
@@ -639,7 +639,7 @@ export class Game {
   draw(context) {
     // get the user object
     const user = this.gameNetLogic.clientUserManager.users.get(
-      this.gameNetLogic.userId
+      this.gameNetLogic.userId,
     );
     if (user.userSprite != null) {
       // get the viewable area for the user
@@ -658,7 +658,7 @@ export class Game {
       this.drawRing(context);
 
       const room = this.gameNetLogic.clientRoomManager.getRoomById(
-        this.gameNetLogic.roomId
+        this.gameNetLogic.roomId,
       );
       if (user.teamId != 0 && room.isTeamTable && !this.gameOver) {
         this.drawTeamStuff(context);
@@ -741,7 +741,7 @@ export class Game {
           2,
           i * 15 + 31,
           imgWidth,
-          imgHeight - 2
+          imgHeight - 2,
         );
       }
 
@@ -770,7 +770,7 @@ export class Game {
       context.fillText(
         `${ClientRoomManager.TEAM_NAMES[user.teamId]} member`,
         this.board.width - 135,
-        13
+        13,
       );
     }
     context.strokeStyle = "white";
@@ -804,12 +804,12 @@ export class Game {
   // draw a line to point to other wormholes
   drawPointers(context) {
     const room = this.gameNetLogic.clientRoomManager.getRoomById(
-      this.gameNetLogic.roomId
+      this.gameNetLogic.roomId,
     );
     for (let i = 0; i < room.userIds.length; i++) {
       if (room.userIds[i] != null) {
         const user = this.gameNetLogic.clientUserManager.users.get(
-          room.userIds[i]
+          room.userIds[i],
         );
 
         if (user.isPlaying() && user.userSprite != null) {
@@ -840,7 +840,7 @@ export class Game {
             context.moveTo(n5, n6);
             context.lineTo(
               n3 * 0.9 + this.viewport.width / 2,
-              n4 * 0.9 + this.viewport.height / 2
+              n4 * 0.9 + this.viewport.height / 2,
             );
 
             context.moveTo(n5, n6);
@@ -869,13 +869,13 @@ export class Game {
       context,
       this.world.width / 2,
       this.world.height / 2,
-      this.orbitDistance
+      this.orbitDistance,
     );
   }
 
   drawEnemyTeamShape(context, x, y) {
     const user = this.gameNetLogic.clientUserManager.users.get(
-      this.gameNetLogic.userId
+      this.gameNetLogic.userId,
     );
     if (user.teamId != 0) {
       user.drawTeamShape(context, x, y, 3 - user.teamId);
@@ -896,7 +896,7 @@ export class Game {
         -i,
         -i,
         this.world.width + i * 2,
-        this.world.height + i * 2
+        this.world.height + i * 2,
       );
     }
   }
@@ -910,7 +910,7 @@ export class Game {
         starLocations[i][0],
         starLocations[i][1],
         this.starSize[i],
-        this.starSize[i]
+        this.starSize[i],
       );
     }
   }
@@ -973,7 +973,7 @@ export class Game {
     context.fillText(
       text,
       (elementWidth - context.measureTest(text).width) / 2 + xOffset,
-      y
+      y,
     );
   }
 
@@ -989,13 +989,13 @@ export class Game {
 
     // get the room
     const room = this.gameNetLogic.clientRoomManager.getRoomById(
-      this.gameNetLogic.roomId
+      this.gameNetLogic.roomId,
     );
 
     for (let i = 0; i < room.userIds.length; ++i) {
       if (room.userIds[i] != null) {
         const user = this.gameNetLogic.clientUserManager.users.get(
-          room.userIds[i]
+          room.userIds[i],
         );
         let portalSprite = user.portalSprite;
 
@@ -1028,10 +1028,10 @@ export class Game {
           this.novaInfo[n6][0] = Math.abs(WHUtil.randInt(45));
           this.novaInfo[n6][1] = boardCenterX - 5 + WHUtil.randInt(16);
           this.novaInfo[n6][2] = boardCenterX - 5 + WHUtil.randInt(16);
-          this.novaInfo[n6][3] =
-            (WHUtil.randInt(2) < 1 ? -1 : 1) * Math.random() * 4;
-          this.novaInfo[n6][4] =
-            (WHUtil.randInt(2) < 1 ? -1 : 1) * Math.random() * 4;
+          this.novaInfo[n6][3] = (WHUtil.randInt(2) < 1 ? -1 : 1) *
+            Math.random() * 4;
+          this.novaInfo[n6][4] = (WHUtil.randInt(2) < 1 ? -1 : 1) *
+            Math.random() * 4;
         }
         let array = this.novaInfo[n6];
         let n7 = 1;
@@ -1039,21 +1039,19 @@ export class Game {
         let array2 = this.novaInfo[n6];
         let n8 = 2;
         array2[n8] += this.novaInfo[n6][4];
-        context.fillStyle =
-          this.colors.colors[this.teamID == 1 ? 10 : 0][
-            this.novaInfo[n6][0] / 3
-          ];
-        context.strokeStyle =
-          this.colors.colors[this.teamID == 1 ? 10 : 0][
-            this.novaInfo[n6][0] / 3
-          ];
+        context.fillStyle = this.colors.colors[this.teamID == 1 ? 10 : 0][
+          this.novaInfo[n6][0] / 3
+        ];
+        context.strokeStyle = this.colors.colors[this.teamID == 1 ? 10 : 0][
+          this.novaInfo[n6][0] / 3
+        ];
         let n9 = 11 - this.novaInfo[n6][0] / 4;
         if (b == 1) {
           context.strokeRect(
             this.novaInfo[n6][1],
             this.novaInfo[n6][2],
             n9,
-            n9
+            n9,
           );
         } else {
           context.arc(
@@ -1061,7 +1059,7 @@ export class Game {
             this.novaInfo[n6][2],
             n9,
             0,
-            2 * Math.PI
+            2 * Math.PI,
           );
         }
         let array3 = this.novaInfo[n6];
@@ -1081,7 +1079,7 @@ export class Game {
     context.translate(x, y);
 
     const user = this.gameNetLogic.clientUserManager.users.get(
-      this.gameNetLogic.userId
+      this.gameNetLogic.userId,
     );
 
     // draw all of the fighters
@@ -1100,12 +1098,12 @@ export class Game {
     }
     context.translate(0, UserSprite.fighterData[fighterNumber][0]);
     const fighterPolygon = WHUtil.createPolygon(
-      UserSprite.shipShapes[fighterNumber]
+      UserSprite.shipShapes[fighterNumber],
     );
     WHUtil.drawScaledPoly(
       context,
       fighterPolygon,
-      UserSprite.fighterData[fighterNumber].shipScale
+      UserSprite.fighterData[fighterNumber].shipScale,
     );
     context.translate(0, -UserSprite.fighterData[fighterNumber][0]);
     if (UserSprite.fighterData[fighterNumber].trackingCannons >= 1) {
@@ -1144,7 +1142,7 @@ export class Game {
 
           // TODO send over the network that the ship has changed
           const user = this.gameNetLogic.clientUserManager.users.get(
-            this.gameNetLogic.userId
+            this.gameNetLogic.userId,
           );
           user.shipType = this.userShipType;
 
@@ -1155,7 +1153,7 @@ export class Game {
             this.board.width / 2,
             this.board.height / 2,
             this.userShipType,
-            this
+            this,
           );
           user.userSprite.addSelf();
           user.userSprite.setUser(user.userId);
@@ -1179,7 +1177,7 @@ export class Game {
     // reference the PowerupSprite smallConversionTypes array
     // get the offset of the
     const user = this.gameNetLogic.clientUserManager.users.get(
-      this.gameNetLogic.userId
+      this.gameNetLogic.userId,
     );
     for (let i = user.numPowerups - 1; i >= 0; i--) {
       let powerupNumber = user.powerups[i];
@@ -1199,7 +1197,7 @@ export class Game {
         i * 23,
         0,
         imgWidth,
-        imgHeight - 2
+        imgHeight - 2,
       );
     }
   }
@@ -1212,7 +1210,7 @@ export class Game {
       this.introX,
       this.introY,
       this.intro.width,
-      this.intro.height
+      this.intro.height,
     );
 
     context.fillStyle = "white";
@@ -1220,14 +1218,14 @@ export class Game {
     context.fillText(
       "yawc Ship Selection",
       this.introX + 100,
-      this.introY + 16
+      this.introY + 16,
     );
 
     context.font = "12px helvetica";
     context.fillText(
       "Choose a ship by clicking on it.",
       this.introX + 100,
-      this.introY + 28
+      this.introY + 28,
     );
 
     context.fillStyle = "gray";
@@ -1246,7 +1244,7 @@ export class Game {
         i,
         this.intro_shipX + i * 50 + 25,
         // this.intro_shipY + (i / 8) * 50 + 25
-        this.intro_shipY + 25
+        this.intro_shipY + 25,
       );
     }
 
@@ -1270,7 +1268,7 @@ export class Game {
       n5 - 50,
       n4 + 10,
       this.introX + 410 - (n5 - 50) - 15,
-      this.introY + 260 - n4 - 15
+      this.introY + 260 - n4 - 15,
     );
 
     let array = UserSprite.shipDescriptions[this.userShipType];
@@ -1284,7 +1282,7 @@ export class Game {
     }
 
     const user = this.gameNetLogic.clientUserManager.users.get(
-      this.gameNetLogic.userId
+      this.gameNetLogic.userId,
     );
 
     let zoomInIntro = UserSprite.fighterData[user.shipType].zoomScale;
@@ -1294,14 +1292,12 @@ export class Game {
     if (this.zoomInIntro < zoomInIntro) {
       this.zoomInIntro += zoomInIntro / 50;
       zoomInIntro = this.zoomInIntro;
-      context.strokeStyle =
-        this.colors.colors[user.slot][
-          ((zoomInIntro - this.zoomInIntro) / zoomInIntro) * 19
-        ];
-      context.fillStyle =
-        this.colors.colors[user.slot][
-          ((zoomInIntro - this.zoomInIntro) / zoomInIntro) * 19
-        ];
+      context.strokeStyle = this.colors.colors[user.slot][
+        ((zoomInIntro - this.zoomInIntro) / zoomInIntro) * 19
+      ];
+      context.fillStyle = this.colors.colors[user.slot][
+        ((zoomInIntro - this.zoomInIntro) / zoomInIntro) * 19
+      ];
     }
 
     context.translate(this.introX + 75, this.introY + 180);
@@ -1327,7 +1323,7 @@ export class Game {
   // send a network message showing that the user got the powerup
   addPowerup(powerupType) {
     const user = this.gameNetLogic.clientUserManager.users.get(
-      this.gameNetLogic.userId
+      this.gameNetLogic.userId,
     );
     if (user.numPowerups >= 5) {
       return;
@@ -1393,14 +1389,14 @@ export class Game {
         }
 
         const room = this.gameNetLogic.clientRoomManager.getRoomById(
-          this.gameNetLogic.roomId
+          this.gameNetLogic.roomId,
         );
 
         // go through the room's userState object to determine who is on what team
         this.totalOpposingUsers = 0;
 
         const thisUser = this.gameNetLogic.clientUserManager.users.get(
-          this.gameNetLogic.userId
+          this.gameNetLogic.userId,
         );
 
         // only add the portals for opposing users
@@ -1408,7 +1404,7 @@ export class Game {
           let shouldAddPortal = false;
           if (room.userIds[i] != null) {
             const user = this.gameNetLogic.clientUserManager.users.get(
-              room.userIds[i]
+              room.userIds[i],
             );
 
             if (user.userId != this.gameNetLogic.userId) {
@@ -1429,7 +1425,7 @@ export class Game {
               let portalSprite = new PortalSprite(
                 n * (360 / this.totalOpposingUsers),
                 this,
-                user
+                user,
               );
               n++;
               user.portalSprite = portalSprite;
@@ -1460,7 +1456,7 @@ export class Game {
         }
 
         const user = this.gameNetLogic.clientUserManager.users.get(
-          gamePacket.userId
+          gamePacket.userId,
         );
         if (user.gameOver) {
           return;
@@ -1487,7 +1483,7 @@ export class Game {
         const winnerSlot = gamePacket.winnerSlot;
 
         const room = this.gameNetLogic.clientRoomManager.getRoomById(
-          this.gameNetLogic.roomId
+          this.gameNetLogic.roomId,
         );
 
         this.mode = "gameOver";
@@ -1502,8 +1498,9 @@ export class Game {
           // not a team room
           // get the winning user's id
           const winningUserId = room.getUserId(winnerSlot);
-          const winningUser =
-            this.gameNetLogic.clientUserManager.users.get(winningUserId);
+          const winningUser = this.gameNetLogic.clientUserManager.users.get(
+            winningUserId,
+          );
           if (this.gameNetLogic.userId === winningUser.userId) {
             this.winningUserString = "YOU WON";
           } else {
@@ -1518,13 +1515,14 @@ export class Game {
 
       case "userDestroyed": {
         let destroyedUserId = gamePacket.destroyedUserId;
-        const destroyedUser =
-          this.gameNetLogic.clientUserManager.users.get(destroyedUserId);
+        const destroyedUser = this.gameNetLogic.clientUserManager.users.get(
+          destroyedUserId,
+        );
 
         // now we get slots
         const killerUserSlot = gamePacket.killerSlot;
         const room = this.gameNetLogic.clientRoomManager.getRoomById(
-          this.gameNetLogic.roomId
+          this.gameNetLogic.roomId,
         );
         const killerUserId = room.getUser(killerUserSlot);
 
@@ -1539,8 +1537,9 @@ export class Game {
         destroyedUser.healthPercent = 0;
 
         if (killerUserId == this.gameNetLogic.userId) {
-          const killerUser =
-            this.gameNetLogic.clientUserManager.users.get(killerUserId);
+          const killerUser = this.gameNetLogic.clientUserManager.users.get(
+            killerUserId,
+          );
           killerUser.kills++;
         }
 
@@ -1571,14 +1570,15 @@ export class Game {
           return;
         }
         // get the portalSprite for the fromUser
-        const fromUser =
-          this.gameNetLogic.clientUserManager.users.get(fromUserId);
+        const fromUser = this.gameNetLogic.clientUserManager.users.get(
+          fromUserId,
+        );
 
         this.addIncomingPowerup(
           fromUser.portalSprite,
           powerupType,
           fromUserId,
-          byte9
+          byte9,
         );
         break;
       }
@@ -1593,7 +1593,7 @@ export class Game {
     // stream.writeByte(106);
     // get the state from the clientUser
     const user = this.gameNetLogic.clientUserManager.users.get(
-      this.gameNetLogic.userId
+      this.gameNetLogic.userId,
     );
     const packet = user.getUserState();
     this.gameNetLogic.network.socket.send(JSON.stringify(packet));
@@ -1642,7 +1642,7 @@ export class Game {
 
     // get the room
     const room = this.gameNetLogic.clientRoomManager.getRoomById(
-      this.gameNetLogic.roomId
+      this.gameNetLogic.roomId,
     );
     // TODO - check that newly received packets will update the otherBar
     // check if it is a team room
@@ -1673,7 +1673,7 @@ export class Game {
     }
 
     user = this.gameNetLogic.clientUserManager.users.get(
-      this.gameNetLogic.userId
+      this.gameNetLogic.userId,
     );
     if (user.teamId <= 0) {
       return;
@@ -1687,7 +1687,7 @@ export class Game {
         0,
         1,
         3,
-        144
+        144,
       );
       this.drawMyTeamPlaceholder(context, 18);
     }
@@ -1702,7 +1702,7 @@ export class Game {
         0,
         drawTeam,
         3,
-        144
+        144,
       );
     }
     this.drawTeam(context, drawTeam + 18, b2, forceRefresh);
@@ -1719,7 +1719,7 @@ export class Game {
     this.refreshUserBar = false;
 
     const user = this.gameNetLogic.clientUserManager.users.get(
-      this.gameNetLogic.userId
+      this.gameNetLogic.userId,
     );
 
     context.fillStyle = this.gameOver ? "gray" : "black";

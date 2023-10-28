@@ -18,7 +18,7 @@ export class PortalBeamSprite extends Sprite {
       this.userSprite.x - 20,
       this.userSprite.y - 20,
       40,
-      40
+      40,
     );
 
     this.spriteType = 1;
@@ -40,11 +40,10 @@ export class PortalBeamSprite extends Sprite {
       n = 0.25;
       this.beamDirection = -0.006;
     }
-    this.attackAngle =
-      Math.atan2(
-        this.userSprite.y - this.portal.y,
-        this.userSprite.x - this.portal.x
-      ) + n;
+    this.attackAngle = Math.atan2(
+      this.userSprite.y - this.portal.y,
+      this.userSprite.x - this.portal.x,
+    ) + n;
     this.beamRad = 20;
     this.stage = 0;
     this.timeLeft = 1;
@@ -56,7 +55,8 @@ export class PortalBeamSprite extends Sprite {
     if (this.stage == 0) {
       WHUtil.setColor(
         context,
-        this.game.colors.colors[this.slot][Math.max(0, 19 - this.timeLeft * 20)]
+        this.game.colors
+          .colors[this.slot][Math.max(0, 19 - this.timeLeft * 20)],
       );
     }
     let x = 1200 * Math.cos(this.attackAngle);
@@ -68,17 +68,15 @@ export class PortalBeamSprite extends Sprite {
       if (this.stage != 0) {
         WHUtil.setColor(
           context,
-          this.game.colors.colors[this.slot][(i + this.spriteCycle) % 20]
+          this.game.colors.colors[this.slot][(i + this.spriteCycle) % 20],
         );
       }
       spriteCycle += 36;
-      let xOff =
-        2 *
+      let xOff = 2 *
         this.beamRad *
         this.timeLeft *
         Math.cos(spriteCycle * 0.017453292519943295);
-      let yOff =
-        this.beamRad *
+      let yOff = this.beamRad *
         this.timeLeft *
         Math.sin(spriteCycle * 0.017453292519943295);
       context.beginPath();
@@ -110,7 +108,7 @@ export class PortalBeamSprite extends Sprite {
         Math.cos(this.attackAngle) * n3 + this.portal.x - this.beamRad,
         Math.sin(this.attackAngle) * n3 + this.portal.y - this.beamRad,
         this.beamRad * 2,
-        this.beamRad * 2
+        this.beamRad * 2,
       );
       if (this.spriteCycle % 30 == 0) {
         --this.beamRad;

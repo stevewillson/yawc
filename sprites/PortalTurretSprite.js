@@ -59,7 +59,7 @@ export class PortalTurretSprite extends Sprite {
         this.game.user.userSprite.x,
         this.game.user.userSprite.y,
         x + this.x,
-        y + this.y
+        y + this.y,
       );
       context.fillStyle = "black";
 
@@ -76,7 +76,7 @@ export class PortalTurretSprite extends Sprite {
         this.portal.x + 115 * Math.sin(this.orbitAngle + i * 0.1),
         3,
         0,
-        2 * Math.PI
+        2 * Math.PI,
       );
       context.fill();
     }
@@ -96,7 +96,7 @@ export class PortalTurretSprite extends Sprite {
     this.orbitAngle = this.radAngle + 1.5707963267948966;
     this.setLocation(
       this.portal.x + 115 * Math.cos(this.orbitAngle),
-      this.portal.y + 115 * Math.sin(this.orbitAngle)
+      this.portal.y + 115 * Math.sin(this.orbitAngle),
     );
   }
 
@@ -113,11 +113,11 @@ export class PortalTurretSprite extends Sprite {
       this.inView &&
       this.shotDelay <= 0 &&
       WHUtil.distanceFrom(
-        this.x,
-        this.y,
-        this.game.user.userSprite.x,
-        this.game.user.userSprite.y
-      ) < 260
+          this.x,
+          this.y,
+          this.game.user.userSprite.x,
+          this.game.user.userSprite.y,
+        ) < 260
     ) {
       if (this.game.user.userSprite == null) {
         return;
@@ -132,12 +132,12 @@ export class PortalTurretSprite extends Sprite {
           1,
           10,
           this.color,
-          1
+          1,
         );
         bulletSprite.setSentByEnemy(this.slot, 7);
         bulletSprite.setVelocity(
           8 * WHUtil.scaleVector(calcLead.x, calcLead.y),
-          8 * WHUtil.scaleVector(calcLead.y, calcLead.x)
+          8 * WHUtil.scaleVector(calcLead.y, calcLead.x),
         );
         bulletSprite.addSelf();
       }

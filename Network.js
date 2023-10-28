@@ -1,20 +1,19 @@
 import { GameSettings } from "./GameSettings.js";
 
 export class Network {
-  static LOGIN_TYPE_REGISTERED = 0;
+  static = 0;
   socket;
   staticbConnected;
   gameNetLogic;
 
   constructor(gameNetLogic) {
     this.gameNetLogic = gameNetLogic;
-    // this.gameSettings = new GameSettings();
   }
 
   login(gameId, majorVersion, minorVersion, username, password) {
     // start a new websocket
     this.socket = new WebSocket(
-      `${GameSettings.socketType}://${GameSettings.host}:${GameSettings.port}/${GameSettings.endpoint}/`,
+      `${GameSettings.socketType}://${GameSettings.host}:${GameSettings.port}/${GameSettings.endpoint}/`
     );
 
     this.socket.onerror = (e) => {
@@ -57,15 +56,6 @@ export class Network {
     this.socket.send(JSON.stringify(packet));
   }
 
-  whisper(username, message) {
-    const packet = {
-      type: "whisper",
-      username,
-      message,
-    };
-    this.socket.send(JSON.stringify(packet));
-  }
-
   sendNoop() {
     const packet = {
       type: "noop",
@@ -81,7 +71,7 @@ export class Network {
     boardSize = 3,
     isBalancedRoom = false,
     allShips = true,
-    allPowerups = true,
+    allPowerups = true
   ) {
     console.log(`Sending a packet to create a new room`);
     const packet = {
@@ -116,10 +106,27 @@ export class Network {
     this.socket = null;
   }
 
-  roomSay(message) {
+  sendLobbyMessage(fromUserId, message) {
     const packet = {
-      type: "roomSay",
+      type: "lobbyMessage",
       message,
+    };
+    this.socket.send(JSON.stringify(packet));
+  }
+
+  sendRoomMessage(fromUserId, message) {
+    const packet = {
+      type: "roomMessage",
+      message,
+    };
+    this.socket.send(JSON.stringify(packet));
+  }
+
+  sendPrivateMessage(message, toUserId) {
+    const packet = {
+      type: "privateMessage",
+      message,
+      toUserId,
     };
     this.socket.send(JSON.stringify(packet));
   }
@@ -136,14 +143,6 @@ export class Network {
     const packet = {
       type: "startGame",
       roomId,
-    };
-    this.socket.send(JSON.stringify(packet));
-  }
-
-  say(message) {
-    const packet = {
-      type: "say",
-      message,
     };
     this.socket.send(JSON.stringify(packet));
   }

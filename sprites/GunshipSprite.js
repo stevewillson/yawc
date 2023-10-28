@@ -61,27 +61,26 @@ export class GunshipSprite extends Sprite {
           2,
           10,
           this.color,
-          1
+          1,
         );
         bulletSprite.setSentByEnemy(this.slot, 12);
         let calcLead = this.calcLead();
         bulletSprite.setVelocity(
           6 * WHUtil.scaleVector(calcLead.x, calcLead.y),
-          6 * WHUtil.scaleVector(calcLead.y, calcLead.x)
+          6 * WHUtil.scaleVector(calcLead.y, calcLead.x),
         );
         bulletSprite.addSelf();
       }
     }
     switch (this.mode) {
       case 0: {
-        let n2 =
-          (WHUtil.findAngle(
-            this.game.user.userSprite.x,
-            this.game.user.userSprite.y,
-            this.x,
-            this.y
-          ) +
-            (this.rightSeeker ? 90 : -90)) *
+        let n2 = (WHUtil.findAngle(
+          this.game.user.userSprite.x,
+          this.game.user.userSprite.y,
+          this.x,
+          this.y,
+        ) +
+          (this.rightSeeker ? 90 : -90)) *
           0.017453292519943295;
         this.strafeOffsetX = 200 * Math.cos(n2);
         this.strafeOffsetY = 200 * Math.sin(n2);
@@ -135,7 +134,7 @@ export class GunshipSprite extends Sprite {
         this.game.user.userSprite.x,
         this.game.user.userSprite.y,
         x + this.x,
-        y + this.y
+        y + this.y,
       );
       context.fillStyle = this.color;
       context.lineWidth = 1;
@@ -148,7 +147,7 @@ export class GunshipSprite extends Sprite {
         8,
         gunAngle + Math.PI / 8,
         gunAngle - Math.PI / 8,
-        true
+        true,
       );
       context.lineTo(x, y);
       context.fill();

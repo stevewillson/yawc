@@ -169,27 +169,27 @@ export class Server {
     });
   }
 
-  broadcastLobbyMessage(username, message) {
+  broadcastLobbyMessage(fromUserId, message) {
     this.clients.values().forEach((client) => {
-      client.sendLobbyMessage(username, message);
+      client.sendLobbyMessage(fromUserId, message);
     });
   }
 
-  broadcastRoomMessage(roomId, username, message) {
+  broadcastRoomMessage(roomId, fromUserId, message) {
     const room = this.roomManager.rooms.get(roomId);
     room.userIds.forEach((userId) => {
       if (userId != null) {
         const user = this.userManager.users.get(userId);
         const client = this.clients.get(user.clientId);
-        client.sendRoomMessage(username, message);
+        client.sendRoomMessage(fromUserId, message);
       }
     });
   }
 
-  broadcastPrivateMessage(fromUser, toUser, message) {
+  sendPrivateMessage(fromUserId, toUserId, message) {
     this.clients.values().forEach((client) => {
-      if (client.user.username == toUser || client.user.username == fromUser) {
-        client.sendPrivateMessage(fromUser, toUser, message);
+      if (client.user.userId == toUserId || client.user.userId == fromUserId) {
+        client.sendPrivateMessage(fromUserId, toUserId, message);
       }
     });
   }

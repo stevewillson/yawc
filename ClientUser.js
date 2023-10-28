@@ -106,8 +106,8 @@ export class ClientUser {
   }
 
   getUserState() {
-    let healthPercent =
-      (100 * this.userSprite.health) / this.userSprite.MAX_HEALTH;
+    let healthPercent = (100 * this.userSprite.health) /
+      this.userSprite.MAX_HEALTH;
     const packet = {
       type: "userState",
       userId: this.userId,
@@ -174,7 +174,7 @@ export class ClientUser {
           ? this.username.substring(0, 11)
           : this.username,
         30,
-        11
+        11,
       );
     }
     // TODO
@@ -204,7 +204,7 @@ export class ClientUser {
         34 + i * 21,
         29,
         imgWidth,
-        imgHeight - 2
+        imgHeight - 2,
       );
     }
     let n3 = width - 10;
@@ -277,7 +277,7 @@ export class ClientUser {
         y,
         10,
         ClientRoomManager.TEAM_COLORS[teamNum],
-        ClientRoomManager.TEAM_BG_COLORS[teamNum]
+        ClientRoomManager.TEAM_BG_COLORS[teamNum],
       );
     }
   }

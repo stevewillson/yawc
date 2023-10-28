@@ -288,6 +288,32 @@ export class GameNetLogic {
       //                 this.disconnect((utf == null) ? "Logged out" : utf);
       //                 break;
       //             }
+
+      case "lobbyMessage": {
+        // update the lobby panel with the message
+        const fromUserId = packetJSON.fromUserId;
+        const message = packetJSON.message;
+
+        break;
+      }
+
+      case "roomMessage": {
+        // update the room panel with the message
+        const fromUserId = packetJSON.fromUserId;
+        const message = packetJSON.message;
+
+        break;
+      }
+
+      case "privateMessage": {
+        // update in the lobby with a note saying that it is a special message
+
+        const fromUserId = packetJSON.fromUserId;
+        const toUserId = packetJSON.toUserId;
+        const message = packetJSON.message;
+
+        break;
+      }
       // send a private message
       // public void sendPrivateMessage(String fromUser, String toUser, String message) {
       //             case 6: {

@@ -35,13 +35,13 @@ export class EMPSprite extends Sprite {
           context,
           n4 * this.lagX,
           n4 * this.lagY,
-          20 - n4
+          20 - n4,
         );
       }
       context.translate(-n2, -n3);
       WHUtil.setColor(
         context,
-        this.game.colors.colors[this.slot][Math.max(0, 19 - n * 20)]
+        this.game.colors.colors[this.slot][Math.max(0, 19 - n * 20)],
       );
       WHUtil.drawCenteredCircle(context, 0, 0, n * 320);
       WHUtil.drawCenteredCircle(context, 0, 0, n * 320 + 1);
@@ -51,7 +51,7 @@ export class EMPSprite extends Sprite {
       for (let n5 = 0; n5 < 10; n5++) {
         WHUtil.setColor(
           context,
-          this.game.colors.colors[this.slot][(this.spriteCycle + n5) % 20]
+          this.game.colors.colors[this.slot][(this.spriteCycle + n5) % 20],
         );
         let n6 = this.radius - n5 * 2;
         if (n6 < 0) {
@@ -84,12 +84,12 @@ export class EMPSprite extends Sprite {
         }
         if (
           this.radius >
-          WHUtil.distanceFrom(
-            this.x,
-            this.y,
-            this.game.user.userSprite.x,
-            this.game.user.userSprite.y
-          )
+            WHUtil.distanceFrom(
+              this.x,
+              this.y,
+              this.game.user.userSprite.x,
+              this.game.user.userSprite.y,
+            )
         ) {
           this.game.user.userSprite.activateEMP();
           return;

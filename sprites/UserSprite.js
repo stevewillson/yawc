@@ -440,7 +440,7 @@ export class UserSprite extends Sprite {
     this.shapeRect = this.getShapeRect();
 
     this.user = this.game.gameNetLogic.clientUserManager.users.get(
-      this.game.gameNetLogic.userId
+      this.game.gameNetLogic.userId,
     );
     this.shipSelect = shipSelect;
 
@@ -501,7 +501,7 @@ export class UserSprite extends Sprite {
     context.translate(110, 25);
     // TODO - simplify getting the polygon from a rotational polygon
     const polygon = WHUtil.createPolygon(
-      UserSprite.shipShapes[this.shipSelect]
+      UserSprite.shipShapes[this.shipSelect],
     );
 
     context.lineWidth = 1;
@@ -587,7 +587,7 @@ export class UserSprite extends Sprite {
         this.killedBy = this.game.room.getUser(
           collided.slot,
           // update to use the collided userId
-          this.game.room.getUserId(collided.slot)
+          this.game.room.getUserId(collided.slot),
         );
         this.killedBySlot = collided.slot;
       }
@@ -602,7 +602,7 @@ export class UserSprite extends Sprite {
         this.game,
         30,
         this.game.color,
-        50
+        50,
       ).addSelf();
       for (let i = 0; i < 3; i++) {
         let x = this.x + WHUtil.randInt(10);
@@ -621,7 +621,7 @@ export class UserSprite extends Sprite {
         let damagingUserId = this.game.room.getUserId(collided.slot);
         this.strDamagedByUser = this.game.room.getUser(
           collided.slot,
-          damagingUserId
+          damagingUserId,
         ).username;
         this.damagingPowerup = collided.powerupType;
         this.lostHealth = health - this.health;
@@ -634,7 +634,7 @@ export class UserSprite extends Sprite {
         this.y,
         this.game,
         10,
-        this.game.color
+        this.game.color,
       ).addSelf();
     }
   }
@@ -659,12 +659,12 @@ export class UserSprite extends Sprite {
       this.bulletDamage,
       this.bulletSize,
       UserSprite.bulletColors[this.bulletType],
-      2
+      2,
     );
     bulletSprite.setUser(this.user.userId);
     bulletSprite.setVelocity(
       Math.cos(angle) * 10 + this.vx,
-      Math.sin(angle) * 10 + this.vy
+      Math.sin(angle) * 10 + this.vy,
     );
     bulletSprite.addSelf();
     this.lastShotCycle = this.spriteCycle + this.shotDelay;
@@ -712,7 +712,7 @@ export class UserSprite extends Sprite {
     // draw the user polygon
     this.rPoly.polygon.drawPolygon(
       context,
-      this.game.colors.colors[this.user.slot][0]
+      this.game.colors.colors[this.user.slot][0],
     );
 
     // undo the rotation
@@ -811,7 +811,7 @@ export class UserSprite extends Sprite {
     let thrustSprite = new ThrustSprite(
       this.x - offset * (Math.cos(angle) * 12),
       this.y - offset * (Math.sin(angle) * 12),
-      this.game
+      this.game,
     );
     thrustSprite.vx = -2 * this.vx;
     thrustSprite.vy = -2 * this.vy;
@@ -854,7 +854,7 @@ export class UserSprite extends Sprite {
         100,
         20,
         "orange",
-        2
+        2,
       );
       bulletSprite.setPowerup(this.user.powerups[this.user.numPowerups]);
       this.user.powerups[this.user.numPowerups] = null;
@@ -863,7 +863,7 @@ export class UserSprite extends Sprite {
       }
       bulletSprite.setVelocity(
         Math.cos(this.radAngle) * 10 + this.vx,
-        Math.sin(this.radAngle) * 10 + this.vy
+        Math.sin(this.radAngle) * 10 + this.vy,
       );
       bulletSprite.addSelf();
       this.lastShotCycle = this.spriteCycle + this.shotDelay;
@@ -1012,7 +1012,7 @@ export class UserSprite extends Sprite {
       this.x - this.game.viewport.width / 2,
       this.y - this.game.viewport.height / 2,
       this.game.viewport.width,
-      this.game.viewport.height
+      this.game.viewport.height,
     );
     return this.game.viewportRect;
   }

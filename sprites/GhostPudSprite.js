@@ -106,13 +106,13 @@ export class GhostPudSprite extends Sprite {
       context,
       WHUtil.randInt(3),
       WHUtil.randInt(3),
-      11
+      11,
     );
     WHUtil.drawCenteredCircle(
       context,
       WHUtil.randInt(3),
       WHUtil.randInt(3),
-      11
+      11,
     );
     for (let i = 0; i < this.polyAtoms.length; ++i) {
       this.polyAtoms[i].drawPolygon(context);
@@ -150,22 +150,22 @@ export class GhostPudSprite extends Sprite {
       this.shotDelay--;
       // get the players in the room
       const room = this.game.gameNetLogic.clientRoomManager.getRoomById(
-        this.game.gameNetLogic.roomId
+        this.game.gameNetLogic.roomId,
       );
       for (let i = 0; i < room.userIds.length; i++) {
         if (room.userIds[i] != null) {
           const user = this.game.gameNetLogic.clientUserManager.users.get(
-            room.userIds[i]
+            room.userIds[i],
           );
           if (
             user.isPlaying() &&
             user.portalSprite != null &&
             WHUtil.distanceFrom(
-              user.portalSprite.x,
-              user.portalSprite.y,
-              this.x,
-              this.y
-            ) < 60
+                user.portalSprite.x,
+                user.portalSprite.y,
+                this.x,
+                this.y,
+              ) < 60
           ) {
             this.game.usePowerup(18, 1, user.slot);
             this.killSelf();

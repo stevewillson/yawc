@@ -7,13 +7,70 @@ import { StringSprite } from "./StringSprite.js";
 
 export class PowerupSprite extends Sprite {
   static enemyRatios = [
-    0, 0, 0, 0, 0, 0, 0, 1, 0, 3, 4, 2, 1, 2, 1, 1, 1, 1, 1, 2,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    3,
+    4,
+    2,
+    1,
+    2,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
   ];
   static largeConversionTypes = [
-    0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+    0,
+    0,
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
   ];
   static smallConversionTypes = [
-    0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
   ];
   static names = [
     "GUN UPGRADE",
@@ -62,7 +119,7 @@ export class PowerupSprite extends Sprite {
   drawSelf(context) {
     WHUtil.setColor(
       context,
-      this.colors.colors[this.ctype][this.spriteCycle % 20]
+      this.colors.colors[this.ctype][this.spriteCycle % 20],
     );
 
     // TODO - set the image background color to black
@@ -87,7 +144,7 @@ export class PowerupSprite extends Sprite {
       this.x - 14,
       this.y - 14,
       imgWidth,
-      imgHeight - 2
+      imgHeight - 2,
     );
 
     context.beginPath();
@@ -130,7 +187,7 @@ export class PowerupSprite extends Sprite {
       case 3: {
         userSprite.shieldCyclesLeft = Math.max(
           450,
-          userSprite.shieldCyclesLeft + 200
+          userSprite.shieldCyclesLeft + 200,
         );
         break;
       }
@@ -168,7 +225,7 @@ export class PowerupSprite extends Sprite {
           this.x,
           this.y,
           PowerupSprite.names[this.powerupType],
-          this.game
+          this.game,
         ).addSelf();
         return;
       }
@@ -180,7 +237,7 @@ export class PowerupSprite extends Sprite {
   static genPowerup(x, y, game) {
     let powerupType = 0;
     const user = game.gameNetLogic.clientUserManager.users.get(
-      game.gameNetLogic.userId
+      game.gameNetLogic.userId,
     );
     // check if a random number
     // is divisible by 3 (1/3 chance)
@@ -236,7 +293,7 @@ export class PowerupSprite extends Sprite {
     } else {
       // check in the room if all powerups are allowed
       const room = game.gameNetLogic.clientRoomManager.getRoomById(
-        game.gameNetLogic.roomId
+        game.gameNetLogic.roomId,
       );
 
       let powerupRandNum = room.allPowerupsAllowed ? 14 : 11;

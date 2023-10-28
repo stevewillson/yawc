@@ -152,16 +152,6 @@ export class ServerThread {
     this.server.broadcastUserEvent(this.user.roomId, eventString);
   }
 
-  // /*
-  //  * Do nothing here, not sure what receiveCredits is for. We will probably never use.
-  //  */
-  // public void receiveCredits() throws IOException {
-  // 	final DataInputStream stream = this.pr.getStream();
-
-  // 	short	credits			= stream.readShort();
-  // 	int		timeElapsed		= stream.readInt();
-  // }
-
   // TODO - make sure that the message sent from the client is formatted properly
   receiveChangeTeam(packet) {
     const teamId = packet.teamId;
@@ -173,7 +163,6 @@ export class ServerThread {
     const powerupType = packet.powerupType;
     const toUserId = packet.toUserId;
     const upgradeLevel = packet.upgradeLevel;
-    // TODO - use the room Id here
     this.server.broadcastPowerup(
       this.user.roomId,
       powerupType,
@@ -199,15 +188,6 @@ export class ServerThread {
     const isTeamRoom = packet.isTeamRoom;
     const boardSize = packet.boardSize;
     const isBalancedRoom = packet.isBalancedRoom;
-
-    // const numStringPairs = packet.arrayLength;
-    // if (numStringPairs > 0){	// pretty sure this is always 0
-    // 	for (let i = 0; i<numStringPairs; i++){
-    // 		let s1 = packet.roomArray[i]
-    //     stream.readUTF();
-    // 		let  s2 = stream.readUTF();
-    // 	}
-    // }
 
     if (this.user.room != null) { // prevents spam clicking create room from doing anything
       return;
@@ -290,29 +270,29 @@ export class ServerThread {
     }
   }
 
-  receiveSay(packet) {
+  receiveLobbyMessage(packet) {
     let message = packet.message;
-    this.server.broadcastLobbyMessage(this.user.username, message);
+    this.server.broadcastLobbyMessage(this.user.userId, message);
   }
 
-  receiveRoomSay(packet) {
+  receiveRoomMessage(packet) {
     let message = packet.message;
-    if (this.user.room() != null) {
+    if (this.user.roomId != null) {
       this.server.broadcastRoomMessage(
-        this.user.room,
-        this.user.username,
+        this.user.roomId,
+        this.user.userId,
         message,
       );
     }
   }
 
-  receiveWhisper(packet) {
-    let username = packet.username;
+  receivePrivateMessage(packet) {
     let message = packet.message;
+    const toUserId = packet.toUserId;
 
-    this.server.broadcastPrivateMessage(
-      this.user.username(),
-      username,
+    this.server.sendPrivateMessage(
+      this.user.userId,
+      toUserId,
       message,
     );
   }
@@ -339,32 +319,32 @@ export class ServerThread {
     }
   }
 
-  sendLobbyMessage(username, message) {
+  sendLobbyMessage(fromUserId: string, message: string) {
     // 	byte opcode = isForLobby ? (byte)5 : (byte)18;
     const packet = {
       type: "lobbyMessage",
-      username,
+      fromUserId,
       message,
     };
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendRoomMessage(username, message) {
+  sendRoomMessage(fromUserId: string, message: string) {
     // 	byte opcode = isForLobby ? (byte)5 : (byte)18;
     const packet = {
       type: "roomMessage",
-      username,
+      fromUserId,
       message,
     };
     this.socket.send(JSON.stringify(packet));
   }
 
-  sendPrivateMessage(fromUser: string, toUser: string, message: string) {
+  sendPrivateMessage(fromUserId: string, toUserId: string, message: string) {
     // 	byte opcode = 6;
     const packet = {
       type: "privateMessage",
-      fromUser,
-      toUser,
+      fromUserId,
+      toUserId,
       message,
     };
     this.socket.send(JSON.stringify(packet));
@@ -461,31 +441,6 @@ export class ServerThread {
   sendGameStart(roomId) {
     // 	byte opcode = 80;
     // 	byte opcode2 = 100;
-    // let roomUsers: {
-    //   userId: string;
-    //   slot: number;
-    //   isGameOver: boolean;
-    //   teamId: number;
-    // }[] = [];
-    // const room = this.server.roomManager.rooms.get(roomId);
-    // room.userIds.forEach((userId) => {
-    //   if (userId != null) {
-    //     const user = this.server.userManager.users.get(userId);
-    //     roomUsers.push({
-    //       userId,
-    //       slot: user.slot,
-    //       isGameOver: false,
-    //       teamId: user.teamId,
-    //     });
-    //   }
-    // });
-
-    // const packet = {
-    //   type: "startGame",
-    //   gameId: 0,
-    //   numUsers: room.numUsers,
-    //   roomUsers,
-    // };
 
     const packet = {
       type: "startGame",
@@ -504,28 +459,6 @@ export class ServerThread {
     if (user.roomId == roomId) {
       roomPassword = room.password;
     }
-
-    // let roomUsers: { slot: number; winCount: number, teamId: number }[] = [];
-    // room.userIds.forEach((userId) => {
-    //   if (userId != "Open Slot") {
-    //     const curUser = this.server.userManager.users.get(userId);
-    //     roomUsers.push({
-    //       slot: user.slot,
-    //       winCount: room.winCountOf(user.slot),
-    //       teamId: user.teamId
-    //     });
-    //   }
-    // });
-
-    // let userTeamIds: number[] = [];
-    // if (room.isTeamRoom && user.userId == userId) {
-    //   room.userIds.forEach((userId) => {
-    //     if (user != "Open Slot") {
-    //       const curUser = this.server.userManager.users.get(userId);
-    //       userTeamIds.push(curUser.teamId);
-    //     }
-    //   });
-    // }
 
     // 	byte opcode = 102;
     const packet = {
@@ -594,11 +527,6 @@ export class ServerThread {
   }
 
   sendUserState(userId, slot, healthPercent, powerups, shipType) {
-    // sendUserState(userId, slot, healthPercent, powerups, shipType) {
-    // let powerupArray: { powerup: string }[] = [];
-    // powerups.forEach((powerup) => {
-    //   powerupArray.push(powerup);
-    // });
     // 	byte opcode1 = 80;
     // 	byte opcode2 = 106;
 
@@ -710,33 +638,43 @@ export class ServerThread {
         break;
       }
 
-      // case 5:
-      // 	receiveSay();
-      // 	break;
-      // case 6:
-      // 	receiveWhisper();
-      // 	break;
-      // case 18:
-      // 	receiveRoomSay();
-      // 	break;
+      case "lobbyMessage": {
+        // case 5:
+        this.receiveLobbyMessage(packetJSON);
+        break;
+      }
 
-      // TODO
+      case "roomMessage": {
+        // case 18:
+        this.receiveRoomMessage(packetJSON);
+        break;
+      }
+
+      case "privateMessage": {
+        // case 6:
+        this.receivePrivateMessage(packetJSON);
+        break;
+      }
+
       case "userState": {
         // case 106:
         this.receiveUserState(packetJSON);
         break;
       }
+
       // get a 'sendPowerup' message from the client
       case "sendPowerup": {
         // case 107:
         this.receivePowerup(packetJSON);
         break;
       }
+
       case "userEvent": {
         // case 109:
         this.receiveUserEvent(packetJSON);
         break;
       }
+
       case "userDestroyed": {
         // case 110:
         this.receiveUserDestroyed(packetJSON);

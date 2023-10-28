@@ -41,7 +41,7 @@ export class WallCrawlerSprite extends Sprite {
       x - 15,
       y - 30,
       WallCrawlerSprite.WC_WIDTH,
-      WallCrawlerSprite.WC_HEIGHT
+      WallCrawlerSprite.WC_HEIGHT,
     );
 
     this.spriteType = 1;
@@ -60,7 +60,7 @@ export class WallCrawlerSprite extends Sprite {
       this.directionData = WallCrawlerSprite.cc_directions;
     }
     this.rPoly.setAngle(
-      this.directionData[this.direction][2] * 0.017453292519943295
+      this.directionData[this.direction][2] * 0.017453292519943295,
     );
 
     this.vx = this.directionData[this.direction][0];
@@ -85,7 +85,7 @@ export class WallCrawlerSprite extends Sprite {
         context,
         this.color,
         this.shapeRect.x + this.shapeRect.width + 5,
-        this.shapeRect.y + this.shapeRect.height + 5
+        this.shapeRect.y + this.shapeRect.height + 5,
       );
     }
   }
@@ -104,7 +104,7 @@ export class WallCrawlerSprite extends Sprite {
         3,
         10,
         this.color,
-        1
+        1,
       );
 
       // TODO - find a way to use a computer
@@ -116,7 +116,7 @@ export class WallCrawlerSprite extends Sprite {
       const calcLead = this.calcLead();
       bulletSprite.setVelocity(
         6 * WHUtil.scaleVector(calcLead.x, calcLead.y),
-        6 * WHUtil.scaleVector(calcLead.y, calcLead.x)
+        6 * WHUtil.scaleVector(calcLead.y, calcLead.x),
       );
       bulletSprite.addSelf();
     }
@@ -130,14 +130,14 @@ export class WallCrawlerSprite extends Sprite {
         this.shapeRect.x,
         this.shapeRect.y,
         WallCrawlerSprite.WC_WIDTH,
-        WallCrawlerSprite.WC_HEIGHT
+        WallCrawlerSprite.WC_HEIGHT,
       );
     } else {
       this.shapeRect.reshape(
         this.shapeRect.x,
         this.shapeRect.y,
         WallCrawlerSprite.WC_HEIGHT,
-        WallCrawlerSprite.WC_WIDTH
+        WallCrawlerSprite.WC_WIDTH,
       );
     }
     this.rPoly.setAngle(this.directionData[this.direction][2] * WHUtil.DTOR);

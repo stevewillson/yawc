@@ -49,12 +49,14 @@ export class NukeSprite extends Sprite {
         context.textAlign = "center";
         if (this.countdown >= 0) {
           context.fillText(
-            `${this.countdown.toLocaleString("en-US", {
-              maximumFractionDigits: 2,
-              minimumFractionDigits: 2,
-            })}`,
+            `${
+              this.countdown.toLocaleString("en-US", {
+                maximumFractionDigits: 2,
+                minimumFractionDigits: 2,
+              })
+            }`,
             this.x,
-            this.y + 6
+            this.y + 6,
           );
         }
         break;
@@ -89,17 +91,17 @@ export class NukeSprite extends Sprite {
           for (let i = 0; i < this.game.room.userIds.length; i++) {
             if (this.game.room.userIds[i] != null) {
               const user = this.game.gameNetLogic.clientUserManager.users.get(
-                this.game.room.userIds[i]
+                this.game.room.userIds[i],
               );
               if (
                 user.isPlaying() &&
                 user.portalSprite != null &&
                 WHUtil.distanceFrom(
-                  user.portalSprite.x,
-                  user.portalSprite.y,
-                  this.x,
-                  this.y
-                ) < 60
+                    user.portalSprite.x,
+                    user.portalSprite.y,
+                    this.x,
+                    this.y,
+                  ) < 60
               ) {
                 this.game.usePowerup(14, 0, user.userId);
                 this.killSelf();
@@ -117,7 +119,7 @@ export class NukeSprite extends Sprite {
           this.x - this.radius - 10,
           this.y - this.radius - 10,
           this.radius * 2 + 20,
-          this.radius * 2 + 20
+          this.radius * 2 + 20,
         );
         this.shouldRemoveSelf = this.radius > 1000;
         break;
